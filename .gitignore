@@ -1,0 +1,22 @@
+# 依赖目录（本项目零第三方依赖，正常情况不会出现）
+node_modules/
+
+# 缓存与临时文件
+*.log
+*.tmp
+*.bak
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+.cache/
+temp/
+tmp/
+
+# 编辑器与系统目录
+.vscode/
+.idea/
+*.swp
+
+# 本地打包产物（正式交付物只认 dist/led-ratio-tool.html）
+/*.zip

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LED 大屏比例与视频画布换算工具</title>
+<link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <h1 class="app-header__title">LED 比例换算台</h1>
+  <p class="app-header__subtitle">按屏幕物理尺寸换算画布比例与视频像素尺寸</p>
+  <div class="app-header__actions">
+    <div class="segmented" role="radiogroup" aria-label="单位切换">
+      <button type="button" class="segmented__item unit-segment" data-unit="m" role="radio" aria-checked="true">m</button>
+      <button type="button" class="segmented__item unit-segment" data-unit="cm" role="radio" aria-checked="false">cm</button>
+      <button type="button" class="segmented__item unit-segment" data-unit="mm" role="radio" aria-checked="false">mm</button>
+    </div>
+    <button type="button" class="btn btn--ghost" id="btn-settings" aria-expanded="false" aria-controls="settings-panel">设置</button>
+  </div>
+</header>
+
+<div class="settings" id="settings-panel" role="dialog" aria-label="设置">
+  <div class="settings__row">
+    <label class="group__label" for="input-tolerance" style="margin:0">匹配容差百分比</label>
+    <input class="input" id="input-tolerance" type="text" inputmode="decimal" value="0.5">
+  </div>
+  <p class="hint">容差用于判定实际比例是否算作常见标准画幅，判定结果同时影响「非标准比例」提示。设置保存在本机浏览器中。</p>
+</div>
+
+<main class="layout">
+
+  <!-- ==================== A 栏：输入面板 ==================== -->
+  <section class="panel panel--input" aria-label="输入">
+
+    <h2 class="panel__title">屏幕输入</h2>
+
+    <div class="group">
+      <div class="group__label">屏幕尺寸</div>
+      <div class="field-row">
+        <div class="field">
+          <div class="input-wrap" id="wrap-width">
+            <input class="input" id="input-width" type="text" inputmode="decimal" placeholder="如 14" autocomplete="off">
+            <span class="input-unit" id="unit-width">m</span>
+            <div class="stepper">
+              <button type="button" class="stepper__btn" id="step-width-minus" aria-label="减小宽度">−</button>
+              <button type="button" class="stepper__btn" id="step-width-plus" aria-label="增大宽度">+</button>
+            </div>
+          </div>
+          <p class="field-error" id="error-width" role="alert"></p>
+        </div>
+        <div class="field">
+          <div class="input-wrap" id="wrap-height">
+            <input class="input" id="input-height" type="text" inputmode="decimal" placeholder="如 4" autocomplete="off">
+            <span class="input-unit" id="unit-height">m</span>
+            <div class="stepper">
+              <button type="button" class="stepper__btn" id="step-height-minus" aria-label="减小高度">−</button>
+              <button type="button" class="stepper__btn" id="step-height-plus" aria-label="增大高度">+</button>
+            </div>
+          </div>
+          <p class="field-error" id="error-height" role="alert"></p>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:var(--space-3)">
+        <button type="button" class="btn" id="btn-swap">宽高互换</button>
+        <button type="button" class="btn btn--ghost" id="btn-reset">恢复默认值</button>
+      </div>
+      <p class="hint">单位切换只改变显示值，物理尺寸与比例保持不变。</p>
+    </div>
+
+    <div class="group">
+      <div class="group__label">目标比例来源</div>
+      <div class="segmented" role="radiogroup" aria-label="目标比例来源">
+        <button type="button" class="segmented__item ratio-source-segment" data-source="screen" role="radio" aria-checked="true">以屏幕实际比例</button>
+        <button type="button" class="segmented__item ratio-source-segment" data-source="standard" role="radio" aria-checked="false">以选中标准比例</button>
+        <button type="button" class="segmented__item ratio-source-segment" data-source="custom" role="radio" aria-checked="false">自定义</button>
+      </div>
+      <div id="field-custom-ratio" style="display:none;margin-top:var(--space-2)">
+        <input class="input" id="input-custom-ratio" type="text" inputmode="numeric" placeholder="如 65:36" autocomplete="off">
+        <p class="hint">填写整数比例 a:b，系统按此比例换算。</p>
+      </div>
+      <div class="list list--scroll" id="standard-list" style="margin-top:var(--space-2)"></div>
+      <p class="hint">标注「俗称」的条目（如 21:9）其严格数学比例一并给出，不作为精确值参与计算。</p>
+    </div>
+
+    <div class="group">
+      <div class="group__label">目标画布模式</div>
+      <div class="segmented" role="radiogroup" aria-label="目标画布模式">
+        <button type="button" class="segmented__item canvas-mode-segment" data-mode="width" role="radio" aria-checked="true">按宽度</button>
+        <button type="button" class="segmented__item canvas-mode-segment" data-mode="height" role="radio" aria-checked="false">按高度</button>
+        <button type="button" class="segmented__item canvas-mode-segment" data-mode="preset" role="radio" aria-checked="false">常用规格</button>
+        <button type="button" class="segmented__item canvas-mode-segment" data-mode="custom" role="radio" aria-checked="false">整数倍</button>
+      </div>
+
+      <div id="field-mode-width" style="margin-top:var(--space-2)">
+        <div class="group__label">目标宽度（px）</div>
+        <input class="input" id="input-target-width" type="text" inputmode="numeric" value="1920" autocomplete="off">
+      </div>
+
+      <div id="field-mode-height" style="display:none;margin-top:var(--space-2)">
+        <div class="group__label">目标高度（px）</div>
+        <input class="input" id="input-target-height" type="text" inputmode="numeric" value="1080" autocomplete="off">
+      </div>
+
+      <div id="field-mode-preset" style="display:none;margin-top:var(--space-2)">
+        <div class="group__label">常用制作规格</div>
+        <div class="list list--scroll" id="preset-list"></div>
+      </div>
+
+      <div id="field-mode-custom" style="display:none;margin-top:var(--space-2)">
+        <div class="group__label">自定义整数比与上限</div>
+        <div class="field-row">
+          <div class="field">
+            <input class="input" id="input-canvas-ratio" type="text" inputmode="numeric" value="65:36" autocomplete="off" aria-label="自定义整数比例">
+            <p class="field-error" role="alert" id="error-canvas-ratio" style="min-height:0"></p>
+          </div>
+          <div class="field">
+            <input class="input" id="input-canvas-max-width" type="text" inputmode="numeric" placeholder="最大画布宽 px" autocomplete="off" aria-label="最大画布宽度">
+          </div>
+        </div>
+        <div class="field-row" style="margin-top:var(--space-2)">
+          <div class="field">
+            <input class="input" id="input-canvas-max-height" type="text" inputmode="numeric" placeholder="最大画布高 px" autocomplete="off" aria-label="最大画布高度">
+          </div>
+        </div>
+        <div class="segmented" role="radiogroup" aria-label="整数倍求解偏好" style="margin-top:var(--space-2)">
+          <button type="button" class="segmented__item prefer-segment" data-prefer="height" role="radio" aria-checked="true">以屏高定 k</button>
+          <button type="button" class="segmented__item prefer-segment" data-prefer="bounds" role="radio" aria-checked="false">严格落在上限内</button>
+        </div>
+        <p class="hint">两个解都会列出：以屏高定 k 给出精确整数倍；严格落在上限内的解单独标注。</p>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group__label">现场参数（需现场确认，本工具不推导）</div>
+      <div class="field">
+        <div class="group__label" style="margin-bottom:var(--space-1)">② LED 控制系统接收分辨率</div>
+        <input class="input" id="input-site-receive" type="text" placeholder="如 1920 × 1080" autocomplete="off">
+      </div>
+      <div class="field" style="margin-top:var(--space-2)">
+        <div class="group__label" style="margin-bottom:var(--space-1)">③ 后期软件视频合成分辨率</div>
+        <input class="input" id="input-site-composite" type="text" placeholder="如 3840 × 2160" autocomplete="off">
+      </div>
+      <div class="field" style="margin-top:var(--space-2)">
+        <div class="group__label" style="margin-bottom:var(--space-1)">④ 实际交付的视频文件分辨率</div>
+        <input class="input" id="input-site-deliver" type="text" placeholder="如 1920 × 1080" autocomplete="off">
+      </div>
+      <p class="hint">① LED 实际物理尺寸即上方「屏幕尺寸」输入项。</p>
+    </div>
+
+    <div class="group">
+      <div class="group__label">演示案例</div>
+      <div class="list list--scroll" id="demo-list"></div>
+      <p class="hint" id="demo-guidance" style="display:none"></p>
+    </div>
+
+  </section>
+
+  <!-- ==================== B 栏：可视化舞台 ==================== -->
+  <section class="panel panel--stage" aria-label="屏幕比例可视化">
+    <div class="stage" id="stage">
+      <div class="stage__tools">
+        <div class="segmented segmented--sm" role="radiogroup" aria-label="画布适配策略">
+          <button type="button" class="segmented__item stage-mode-segment" data-mode="contain" role="radio" aria-checked="true">完整显示</button>
+          <button type="button" class="segmented__item stage-mode-segment" data-mode="cover" role="radio" aria-checked="false">铺满</button>
+        </div>
+        <button type="button" class="tool-toggle" id="toggle-center" aria-pressed="false">中心线</button>
+        <button type="button" class="tool-toggle" id="toggle-grid" aria-pressed="false">九宫格</button>
+      </div>
+      <span class="badge stage__badge" id="stage-badge"></span>
+      <div class="screen-rect" id="screen-rect">
+        <div class="canvas-rect" id="canvas-rect"><span class="canvas-label" id="canvas-label"></span></div>
+        <div class="hatch-area hatch-area--crop" id="hatch-left" style="display:none"><span class="hatch-area__label"></span></div>
+        <div class="hatch-area hatch-area--crop" id="hatch-right" style="display:none"><span class="hatch-area__label"></span></div>
+        <div class="hatch-area hatch-area--bar" id="hatch-top" style="display:none"><span class="hatch-area__label"></span></div>
+        <div class="hatch-area hatch-area--bar" id="hatch-bottom" style="display:none"><span class="hatch-area__label"></span></div>
+        <div class="guide guide--grid" id="guide-grid" style="display:none">
+          <span class="v" style="left:33.333%"></span>
+          <span class="v" style="left:66.666%"></span>
+          <span class="h" style="top:33.333%"></span>
+          <span class="h" style="top:66.666%"></span>
+        </div>
+        <div class="guide guide--center-h" id="guide-center-h" style="display:none"></div>
+        <div class="guide guide--center-v" id="guide-center-v" style="display:none"></div>
+        <span class="dim dim--ratio" id="dim-ratio">— : —</span>
+        <span class="dim dim--width" id="dim-width">—</span>
+        <span class="dim dim--height" id="dim-height">—</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== C 栏：换算结果面板 ==================== -->
+  <section class="panel panel--result" aria-label="换算结果">
+
+    <h2 class="panel__title">
+      换算结果
+      <span class="badge badge--muted" id="result-badge"><span class="icon">!</span><span>需现场确认</span></span>
+    </h2>
+
+    <p class="visually-hidden" id="live-results" role="status" aria-live="polite"></p>
+
+    <div class="core-ratio">
+      <span class="ratio-value is-empty" id="ratio-value">— : —</span>
+      <span class="ratio-suffix" id="ratio-suffix"></span>
+    </div>
+    <p class="approx-line" id="approx-line" style="display:none"></p>
+    <p class="res-value" id="res-value">—</p>
+    <p class="core-note" id="core-note"></p>
+
+    <div class="result-block">
+      <div class="result-block__title">候选分辨率与匹配度</div>
+      <div class="mode-list" id="candidate-list"></div>
+    </div>
+
+    <div class="result-block">
+      <div class="result-block__title">常见比例匹配表</div>
+      <div class="table-wrap">
+        <table class="table table--match">
+          <thead>
+            <tr>
+              <th scope="col">画幅</th>
+              <th scope="col">精确比例</th>
+              <th scope="col">偏差</th>
+              <th scope="col">标准</th>
+            </tr>
+          </thead>
+          <tbody id="match-body"></tbody>
+        </table>
+      </div>
+      <p class="hint">「俗称」条目为业界约定叫法，其严格数学比例一并列出，不作为精确值使用。</p>
+    </div>
+
+    <div class="table-wrap" id="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">项目</th>
+            <th scope="col">屏幕值</th>
+            <th scope="col">画布值</th>
+            <th scope="col">偏差</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <div class="btn-row" style="margin-top:var(--space-4)">
+      <button type="button" class="btn btn--copy" id="btn-copy-resolution">
+        <span class="icon">⧉</span><span class="label">复制分辨率</span>
+      </button>
+      <button type="button" class="btn btn--copy" id="btn-copy-full">
+        <span class="icon">⧉</span><span class="label">复制完整参数</span>
+      </button>
+    </div>
+    <p class="visually-hidden" id="live-feedback" role="status" aria-live="polite"></p>
+
+    <div class="notice">
+      <span class="icon">ℹ</span>
+      <span>本工具计算的是画布比例及视频像素尺寸建议。实际交付分辨率应以 LED 控制系统、播放服务器及现场技术方提供的参数为准。</span>
+    </div>
+
+    <div class="warn-bar" id="warn-bar" style="display:none">
+      <span class="icon">▲</span>
+      <span id="warn-text"></span>
+      <button type="button" class="btn btn--ghost btn--warn-close" id="btn-warn-close" aria-label="关闭提示">×</button>
+    </div>
+
+    <div class="result-block">
+      <div class="result-block__title">计算规则说明</div>
+      <p class="hint">最简整数比：把宽高统一放大到 1/1000 毫米后取整为整数对，再用最大公约数约分，还原后相对误差 ≤ 0.0000001% 才判定为精确整数比。</p>
+      <p class="hint">近似值：当整数约分无法无损还原时，用连分数求分母不超过 10000 的最近有理数逼近，并明确标注「近似」，绝不与精确值混同。</p>
+      <p class="hint">取整策略：画布高度取整时，在相邻整数中挑选输出比例误差最小者，并与四舍五入结果同时列出，各自代价一目了然。</p>
+      <p class="hint">误差定义：宽高比相对误差 = |输出比例 − 目标比例| ÷ 目标比例；像素尺寸误差 = |取整后尺寸 − 理论尺寸| ÷ 理论尺寸，二者独立计算、分别展示。</p>
+    </div>
+
+    <div class="result-block">
+      <div class="result-block__title">常见问题</div>
+      <p class="hint">Q：为什么 14m × 4m 不是 21:9？<br>A：14 ÷ 4 = 3.5，其最简整数比是 7:2；21:9 的严格数学比例是 7:3 ≈ 2.3333，两者相差 50%，属于非标准比例。</p>
+      <p class="hint">Q：为什么 3840 × 1646 不等于 21:9？<br>A：3840 ÷ 1646 ≈ 2.3329，其严格整数比是 1920:823，只是与 7:3 接近但并不相等；21:9 只是业界俗称。</p>
+      <p class="hint">Q：物理尺寸能推出原生像素分辨率吗？<br>A：不能。物理尺寸只决定比例，像素分辨率由 LED 箱体数量、控制系统与播放服务器共同决定，需现场确认。</p>
+      <p class="hint">Q：比例不符时该裁切还是留黑边？<br>A：两种都是等比适配，本工具一律不建议拉伸画面。内容比屏幕宽时优先裁切（不切掉上下字幕与台标），内容比屏幕窄时优先左右留黑边以保全画面。</p>
+    </div>
+
+    <div class="result-block">
+      <div class="result-block__title">现场参数注意事项</div>
+      <p class="hint">本工具输出的是「画布比例 + 视频像素尺寸建议」。第 ②③④ 层参数属于现场事实，必须以 LED 控制系统、播放服务器及现场技术方提供的数值为准；在这些参数确认前，本工具的结果仅作参考。</p>
+    </div>
+
+  </section>
+
+</main>
+
+<script src="src/core.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>
