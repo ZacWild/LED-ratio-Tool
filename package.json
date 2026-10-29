@@ -1,0 +1,27 @@
+{
+  "name": "led-ratio-tool",
+  "version": "1.0.1",
+  "description": "输入 LED 屏幕物理尺寸，输出真实宽高比、最简整数比与视频画布像素尺寸建议——零依赖纯离线工具",
+  "private": true,
+  "license": "MIT",
+  "author": "LED Ratio Tool Authors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZacWild/LED-ratio-Tool.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test:unit": "node --test test/core.test.mjs",
+    "test:redlines": "node test/guard-redlines.mjs",
+    "test:e2e": "node test/acceptance.mjs",
+    "test:e2e:noshots": "node test/acceptance.mjs --no-shots",
+    "verify:reproducible": "node build.mjs && git diff --quiet dist/led-ratio-tool.html && echo '构建产物与提交一致：可复现' || (echo '构建产物与提交不一致：构建不可复现' && exit 1)",
+    "test": "npm run test:redlines && npm run test:unit && npm run build && npm run test:e2e:noshots",
+    "core:accept": "node build.mjs && node --test test/core.test.mjs && node -e \"console.log('请确认业务规则变更已获项目负责人批准，然后运行：node -e \\\"更新 core.lock.json 的 sha256\\\"')\""
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

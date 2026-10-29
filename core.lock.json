@@ -1,0 +1,6 @@
+{
+  "sha256": "dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26",
+  "note": "core.js 业务规则红线锁（按入库 LF 版本计算）。任何改动都会使 test/guard-redlines.mjs 失败。更新必须由项目负责人确认后执行 npm run core:accept。",
+  "exports": 22,
+  "file": "src/core.js"
+}
