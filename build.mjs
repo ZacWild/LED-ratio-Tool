@@ -18,10 +18,24 @@ const srcDir = join(root, 'src');
 const distDir = join(root, 'dist');
 const outFile = join(distDir, 'led-ratio-tool.html');
 
-const coreJs = readFileSync(join(srcDir, 'core.js'), 'utf8');
-const appJs = readFileSync(join(srcDir, 'app.js'), 'utf8');
-const stylesCss = readFileSync(join(srcDir, 'styles.css'), 'utf8');
-const indexHtml = readFileSync(join(root, 'index.html'), 'utf8');
+/**
+ * 规范化行尾符为 LF。
+ *
+ * 为什么需要：仓库用 .gitattributes 的 `* text=auto` 约定入库为 LF，但 Windows
+ * 上 core.autocrlf=true 会把工作区检出成 CRLF。本脚本按原始字节内联资源，
+ * 于是 CRLF 会原样传导进产物 —— 同一份源码在不同机器上构建出不同哈希，
+ * 构建不可复现，且产物与仓库中已提交的 dist 不一致。
+ *
+ * 只改行尾符，不改任何字符内容，因此不影响渲染与计算结果。
+ */
+function toLf(text) {
+  return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+
+const coreJs = toLf(readFileSync(join(srcDir, 'core.js'), 'utf8'));
+const appJs = toLf(readFileSync(join(srcDir, 'app.js'), 'utf8'));
+const stylesCss = toLf(readFileSync(join(srcDir, 'styles.css'), 'utf8'));
+const indexHtml = toLf(readFileSync(join(root, 'index.html'), 'utf8'));
 
 /**
  * 把 HTML 里的外链标签替换为内联内容。

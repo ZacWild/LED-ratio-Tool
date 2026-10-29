@@ -1323,9 +1323,13 @@ await t('T1', 'dist 单文件版完全自包含（无外链 / 无 CDN / 无网�
 await t('T2', 'dist 内容与 src 当前版本一致（离线版未过期）', async () => {
   const html = readFileSync(join(ROOT, 'dist', 'led-ratio-tool.html'), 'utf8');
   const scripts = [...html.matchAll(/<script>\n([\s\S]*?)\n<\/script>/g)].map((m) => m[1]);
-  const core = readFileSync(join(ROOT, 'src', 'core.js'), 'utf8');
-  const app = readFileSync(join(ROOT, 'src', 'app.js'), 'utf8');
-  const css = readFileSync(join(ROOT, 'src', 'styles.css'), 'utf8');
+  // 与 build.mjs 的 toLf() 同口径：构建把内联资源规范化为 LF，
+  // 因此这里也按 LF 比较，避免 Windows 工作区 CRLF 造成假失败。
+  // 比较强度不变 —— 仍是逐字节严格相等，只是不再受行尾符噪声影响。
+  const toLf = (s) => s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const core = toLf(readFileSync(join(ROOT, 'src', 'core.js'), 'utf8'));
+  const app = toLf(readFileSync(join(ROOT, 'src', 'app.js'), 'utf8'));
+  const css = toLf(readFileSync(join(ROOT, 'src', 'styles.css'), 'utf8'));
   assert(scripts.some((s) => s === core), 'dist 内联 core.js 与 src 不一致（离线版已过期）');
   assert(scripts.some((s) => s === app), 'dist 内联 app.js 与 src 不一致（离线版已过期）');
   const m = html.match(/<style>\n([\s\S]*?)\n<\/style>/);
