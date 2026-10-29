@@ -18,7 +18,7 @@
     "test:redlines": "node test/guard-redlines.mjs",
     "test:e2e": "node test/acceptance.mjs",
     "test:e2e:noshots": "node test/acceptance.mjs --no-shots",
-    "verify:reproducible": "node build.mjs && git diff --quiet dist/led-ratio-tool.html && echo '构建产物与提交一致：可复现' || (echo '构建产物与提交不一致：构建不可复现' && exit 1)",
+    "verify:reproducible": "node build.mjs && git diff --quiet dist/led-ratio-tool.html && echo OK: build output matches commit (reproducible) || (echo FAIL: build output differs from commit (not reproducible) && exit 1)",
     "test": "npm run test:redlines && npm run test:unit && npm run build && npm run test:e2e:noshots",
     "core:accept": "node build.mjs && node --test test/core.test.mjs && node -e \"console.log('请确认业务规则变更已获项目负责人批准，然后运行：node -e \\\"更新 core.lock.json 的 sha256\\\"')\""
   },
