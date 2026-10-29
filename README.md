@@ -23,7 +23,8 @@
 
 ### 普通使用：下载单文件版
 
-前往仓库的 [Releases](https://github.com/ZacWild/LED-ratio-Tool/releases) 下载发布文件；如果没有发布版本，也可以在仓库的 `dist/` 目录中获取 `led-ratio-tool.html`。
+**下载工具：** [下载 led-ratio-tool.html](https://github.com/ZacWild/LED-ratio-Tool/raw/refs/heads/main/dist/led-ratio-tool.html)，保存到本地后使用浏览器打开即可。
+如果没有发布版本，也可以在仓库的 `dist/` 目录中获取 `led-ratio-tool.html`。
 
 1. 双击打开 HTML 文件，无需安装。
 2. 输入 LED 屏幕的实际宽度和高度，并确认单位。
