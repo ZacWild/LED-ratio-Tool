@@ -1,379 +1,533 @@
 {
-  "$schema": "LED-ratio-Tool / L2 黄金向量 v1",
+  "$schema": "led-golden-vectors/v2",
   "$meta": {
-    "purpose": "L2 人工确认黄金向量 —— DEC-15 三层期望源的第二层。L1 独立算术 oracle 无法覆盖的**文案类**字段（连分数近似文本、适配建议文案、21:9 警示文案、复制完整参数载荷、越界回退说明）由本文件承载。",
-    "authority": "P4-BASELINE.md DEC-15；P3-D09 §6.1（L2 覆盖字段）与 §6.3（F16/F19/F23/F25 = L2）",
-    "independence_rule": "本文件的期望值必须由**人工逐条确认**后录入。🔴 严禁由任何脚本从 src/core.js 或 src/app.js 自动导出的快照充当期望值（同源 = 无效）。",
+    "title": "L2 人工确认黄金向量（P3-D09 §6.1 第二层期望源）",
+    "rule": "DEC-15：一组通过 ⇔ L1 或 L2 至少一层覆盖且判定通过；L3 不可单独作判据",
+    "confirmationPolicy": "🔴 全部向量保持 pending_confirmation。只有项目负责人逐条确认后才可改为 confirmed；研发/测试角色无权批量确认（TK-130）。",
+    "inputSemantics": "input 是**产品级场景输入**（与 200 组差分的 spec 同构），由 golden-vectors.mjs 用 __dtApply 驱动 HTML 与 Electron 两端；expected 的键必须与 test/oracle/l2-harness.mjs 字段注册表的 keys 一致。",
+    "vectorCount": 22,
+    "revision": "v2（P4-B 修订）：GV-003 修正 letterbox 预期值 960→690；GV-006 拆分 warnBar.visible 字段；GV-009 记录 UI 不可达；GV-011 补齐完整文本且行数口径 14→16；GV-021/022 补场景级 input；其余逐条核验。",
+    "expectedValueProvenance": "🔴 expected 的人工成分：本版 expected 由研发依据 core.js/app.js 的公开契约独立推导并逐条核验后誊写，标注为『研发推导待人工确认』——在项目负责人逐条确认前，不得视为已确认黄金向量。",
+    "independence_rule": "本文件的期望值必须由项目负责人逐条确认后方可作为 L2 判据。严禁由任何脚本从 src/core.js 或 src/app.js 自动导出快照充当期望值（同源 = 无效）。",
     "confirmation_states": {
-      "confirmed": "已由项目负责人逐条确认背书 —— 本文件中的该条目可作为 L2 判据。",
-      "pending_confirmation": "🔴 已录入候选期望值，但**尚未**经项目负责人确认 —— 在确认前，该条目**不得**作为判定通过的唯一依据（须降级为「未覆盖」统计口径的一部分）。"
+      "confirmed": "已由项目负责人逐条确认背书 —— 该条目可作为 L2 判据。",
+      "pending_confirmation": "已录入候选期望值但尚未经项目负责人确认 —— 不得计入 L2 已确认覆盖（机器闸，见 l2-harness.summarize）。"
     },
-    "current_confirmation_state": "🔴 pending_confirmation —— 本轮全部条目均待项目负责人确认。原因：本轮测试交付由测试官执行，无项目负责人对具体常量的书面背书记录。按纪律，宁可少报覆盖率，也不得自行宣称「已确认黄金向量」。",
-    "generator": "人工录入（依据 P3-D02 §6 文本来源铁律 / P3-D09 §6.3 F16/F19/F23/F25 字段定义逐条誊写产品契约文本）",
     "generated_at": "2026-10-30",
-    "note_on_L2_role": "L2 的价值在于「文本逐字正确」。若 L2 未确认，则 F16/F19/F23/F25 这 4 个字段在 L1/L2 覆盖率统计中记为未覆盖（计入 M），差异条数 N 不受影响 —— 这正是 DEC-15 要求披露 M 的意义。"
+    "note_on_L2_role": "L2 的价值在于『文本逐字正确』。若 L2 未确认，则对应字段在 L1/L2 覆盖率统计中记为未覆盖（计入 M），差异条数 N 不受影响 —— 这正是 DEC-15 要求披露 M 的意义。"
   },
-
   "vectors": [
     {
       "id": "GV-001",
       "field": "fitAdvice.describeFit",
-      "source": "P3-D09 §6.3 F23；产品契约：app.js describeFit()（'比例一致，无需裁切或补边' / '需裁切（左右各 Xpx）' / '需留黑边（左右各 Xpx）'）",
       "input": {
-        "canvasWidth": 1920,
-        "canvasHeight": 549,
-        "contentRatio": 3.5,
-        "fitMode": "crop",
-        "cropAxis": "x"
+        "unit": "m",
+        "widthText": "14",
+        "heightText": "4",
+        "ratioSource": "screen",
+        "canvasMode": "width",
+        "targetWidth": 1920
       },
       "expected": {
         "describeFitText": "需裁切（左右各 0.75px）"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.3 F23；app.js describeFit() crop 分支",
+      "derivation": "canvasFromWidth(1920, 3.5) → 1920×549；fitAdvice(1920,549,3.5) → mode=crop, cropAxis=x, cropPx=0.75 → 文案『需裁切（左右各 0.75px）』（fmt(0.75,2)=0.75）",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "v1 的 input 是函数级参数（canvasWidth/contentRatio/fitMode），无法驱动产品；v2 改为场景级 input。预期值经 core 实算核验一致。"
+      }
     },
     {
       "id": "GV-002",
       "field": "fitAdvice.describeFit",
-      "source": "P3-D09 §6.3 F23；exact 分支",
       "input": {
-        "canvasWidth": 1920,
-        "canvasHeight": 1080,
-        "contentRatio": 1.7777777777777777,
-        "fitMode": "exact"
+        "unit": "m",
+        "widthText": "16",
+        "heightText": "9",
+        "ratioSource": "screen",
+        "canvasMode": "width",
+        "targetWidth": 1920
       },
       "expected": {
         "describeFitText": "比例一致，无需裁切或补边"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.3 F23；exact 分支",
+      "derivation": "canvasFromWidth(1920, 16/9) → 1920×1080；fitAdvice(1920,1080,16/9) → mode=exact → 文案『比例一致，无需裁切或补边』",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "同 GV-001 的场景化改造；预期值经 core 实算核验一致。"
+      }
     },
     {
       "id": "GV-003",
       "field": "fitAdvice.describeFit",
-      "source": "P3-D09 §6.3 F23；letterbox 分支（上下轴向由 containBarAxis 决定）",
       "input": {
-        "canvasWidth": 1920,
-        "canvasHeight": 1080,
-        "contentRatio": 0.5,
-        "fitMode": "letterbox",
-        "pillarboxAxis": "x",
-        "pillarboxPx": 960
+        "unit": "m",
+        "widthText": "2",
+        "heightText": "4",
+        "ratioSource": "custom",
+        "customRatio": "1:2",
+        "canvasMode": "preset",
+        "presetKey": "1920×1080"
       },
       "expected": {
-        "describeFitText": "需留黑边（左右各 960.00px）"
+        "describeFitText": "需留黑边（左右各 690.00px）"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.3 F23；letterbox 分支",
+      "derivation": "预设 1920×1080（realRatio=16/9）+ 目标比例 1:2 → fitAdvice(1920,1080,0.5) → mode=letterbox, pillarboxAxis=x, pillarboxPx=(1920−1080×0.5)/2=690 → 文案『需留黑边（左右各 690.00px）』",
+      "review": {
+        "status": "已修正，研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "🔴 v1 缺陷（任务书 P0-3 点名）：v1 写『需留黑边（左右各 960.00px）』，但 core.fitAdvice(1920,1080,0.5) 实算 pillarboxPx=690（960 是 1920/2 的误推，未考虑内容高铺满 1080 后内容宽仅 540）。v2 已按实算值修正。"
+      }
     },
     {
       "id": "GV-004",
       "field": "warnText",
-      "source": "P3-D09 §6.3 F19；产品契约：app.js renderWarnBar() 第一分支（目标比例不属于常见标准画幅）+ 🔒 A-01 NEAR_21_9_PERCENT=2.5",
       "input": {
-        "targetRatio": 3.5,
-        "tolerancePercent": 0.5,
-        "isStandard": false,
-        "diffTo21PercentText": "50.0000"
+        "unit": "m",
+        "widthText": "7",
+        "heightText": "2",
+        "ratioSource": "custom",
+        "customRatio": "7:2"
       },
       "expected": {
         "warnText": "目标比例不属于常见标准画幅（容差 0.50%）。目标比例与俗称 21:9（严格值 7:3）相差 50.0000%，不能按 21:9 处理。"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.3 F19；renderWarnBar() 第一分支 + 🔒 A-01 NEAR_21_9_PERCENT=2.5",
+      "derivation": "目标比例 7:2=3.5 不属于任何标准（容差 0.5% 内无匹配）→ 首句『…（容差 0.50%）』；matchStandards 返回全表故 std21 恒存在，diffTo21=|3.5−7/3|/(7/3)×100=50.0000% → 第一分支追加『相差 50.0000%，不能按 21:9 处理』",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "v1 input 为函数级参数；v2 改为自定义比例 7:2 场景。fmt(0.5,2)=0.50、fmtErrorPercent(49.999999999999986)=50.0000 均经 core 实算核验。"
+      }
     },
     {
       "id": "GV-005",
       "field": "warnText",
-      "source": "P3-D09 §6.3 F19；产品契约：app.js renderWarnBar() 第二分支（是标准画幅但与 21:9 足够接近）",
       "input": {
-        "targetRatio": 2.388888888888889,
-        "tolerancePercent": 0.5,
-        "isStandard": true,
-        "closestName": "3440×1440",
-        "diffTo21PercentText": "2.3810"
+        "unit": "mm",
+        "widthText": "3440",
+        "heightText": "1440",
+        "ratioSource": "standard",
+        "standardKey": "3440×1440"
       },
       "expected": {
         "warnText": "目标比例最接近「3440×1440」，目标比例与俗称 21:9（严格值 7:3）相差 2.3810%，不能按 21:9 解读。"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.3 F19；renderWarnBar() 第二分支（标准画幅但与 21:9 足够接近）",
+      "derivation": "目标比例取标准 3440×1440 的 exactValue=43/18；matchStandards 判定 isStandard=true、closest=3440×1440；diffTo21=|43/18−7/3|/(7/3)×100=2.3810% ≤ 2.5% → 第二分支澄清文案",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "v1 input 为函数级参数；v2 改为标准画幅场景。2.3810% 经 core 实算核验（2.3809523809523725 → roundErrorPercent → 2.3810）。"
+      }
     },
     {
       "id": "GV-006",
-      "field": "warnText",
-      "source": "P3-D09 §6.3 F19；未触发时警示条不显示（els.warnBar.style.display='none'）",
+      "field": "warnBar.visible",
       "input": {
-        "targetRatio": 1.7777777777777777,
-        "tolerancePercent": 0.5,
-        "isStandard": true,
-        "diffTo21PercentText": "23.8095"
+        "unit": "m",
+        "widthText": "16",
+        "heightText": "9",
+        "ratioSource": "screen"
       },
       "expected": {
         "warnVisible": false
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.3 F19；未触发时警示条不显示",
+      "derivation": "目标比例 16:9 是标准画幅，diffTo21=|16/9−7/3|/(7/3)×100=23.8095% > 2.5% → 既非第一分支也非第二分支 → warnBar.style.display='none'",
+      "review": {
+        "status": "已修正，研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "🔴 v1 缺陷：field 写 warnText 而 expected 键写 warnVisible（键不匹配，v.expected[v.field] 恒 undefined）。v2 将字段改为 warnBar.visible，与注册表 keys 对齐。"
+      }
     },
     {
       "id": "GV-007",
       "field": "overflowFallback",
-      "source": "P3-D09 §6.3 F16；产品契约：core.bestIntegerCanvas() 的 overflowFallback = (primary !== recommended)",
       "input": {
-        "integerRatio": "65:36",
+        "unit": "m",
+        "widthText": "14",
+        "heightText": "4",
+        "ratioSource": "screen",
+        "canvasMode": "custom",
+        "customCanvasRatio": "65:36",
         "maxWidth": 1000,
         "maxHeight": 1000,
-        "prefer": "height",
-        "primaryK": 27,
-        "recommendedK": 15
+        "prefer": "height"
       },
       "expected": {
         "overflowFallback": true
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.3 F16；bestIntegerCanvas 的 overflowFallback=(primary!==recommended)",
+      "derivation": "bestIntegerCanvas(65/36,{maxWidth:1000,maxHeight:1000,prefer:'height'}) → preferred k=27 → 1755×972，宽超限 755px；recommended k=15 → 975×540 在界内 → primary≠recommended → overflowFallback=true，候选 meta 出现『所选档位的解已超宽』",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "v1 input 为函数级参数（integerRatio/maxWidth/prefer/primaryK/recommendedK）；v2 改为自定义整数倍场景。expected 经 core 实算核验一致。"
+      }
     },
     {
       "id": "GV-008",
       "field": "overflowFallback",
-      "source": "P3-D09 §6.3 F16；界内解存在且为 primary 时 overflowFallback=false",
       "input": {
-        "integerRatio": "65:36",
+        "unit": "m",
+        "widthText": "14",
+        "heightText": "4",
+        "ratioSource": "screen",
+        "canvasMode": "custom",
+        "customCanvasRatio": "65:36",
         "maxWidth": 1920,
         "maxHeight": 1080,
-        "prefer": "bounds",
-        "primaryK": 29,
-        "recommendedK": 29
+        "prefer": "bounds"
       },
       "expected": {
         "overflowFallback": false
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.3 F16；界内解存在且为 primary 时 overflowFallback=false",
+      "derivation": "bestIntegerCanvas(65/36,{maxWidth:1920,maxHeight:1080,prefer:'bounds'}) → k=29 → 1885×1044 完全在界内 → primary===recommended → overflowFallback=false",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "同 GV-007 的场景化改造；expected 经 core 实算核验一致。"
+      }
     },
     {
       "id": "GV-009",
       "field": "nearest.text",
-      "source": "P3-D09 §6.1 L2 覆盖字段「nearest.text（连分数）」；产品契约：core.bestRational() + 连分数逼近",
-      "input": {
-        "widthMm": 4135,
-        "heightMm": 1000,
-        "note": "4.135m × 1m —— 输入精度不足导致非精确，走连分数逼近路径"
-      },
-      "expected": {
-        "nearestText": null,
-        "nearestExact": false,
-        "note": "🔴 本条期望值必须由人工从连分数逼近结果誊写。测试官**不得**通过调用 core.js 取得该值后冒充人工确认 —— 在项目负责人确认前，本条应保持 pending_confirmation 且期望值为 null（= 视为未覆盖）。"
-      },
-      "confirmation_status": "pending_confirmation"
+      "input": {},
+      "expected": {},
+      "reachability": "ui-unreachable",
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.1 L2 覆盖字段『nearest.text（连分数）』",
+      "derivation": "computeRatio 的 nearest 仅在 restoredRelError>1e-9（输入精度不足 1/1000mm）时非空；parseDimension 最多接受一位小数，m/cm/mm 三档换算后 mm 值均为整数 → 整数约分可无损还原 → exact 恒为 true、nearest 恒为 null。",
+      "review": {
+        "status": "UI 不可达 —— 无法构造有效黄金向量",
+        "checkedAt": "2026-10-30",
+        "note": "🔴 实测扫描 1200 组 UI 可达输入（3 单位 × 20×20 文本）+ 8 组极端值（含 99999999.9m×0.1m 悬殊比），exact=false 的数量为 0。即 nearest.text 的非空路径在产品 UI 上不可达，只在直接调用 computeRatio 且传入亚微米精度时才触发。本向量不提供 expected（空 expected 会触发 empty_expected 校验失败，这是诚实的：无法覆盖就不计入覆盖），不计入 L2 覆盖率，也不判 FAIL。nearest.text 字段在 200 组差分中由 L1 以 null===null 覆盖。"
+      }
     },
     {
       "id": "GV-010",
       "field": "resolutionText",
-      "source": "P3-D09 §6.3 F24；🔒 BM-28：纯文本 `宽×高`，× 为 U+00D7，不带千分位",
       "input": {
-        "outputWidth": 4900,
-        "outputHeight": 1400
+        "unit": "m",
+        "widthText": "14",
+        "heightText": "4",
+        "ratioSource": "screen",
+        "canvasMode": "width",
+        "targetWidth": 4900
       },
       "expected": {
-        "resolutionText": "4900×1400",
-        "separatorCodePoint": "00D7",
-        "hasComma": false
+        "resolutionText": "4900×1400"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.3 F24；🔒 BM-28 纯文本 宽×高，× 为 U+00D7，不带千分位",
+      "derivation": "canvasFromWidth(4900, 3.5) → 4900×1400；复制分辨率载荷 = 宽×高，无千分位逗号",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "v1 input 为函数级参数（outputWidth/outputHeight）；v2 改为场景级 input（与 TC-COPY-01 同场景，已实测通过）。"
+      }
     },
     {
       "id": "GV-011",
       "field": "fullParameterText",
-      "source": "P3-D09 §6.3 F25；产品契约：app.js buildFullParameterText() 的 14 段格式（首行 + 屏幕尺寸 + 实际比例 + 最简整数比 + 目标比例来源 + 画布分辨率 + 输出比例 + 宽高比相对误差 + 像素尺寸误差 + 是否严格匹配 + 等比适配方案 + 空行 + 现场确认标题 + ③④ 三行）",
       "input": {
+        "unit": "m",
         "widthText": "14",
         "heightText": "4",
-        "unit": "m",
-        "targetWidth": "4900",
-        "tolerancePercent": 0.5,
-        "siteReceive": "",
-        "siteComposite": "",
-        "siteDeliver": ""
+        "ratioSource": "screen",
+        "canvasMode": "width",
+        "targetWidth": 4900,
+        "tolerance": 0.5
       },
       "expected": {
-        "fullParameterText": null,
-        "fieldCount": 14,
-        "note": "🔴 完整 14 段文本必须由人工逐字誊写并经项目负责人确认。测试官**不得**从 app.js 运行时截取后直接充当 L2 期望值（同源 = 无效）。确认前本条记为未覆盖。"
+        "fullParameterText": "LED 屏比例换算参数\n屏幕实际尺寸：14 m × 4 m\n实际比例：3.5000 : 1\n最简整数比例：7:2\n目标比例来源：屏幕实际比例\n目标画布分辨率：4900×1400\n输出比例：3.5 : 1\n宽高比相对误差：0\n像素尺寸误差：0\n是否严格匹配：是\n等比适配方案：比例一致，无需裁切或补边（不建议拉伸画面）\n\n以下参数需现场确认（本工具不推导）：\n  ② LED 控制系统接收分辨率：未填写\n  ③ 后期软件视频合成分辨率：未填写\n  ④ 实际交付的视频文件分辨率：未填写"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "P3-D09 §6.3 F25；app.js buildFullParameterText()",
+      "derivation": "研发按 buildFullParameterText() 的字段契约逐项推导（首行 + 屏幕尺寸 + 实际比例 + 最简整数比 + 目标比例来源 + 目标画布分辨率 + 输出比例 + 宽高比相对误差 + 像素尺寸误差 + 是否严格匹配 + 等比适配方案 + 空行 + 现场确认提示 + 3 条现场参数），并在 HTML 与 Electron 两端实跑誊写。",
+      "review": {
+        "status": "已补齐，研发誊写待人工逐字确认",
+        "checkedAt": "2026-10-30",
+        "note": "🔴 v1 缺陷（任务书 P0-3 点名）：fullParameterText 为 null 且行数口径写 14。v2 实测为 16 行（v1 的 14 行口径错误：漏数了空行与三条现场参数中的一条）。🔴 本 expected 是研发从产品实跑誊写（HTML/Electron 两端一致），不是人工独立推导的期望值 —— 按 TK-130 口径必须由项目负责人逐字确认后才可作为 L2 判据；确认前本字段不计入 L2 已确认覆盖。另注：HTML 侧剪贴板读出为 CRLF、Electron 侧为 LF（内容相同），注册表已做行尾归一化。"
+      }
     },
     {
       "id": "GV-012",
       "field": "badge",
-      "source": "🔒 A-08 renderBadge() 五态与判定优先级（RS-02 > RS-03 > RS-04）；P3-D09 §6.3 F28",
       "input": {
-        "dimsOk": true,
-        "targetRatio": 3.5,
-        "tolerancePercent": 0.5,
-        "strictMatch": false
+        "unit": "m",
+        "widthText": "7",
+        "heightText": "2",
+        "ratioSource": "custom",
+        "customRatio": "7:2",
+        "canvasMode": "width",
+        "targetWidth": 1920
       },
       "expected": {
         "badgeCode": "RS-02",
         "badgeLabel": "非标准比例"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 A-08 renderBadge() 五态与判定优先级（RS-02 > RS-03 > RS-04）",
+      "derivation": "目标比例 3.5 不属于标准画幅 → badge--warning + ▲ + 『非标准比例』（优先级高于严格匹配）",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "v1 input 为函数级参数（dimsOk/targetRatio/tolerancePercent/strictMatch）；v2 改为场景级 input。"
+      }
     },
     {
       "id": "GV-013",
       "field": "badge",
-      "source": "🔒 A-08；RS-03 取整误差（是标准画幅但不严格匹配）",
       "input": {
-        "dimsOk": true,
-        "targetRatio": 2.388888888888889,
-        "tolerancePercent": 0.5,
-        "strictMatch": false
+        "unit": "mm",
+        "widthText": "3440",
+        "heightText": "1440",
+        "ratioSource": "standard",
+        "standardKey": "3440×1440",
+        "canvasMode": "width",
+        "targetWidth": 1920
       },
       "expected": {
         "badgeCode": "RS-03",
         "badgeLabel": "取整误差"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 A-08；RS-03 取整误差（是标准画幅但不严格匹配）",
+      "derivation": "目标 43/18 是标准画幅；canvasFromWidth(1920, 43/18) → 1920×804，outputRatio=2.38806 与目标差 0.0348% > 1e-7% → strictMatch=false → badge--info + Δ + 『取整误差』",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "同 GV-012 的场景化改造。"
+      }
     },
     {
       "id": "GV-014",
       "field": "badge",
-      "source": "🔒 A-08；RS-04 严格匹配",
       "input": {
-        "dimsOk": true,
-        "targetRatio": 1.7777777777777777,
-        "tolerancePercent": 0.5,
-        "strictMatch": true
+        "unit": "m",
+        "widthText": "16",
+        "heightText": "9",
+        "ratioSource": "screen",
+        "canvasMode": "width",
+        "targetWidth": 1920
       },
       "expected": {
         "badgeCode": "RS-04",
         "badgeLabel": "严格匹配"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 A-08；RS-04 严格匹配",
+      "derivation": "目标 16/9 是标准画幅；canvasFromWidth(1920, 16/9) → 1920×1080 严格匹配 → badge--success + ✓ + 『严格匹配』",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "同 GV-012 的场景化改造。"
+      }
     },
     {
       "id": "GV-015",
       "field": "badge",
-      "source": "🔒 A-08；RS-01 输入有误（尺寸不合法，优先级最高）",
       "input": {
-        "dimsOk": false,
-        "targetRatio": null
+        "unit": "m",
+        "widthText": "",
+        "heightText": "4"
       },
       "expected": {
         "badgeCode": "RS-01",
         "badgeLabel": "输入有误"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 A-08；RS-01 输入有误（尺寸不合法，优先级最高）",
+      "derivation": "宽度为空 → parseDimension error=empty → dims.ok=false → badge--error + ! + 『输入有误』",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "同 GV-012 的场景化改造。"
+      }
     },
     {
       "id": "GV-016",
       "field": "badge",
-      "source": "🔒 A-08；RS-05 需现场确认（尺寸合法但目标比例为空）",
       "input": {
-        "dimsOk": true,
-        "targetRatio": null
+        "unit": "m",
+        "widthText": "14",
+        "heightText": "4",
+        "ratioSource": "custom",
+        "customRatio": ""
       },
       "expected": {
         "badgeCode": "RS-05",
         "badgeLabel": "需现场确认"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 A-08；RS-05 需现场确认（尺寸合法但目标比例为空）",
+      "derivation": "尺寸合法但自定义比例为空 → target.ratio=null → badge--muted + ! + 『需现场确认』",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "v1 input 的 dimsOk/targetRatio 为函数级参数；v2 改为『合法尺寸 + 空自定义比例』场景（ratioSource=screen 时目标比例恒非空，必须走 custom 空值路径）。"
+      }
     },
     {
       "id": "GV-017",
       "field": "error.message",
-      "source": "🔒 ER-01（core.js parseDimension 空串）；P3-D09 §5.1 四条错误文案必须互不相同",
       "input": {
+        "unit": "m",
         "widthText": "",
-        "heightText": "4",
-        "unit": "m"
+        "heightText": "4"
       },
       "expected": {
-        "errorCode": "empty",
         "message": "请输入尺寸"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 ER-01（parseDimension 空串）；P3-D09 §5.1 四条错误文案必须互不相同",
+      "derivation": "parseDimension('','m') → error=empty, message='请输入尺寸'；describeError 原样返回",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "v1 input 已是场景级（widthText/heightText/unit），无需改造；文案经 core 实算核验一致。"
+      }
     },
     {
       "id": "GV-018",
       "field": "error.message",
-      "source": "🔒 ER-02（core.js parseDimension 非法字符）",
       "input": {
+        "unit": "m",
         "widthText": "abc",
-        "heightText": "4",
-        "unit": "m"
+        "heightText": "4"
       },
       "expected": {
-        "errorCode": "nan",
         "message": "尺寸必须是有效数字（最多一位小数点）"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 ER-02（parseDimension 非法字符）",
+      "derivation": "parseDimension('abc','m') → error=nan, message='尺寸必须是有效数字（最多一位小数点）'",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "文案经 core 实算核验一致。"
+      }
     },
     {
       "id": "GV-019",
       "field": "error.message",
-      "source": "🔒 ER-03（core.js parseDimension 值为 0）",
       "input": {
+        "unit": "m",
         "widthText": "0",
-        "heightText": "4",
-        "unit": "m"
+        "heightText": "4"
       },
       "expected": {
-        "errorCode": "nonPositive",
         "message": "尺寸必须大于 0"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 ER-03（parseDimension 值为 0）",
+      "derivation": "parseDimension('0','m') → error=nonPositive, value=0 → describeError 不走负数分支 → message='尺寸必须大于 0'",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "文案经 core 实算核验一致。"
+      }
     },
     {
       "id": "GV-020",
       "field": "error.message",
-      "source": "🔒 ER-04（app.js describeError 负数分支，与 ER-03 文案必须不同）",
       "input": {
+        "unit": "m",
         "widthText": "-4",
-        "heightText": "4",
-        "unit": "m"
+        "heightText": "4"
       },
       "expected": {
-        "errorCode": "nonPositive",
         "message": "尺寸不能为负数，请输入大于 0 的数值"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 ER-04（app.js describeError 负数分支，与 ER-03 文案必须不同）",
+      "derivation": "parseDimension('-4','m') → error=nonPositive, value=-4<0 → describeError 走负数专分支 → 『尺寸不能为负数，请输入大于 0 的数值』（与 ER-03 的『尺寸必须大于 0』不同）",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "文案经 core + app.js describeError 逻辑核验一致。"
+      }
     },
     {
       "id": "GV-021",
       "field": "fmtErrorPercent",
-      "source": "🔒 A-07 fmtErrorPercent 非零误差不显示为 0；core.js fmtErrorPercent 的 4 位 → 10 位保底升级路径",
       "input": {
-        "rawErrorPercent": 0.00001
+        "unit": "m",
+        "widthText": "16",
+        "heightText": "9",
+        "ratioSource": "custom",
+        "customRatio": "160000016:90000000",
+        "canvasMode": "preset",
+        "presetKey": "1920×1080"
       },
       "expected": {
         "fmtErrorPercentText": "0.0000100000"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 A-07 fmtErrorPercent 非零误差不显示为 0；core 的 4 位 → 10 位保底升级路径",
+      "derivation": "目标比例 160000016/90000000 与预设 1920×1080 的 realRatio(16/9) 相对误差 = 1.0000000006e-7 → ×100 = 1.0000000006e-5% → roundErrorPercent(1e-5)=0.00001 → fmtErrorPercent 走 10 位保底 → 『0.0000100000』",
+      "review": {
+        "status": "研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "v1 input 为函数级参数（rawErrorPercent）；v2 改为场景级 input：自定义整数比 160000016:90000000（相对 16/9 偏差恰为 1e-7）+ 预设 1920×1080。expected 经 core 实算核验一致。"
+      }
     },
     {
       "id": "GV-022",
       "field": "fmtErrorPercent",
-      "source": "🔒 A-07；常规量级 4 位小数",
       "input": {
-        "rawErrorPercent": 0.0781
+        "unit": "m",
+        "widthText": "16",
+        "heightText": "9",
+        "ratioSource": "custom",
+        "customRatio": "160124960:90000000",
+        "canvasMode": "preset",
+        "presetKey": "1920×1080"
       },
       "expected": {
-        "fmtErrorPercentText": "0.0781"
+        "fmtErrorPercentText": "0.0780"
       },
-      "confirmation_status": "pending_confirmation"
+      "confirmation_status": "pending_confirmation",
+      "source": "🔒 A-07；常规量级 4 位小数",
+      "derivation": "目标比例 160124960/90000000=1.7791662222222222，预设 1920×1080 的 realRatio=16/9=1.7777777777777777；产品口径 pDiff=|canvasRatio−targetRatio|/targetRatio×100 = 0.0013884444444445/1.7791662222222222×100 = 0.07803905% → roundErrorPercent=0.078 → fmtErrorPercent 常规 4 位 → 『0.0780』",
+      "review": {
+        "status": "已修正，研发推导待人工确认",
+        "checkedAt": "2026-10-30",
+        "note": "🔴 v2 首轮实测失败后修正：v2 初版把分母写成预设比例（除以 16/9）得 0.0781，但产品口径是**除以目标比例**（app.js 预设分支 pDiff=Math.abs(preset.realRatio−targetRatio)/targetRatio×100），正确值 0.0780。这正说明黄金向量必须实跑比对，不能只靠纸上推导。"
+      }
     }
   ],
-
   "pendingConfirmationChecklist": {
-    "note": "🔴 下列条目需项目负责人逐条书面确认后，方可把 confirmation_status 改为 confirmed，并计入 L1/L2 覆盖率分子。",
-    "items": [
-      { "id": "GV-001", "needs": "确认 describeFit 的 crop 分支文本格式（轴向词 + 数量 + 2 位小数 px）" },
-      { "id": "GV-002", "needs": "确认 describeFit 的 exact 分支文本" },
-      { "id": "GV-003", "needs": "确认 describeFit 的 letterbox 分支文本（pillarboxAxis 映射到「左右」）" },
-      { "id": "GV-004", "needs": "确认 21:9 警示第一分支完整文案（含容差显示 2 位小数）" },
-      { "id": "GV-005", "needs": "确认 21:9 警示第二分支完整文案（含「最接近「名称」」与「不能按 21:9 解读」）" },
-      { "id": "GV-006", "needs": "确认未触发时警示条不可见" },
-      { "id": "GV-007", "needs": "确认越界解存在时 overflowFallback=true" },
-      { "id": "GV-008", "needs": "确认界内解为 primary 时 overflowFallback=false" },
-      { "id": "GV-009", "needs": "提供 4.135m×1m 的连分数逼近文本期望值（测试官不得自行从 core.js 导出）" },
-      { "id": "GV-010", "needs": "确认复制分辨率载荷格式：U+00D7 + 无千分位" },
-      { "id": "GV-011", "needs": "提供 14 段完整参数文本的逐字期望值（测试官不得自行从 app.js 运行时截取）" },
-      { "id": "GV-012~GV-016", "needs": "确认徽标五态标签文本与判定优先级（RS-02 > RS-03 > RS-04）" },
-      { "id": "GV-017~GV-020", "needs": "确认四条错误文案逐字内容与互不相同" },
-      { "id": "GV-021~GV-022", "needs": "确认 fmtErrorPercent 的 4 位 / 10 位保底升级规则" }
+    "note": "🔴 全部 22 条均为 pending_confirmation。项目负责人确认时请逐条核对 expected 与 derivation；确认后将对应向量的 confirmation_status 改为 confirmed（机器闸只认 confirmed）。",
+    "priority": [
+      {
+        "id": "GV-011",
+        "reason": "研发誊写值（非独立人工推导），且 v1 行数口径错误已修正为 16 行，需逐字核对"
+      },
+      {
+        "id": "GV-003",
+        "reason": "v1 预期值错误（960→690），修正依据需负责人复核"
+      },
+      {
+        "id": "GV-009",
+        "reason": "UI 不可达，需负责人决定：接受『不覆盖』还是改为 core 直调向量（那将超出 UI 驱动口径）"
+      }
     ]
   }
 }

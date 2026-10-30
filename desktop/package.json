@@ -19,6 +19,8 @@
     "test:smoke": "node test/smoke-launch.mjs --runs=10",
     "test:desktop": "node test/desktop-suite.mjs",
     "test:differential": "node test/differential-200.mjs",
+    "test:golden": "node test/golden-vectors.mjs",
+    "test:golden:selftest": "node test/golden-negative-selftest.mjs",
     "dev": "npm run preflight && node build/sync-assets.mjs && electron .",
     "build:win": "npm run preflight && node build/sync-assets.mjs && electron-builder --win --x64 --config build/electron-builder.yml"
   },

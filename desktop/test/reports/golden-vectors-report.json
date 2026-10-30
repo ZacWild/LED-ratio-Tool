@@ -1,0 +1,512 @@
+{
+  "meta": {
+    "generatedAt": "2026-10-30T06:28:24.009Z",
+    "suite": "golden-vectors",
+    "rule": "DEC-15 / TK-130",
+    "independenceGate": true,
+    "consoleErrors": {
+      "html": 0,
+      "electron": 0,
+      "pageError": 0
+    }
+  },
+  "summary": {
+    "total": 22,
+    "confirmed": 0,
+    "pending": 22,
+    "executed": 21,
+    "passed": 21,
+    "failed": 0,
+    "invalid": 0,
+    "unreachable": 1,
+    "blocked": 0,
+    "coveredByL2Confirmed": 0,
+    "coveredFields": [],
+    "pendingFields": [
+      "fitAdvice.describeFit",
+      "warnText",
+      "warnBar.visible",
+      "overflowFallback",
+      "resolutionText",
+      "fullParameterText",
+      "badge",
+      "error.message",
+      "fmtErrorPercent",
+      "nearest.text"
+    ],
+    "unreachableFields": [
+      "nearest.text"
+    ],
+    "diffCount": 0,
+    "verdict": "PASS（已执行向量全部通过）"
+  },
+  "validations": {
+    "GV-001": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-002": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-003": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-004": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-005": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-006": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-007": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-008": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-009": {
+      "ok": false,
+      "errors": [
+        "missing_input",
+        "empty_expected",
+        "missing_expected_key:nearestText"
+      ],
+      "warnings": []
+    },
+    "GV-010": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-011": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-012": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-013": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-014": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-015": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-016": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-017": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-018": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-019": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-020": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-021": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "GV-022": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    }
+  },
+  "results": [
+    {
+      "id": "GV-001",
+      "field": "fitAdvice.describeFit",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "describeFitText": "需裁切（左右各 0.75px）"
+      },
+      "htmlActual": {
+        "describeFitText": "需裁切（左右各 0.75px）"
+      },
+      "electronActual": {
+        "describeFitText": "需裁切（左右各 0.75px）"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-002",
+      "field": "fitAdvice.describeFit",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "describeFitText": "比例一致，无需裁切或补边"
+      },
+      "htmlActual": {
+        "describeFitText": "比例一致，无需裁切或补边"
+      },
+      "electronActual": {
+        "describeFitText": "比例一致，无需裁切或补边"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-003",
+      "field": "fitAdvice.describeFit",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "describeFitText": "需留黑边（左右各 690.00px）"
+      },
+      "htmlActual": {
+        "describeFitText": "需留黑边（左右各 690.00px）"
+      },
+      "electronActual": {
+        "describeFitText": "需留黑边（左右各 690.00px）"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-004",
+      "field": "warnText",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "warnText": "目标比例不属于常见标准画幅（容差 0.50%）。目标比例与俗称 21:9（严格值 7:3）相差 50.0000%，不能按 21:9 处理。"
+      },
+      "htmlActual": {
+        "warnText": "目标比例不属于常见标准画幅（容差 0.50%）。目标比例与俗称 21:9（严格值 7:3）相差 50.0000%，不能按 21:9 处理。"
+      },
+      "electronActual": {
+        "warnText": "目标比例不属于常见标准画幅（容差 0.50%）。目标比例与俗称 21:9（严格值 7:3）相差 50.0000%，不能按 21:9 处理。"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-005",
+      "field": "warnText",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "warnText": "目标比例最接近「3440×1440」，目标比例与俗称 21:9（严格值 7:3）相差 2.3810%，不能按 21:9 解读。"
+      },
+      "htmlActual": {
+        "warnText": "目标比例最接近「3440×1440」，目标比例与俗称 21:9（严格值 7:3）相差 2.3810%，不能按 21:9 解读。"
+      },
+      "electronActual": {
+        "warnText": "目标比例最接近「3440×1440」，目标比例与俗称 21:9（严格值 7:3）相差 2.3810%，不能按 21:9 解读。"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-006",
+      "field": "warnBar.visible",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "warnVisible": false
+      },
+      "htmlActual": {
+        "warnVisible": false
+      },
+      "electronActual": {
+        "warnVisible": false
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-007",
+      "field": "overflowFallback",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "overflowFallback": true
+      },
+      "htmlActual": {
+        "overflowFallback": true
+      },
+      "electronActual": {
+        "overflowFallback": true
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-008",
+      "field": "overflowFallback",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "overflowFallback": false
+      },
+      "htmlActual": {
+        "overflowFallback": false
+      },
+      "electronActual": {
+        "overflowFallback": false
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-010",
+      "field": "resolutionText",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "resolutionText": "4900×1400"
+      },
+      "htmlActual": {
+        "resolutionText": "4900×1400"
+      },
+      "electronActual": {
+        "resolutionText": "4900×1400"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-011",
+      "field": "fullParameterText",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "fullParameterText": "LED 屏比例换算参数\n屏幕实际尺寸：14 m × 4 m\n实际比例：3.5000 : 1\n最简整数比例：7:2\n目标比例来源：屏幕实际比例\n目标画布分辨率：4900×1400\n输出比例：3.5 : 1\n宽高比相对误差：0\n像素尺寸误差：0\n是否严格匹配：是\n等比适配方案：比例一致，无需裁切或补边（不建议拉伸画面）\n\n以下参数需现场确认（本工具不推导）：\n  ② LED 控制系统接收分辨率：未填写\n  ③ 后期软件视频合成分辨率：未填写\n  ④ 实际交付的视频文件分辨率：未填写"
+      },
+      "htmlActual": {
+        "fullParameterText": "LED 屏比例换算参数\n屏幕实际尺寸：14 m × 4 m\n实际比例：3.5000 : 1\n最简整数比例：7:2\n目标比例来源：屏幕实际比例\n目标画布分辨率：4900×1400\n输出比例：3.5 : 1\n宽高比相对误差：0\n像素尺寸误差：0\n是否严格匹配：是\n等比适配方案：比例一致，无需裁切或补边（不建议拉伸画面）\n\n以下参数需现场确认（本工具不推导）：\n  ② LED 控制系统接收分辨率：未填写\n  ③ 后期软件视频合成分辨率：未填写\n  ④ 实际交付的视频文件分辨率：未填写"
+      },
+      "electronActual": {
+        "fullParameterText": "LED 屏比例换算参数\n屏幕实际尺寸：14 m × 4 m\n实际比例：3.5000 : 1\n最简整数比例：7:2\n目标比例来源：屏幕实际比例\n目标画布分辨率：4900×1400\n输出比例：3.5 : 1\n宽高比相对误差：0\n像素尺寸误差：0\n是否严格匹配：是\n等比适配方案：比例一致，无需裁切或补边（不建议拉伸画面）\n\n以下参数需现场确认（本工具不推导）：\n  ② LED 控制系统接收分辨率：未填写\n  ③ 后期软件视频合成分辨率：未填写\n  ④ 实际交付的视频文件分辨率：未填写"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-012",
+      "field": "badge",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "badgeCode": "RS-02",
+        "badgeLabel": "非标准比例"
+      },
+      "htmlActual": {
+        "badgeCode": "RS-02",
+        "badgeLabel": "非标准比例"
+      },
+      "electronActual": {
+        "badgeCode": "RS-02",
+        "badgeLabel": "非标准比例"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-013",
+      "field": "badge",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "badgeCode": "RS-03",
+        "badgeLabel": "取整误差"
+      },
+      "htmlActual": {
+        "badgeCode": "RS-03",
+        "badgeLabel": "取整误差"
+      },
+      "electronActual": {
+        "badgeCode": "RS-03",
+        "badgeLabel": "取整误差"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-014",
+      "field": "badge",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "badgeCode": "RS-04",
+        "badgeLabel": "严格匹配"
+      },
+      "htmlActual": {
+        "badgeCode": "RS-04",
+        "badgeLabel": "严格匹配"
+      },
+      "electronActual": {
+        "badgeCode": "RS-04",
+        "badgeLabel": "严格匹配"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-015",
+      "field": "badge",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "badgeCode": "RS-01",
+        "badgeLabel": "输入有误"
+      },
+      "htmlActual": {
+        "badgeCode": "RS-01",
+        "badgeLabel": "输入有误"
+      },
+      "electronActual": {
+        "badgeCode": "RS-01",
+        "badgeLabel": "输入有误"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-016",
+      "field": "badge",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "badgeCode": "RS-05",
+        "badgeLabel": "需现场确认"
+      },
+      "htmlActual": {
+        "badgeCode": "RS-05",
+        "badgeLabel": "需现场确认"
+      },
+      "electronActual": {
+        "badgeCode": "RS-05",
+        "badgeLabel": "需现场确认"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-017",
+      "field": "error.message",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "message": "请输入尺寸"
+      },
+      "htmlActual": {
+        "message": "请输入尺寸"
+      },
+      "electronActual": {
+        "message": "请输入尺寸"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-018",
+      "field": "error.message",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "message": "尺寸必须是有效数字（最多一位小数点）"
+      },
+      "htmlActual": {
+        "message": "尺寸必须是有效数字（最多一位小数点）"
+      },
+      "electronActual": {
+        "message": "尺寸必须是有效数字（最多一位小数点）"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-019",
+      "field": "error.message",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "message": "尺寸必须大于 0"
+      },
+      "htmlActual": {
+        "message": "尺寸必须大于 0"
+      },
+      "electronActual": {
+        "message": "尺寸必须大于 0"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-020",
+      "field": "error.message",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "message": "尺寸不能为负数，请输入大于 0 的数值"
+      },
+      "htmlActual": {
+        "message": "尺寸不能为负数，请输入大于 0 的数值"
+      },
+      "electronActual": {
+        "message": "尺寸不能为负数，请输入大于 0 的数值"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-021",
+      "field": "fmtErrorPercent",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "fmtErrorPercentText": "0.0000100000"
+      },
+      "htmlActual": {
+        "fmtErrorPercentText": "0.0000100000"
+      },
+      "electronActual": {
+        "fmtErrorPercentText": "0.0000100000"
+      },
+      "crossConsistent": true
+    },
+    {
+      "id": "GV-022",
+      "field": "fmtErrorPercent",
+      "confirmed": false,
+      "status": "pass",
+      "expected": {
+        "fmtErrorPercentText": "0.0780"
+      },
+      "htmlActual": {
+        "fmtErrorPercentText": "0.0780"
+      },
+      "electronActual": {
+        "fmtErrorPercentText": "0.0780"
+      },
+      "crossConsistent": true
+    }
+  ]
+}

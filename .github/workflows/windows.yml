@@ -42,6 +42,7 @@
 #   7. 构建（root build + desktop sync + electron-builder 打包配置校验）
 #   8. Electron 启动冒烟 **连续 10 次**   ← TK-88：app:// ERR_FAILED(-2) 竞态
 #   9. 桌面 E2E（desktop-suite.mjs，76 条用例）
+#   9.5 黄金向量负向自检（P0-2）+ L2 黄金向量独立套件（Step 5 · P0-1）
 #  10. 200 组差分（differential-200.mjs，DEC-15 三层期望源）
 #
 # -----------------------------------------------------------------------------
@@ -322,6 +323,43 @@ jobs:
           if ($code -eq 1) { Write-Error "桌面 E2E 存在失败用例"; exit 1 }
           if ($code -eq 2) { Write-Error "桌面 E2E 存在 BLOCKED 用例（阻塞≠通过）"; exit 1 }
           if ($code -eq 3) { Write-Error "桌面 E2E 环境阻塞（Electron / 依赖不可用）"; exit 1 }
+          exit 0
+
+      # ==========================================================================
+      # 9.5 · 黄金向量负向自检 + L2 黄金向量独立套件（Step 5 · P0-1 / P0-2）
+      # ==========================================================================
+      # 背景：旧差分器把黄金向量循环嵌在 200 组场景内层，用 A 的期望比对 B 的
+      #       实际 —— 向量一旦被确认必然假失败/假通过。现已拆为独立套件。
+      # 退出码（负向自检）：0 = 测试程序自身可靠 ｜ 1 = 测试程序有缺陷 ｜ 3 = 环境阻塞
+      - name: 黄金向量负向自检（P0-2）
+        shell: pwsh
+        working-directory: desktop
+        env:
+          ELECTRON_RUN_AS_NODE: ''
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          npm run test:golden:selftest
+          $code = $LASTEXITCODE
+          Write-Host "golden-negative-selftest 退出码 = $code"
+          if ($code -eq 1) { Write-Error "测试程序自身存在缺陷（负向自检失败）"; exit 1 }
+          if ($code -eq 3) { Write-Error "负向自检应用层环境阻塞"; exit 1 }
+          exit 0
+
+      # 退出码（黄金向量套件）：0 = 已执行向量全部通过 ｜ 1 = 存在差异 ｜ 3 = 环境阻塞
+      # ⚠️ 本套件通过**不等于** L2 已确认覆盖 —— 全部向量仍为 pending_confirmation，
+      #    L2 已确认覆盖以 golden-vectors-report.json 的 coveredByL2Confirmed 为准。
+      - name: L2 黄金向量独立套件
+        shell: pwsh
+        working-directory: desktop
+        env:
+          ELECTRON_RUN_AS_NODE: ''
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          npm run test:golden
+          $code = $LASTEXITCODE
+          Write-Host "golden-vectors 退出码 = $code"
+          if ($code -eq 1) { Write-Error "黄金向量存在差异（expected ≠ 实际）"; exit 1 }
+          if ($code -eq 3) { Write-Error "黄金向量套件环境阻塞"; exit 1 }
           exit 0
 
       # ==========================================================================
