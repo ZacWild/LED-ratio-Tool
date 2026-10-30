@@ -279,21 +279,53 @@ body.is-modal-open .panel {
 }
 
 /* IX-13 分组折叠头（EL-IN-35 · D-03 §2.2 续编编号，待并入 D-01 §1） */
+/* 🔴 Step 5 P1-2：分组折叠开关命中区修复（TC-DP-10 实测 40×20 < 32×32）
+   原实现是 20px 高的小芯片（高度不足 D-02 §10 的 32×32）。
+   ⚠️ 该缺陷在 P4-B 被掩盖：控件位于输入面板滚动折叠线以下时
+      「完全不可命中」会被 hitAreaAudit 跳过（另案），修正测量方法
+      （先 scrollIntoView）后才暴露出来。
+
+   修复采用与 `.segmented__item::before` 一致的模式：
+     · 按钮实体盒 **32px 高** = 命中区（标签行本身 31px，可容纳）；
+     · 视觉芯片（20px 高、原背景/边框/圆角）改由 `::before { inset: 6px 0 }`
+       绘制 → **视觉与原实现完全一致**；
+     · 文字 line-height 32px 垂直居中，仍落在芯片内。
+
+   🔴 关键：按钮必须 `z-index: 0` **建立自己的堆叠上下文**，
+      否则 ::before 的 `z-index: -1` 会逃逸到根堆叠上下文、绘制在所有
+      内容之后 —— 实测（Step 5 二分定位）这会让整页 1200/1024 档
+      产生 ~9000 px 的**亚像素合成差异**（视觉无感但像素级回归），
+      加上 z-index:0 后三档视觉回归全部归零。
+      （`.segmented__item` 本来就有 z-index:0，所以它的 ::before 无此问题。）
+   ❌ 试过并否决：`::after { inset: -6px }` 扩展命中区 —— 实测只到 50×30
+      （左右被标签文字、下方被组内容覆盖），仍不足 32。 */
 .group__toggle {
+  position: relative;
+  z-index: 0;
   float: right;
   margin-left: var(--space-2);
   padding: 0 var(--space-2);
-  height: 20px;
+  height: 32px;
   font-size: var(--text-micro-size);
-  line-height: var(--text-micro-lh);
+  line-height: 32px;
   color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.group__toggle::before {
+  content: '';
+  position: absolute;
+  inset: 6px 0;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
-  cursor: pointer;
+  z-index: -1;
 }
 .group__toggle:hover {
   color: var(--text-primary);
+}
+.group__toggle:hover::before {
   border-color: var(--accent);
 }
 .group.is-collapsed > *:not(.group__label):not(.group__toggle) {
@@ -765,39 +797,20 @@ body.is-modal-open .panel {
 }
 
 /* ==========================================================================
-   分段控件命中区修复（P4-B 缺陷 DEF-03）
+   分段控件命中区 —— Step 5 P1-2 核验结论：**无需覆盖，维持原始样式**
    --------------------------------------------------------------------------
-   现象：画布模式分段（4 项）实测**有效命中区仅 67×20 < 32×32**
-   （声明 67×36 —— elementFromPoint 逐像素扫描）。
-
-   根因：
-     · `.segmented` 容器 **height:32px 固定**；
-     · `.segmented__item` 用 `height:36px; margin:-4px 0; padding:4px`
-       实现「视觉 28 + 上下各 4px 透明 padding」的命中区技巧；
-     · 子元素总高 36px **溢出** 32px 的容器 → 被裁掉 4px；
-     · 4 个按钮在 A 栏 320px 内放不下 → flex 换行，
-       换行后的第二行被容器高度进一步裁剪 → 有效高度掉到 20px。
-
-   修复（桌面版专属，不改 src/styles.css —— 那是受保护对象）：
-     1. 容器高度改为 **auto**（不再固定 32px），允许内容决定高度；
-     2. 保留 `.segmented__item` 的 height:36px 命中区设计；
-     3. 容器 `overflow: visible`（默认即 visible，但显式声明以防被别处覆盖）；
-     4. 允许换行时行间距可控。
-
-   ⚠️ 视觉影响：分段组会比 HTML 版略高（32→36+）。这是**命中区合规的代价**，
-      属 D-02 §10 的硬性要求。
+   P4-B 曾报告「DEF-03：画布模式分段有效命中区 67×20 < 32×32」，并据此改了
+   `.segmented` 容器（height:auto / flex-wrap / row-gap / padding-bottom）。
+   Step 5 核验发现该报告是**测试方法缺陷造成的假阳性**：
+     · TC-DP-10 的 hitAreaAudit 在测量前**没有把元素滚动到可见区域**；
+     · 输入面板 `section.panel--input` 是 overflow-y:auto，内容超 784px 可滚动，
+       画布模式段位于**滚动折叠线以下** → 其盒体下部被面板裁掉 → 量到 20px；
+     · 实测（同一控件 scrollIntoView 后）：原始样式下 canvas-mode-segment
+       有效命中 **67×36 ✅**、unit-segment 36×36 ✅、ratio-source 90×36 ✅
+       —— 全部达标，所谓「缺陷」并不存在。
+   因此本文件**移除** P4-B 的 `.segmented` 覆盖，恢复 styles.css 原始样式：
+     · 分段控件命中区本就达标，覆盖只会带来 +4px 的高度变化与视觉回归；
+     · 真正的命中区缺陷是 **DEF-02 步进按钮（26×34 < 32×32）** ——
+       那是 `::after` 扩展区被相邻按钮互相覆盖所致，已由实体 32×32 修复。
+   TC-DP-10 已同步修正测量方法：先 scrollIntoView 再逐像素扫描。
    ========================================================================== */
-.segmented {
-  height: auto;
-  min-height: 32px;
-  overflow: visible;
-  flex-wrap: wrap;
-  row-gap: 4px;
-}
-
-/* 换行后的分段项不再被行间距压扁 */
-.segmented__item {
-  flex: 1 1 auto;
-  min-width: 32px;
-  min-height: 36px;
-}

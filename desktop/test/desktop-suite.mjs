@@ -1694,13 +1694,21 @@ function buildContext(app, win) {
             const r = e.getBoundingClientRect();
             if (r.width === 0 || r.height === 0) continue;   // 隐藏元素不计入
             checked++;
+            // 🔴 **必须先滚动到可见再测量**（Step 5 P1-2 方法论修正）：
+            //    输入面板 section.panel--input 是 overflow-y:auto，内容超 784px 可滚动；
+            //    位于滚动折叠线以下的控件，其盒体下部被面板合法裁掉 —— 若不先滚动，
+            //    量到的「有效命中区」反映的是**滚动位置**而非控件本身的命中区
+            //    （P4-B 的「DEF-03 分段命中区 20px」即此假阳性：滚动到可见后实测 67×36 达标）。
+            //    这是**测量方法**修正，不是放宽容忍度 —— 阈值仍为 32×32。
+            e.scrollIntoView({ block: 'center', inline: 'nearest' });
+            const rr = e.getBoundingClientRect();
             // 🔒 **有效命中区**：以 elementFromPoint 逐像素扫描，量出**实际能命中本元素**
             //    的矩形范围（含 ::after/::before 扩展区，但扩展区若被相邻控件覆盖则不计入）。
             //    这是「用户实际能点到多大」的权威口径 —— 只量 getBoundingClientRect
             //    会把「声明了但被覆盖」的扩展区误算为达标。
             let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
-            const x0 = Math.floor(r.left) - 16, x1 = Math.ceil(r.right) + 16;
-            const y0 = Math.floor(r.top) - 16, y1 = Math.ceil(r.bottom) + 16;
+            const x0 = Math.floor(rr.left) - 16, x1 = Math.ceil(rr.right) + 16;
+            const y0 = Math.floor(rr.top) - 16, y1 = Math.ceil(rr.bottom) + 16;
             for (let x = x0; x <= x1; x++) {
               for (let y = y0; y <= y1; y++) {
                 const hit = document.elementFromPoint(x, y);
@@ -1714,7 +1722,7 @@ function buildContext(app, win) {
             const effW = maxX - minX + 1;
             const effH = maxY - minY + 1;
             if (effW < 32 || effH < 32) {
-              tooSmall.push(`${s}: 声明 ${Math.round(r.width)}×${Math.round(r.height)}，有效命中 ${effW}×${effH}`);
+              tooSmall.push(`${s}: 声明 ${Math.round(rr.width)}×${Math.round(rr.height)}，有效命中 ${effW}×${effH}`);
             }
           }
         }
