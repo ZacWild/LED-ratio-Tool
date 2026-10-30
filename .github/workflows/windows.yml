@@ -174,8 +174,10 @@ jobs:
 
           $ver = (Get-Item $chrome).VersionInfo.ProductVersion
           Write-Host "✅ Chrome 路径：$chrome（版本 $ver）"
-          $chrome | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Add-Content -Path $env:GITHUB_ENV -Value "CHROME_PATH=$chrome"
+          # 🔴 路径含空格（Program Files）→ 写入 GITHUB_ENV 时**必须用单引号包裹**，
+          #    否则 GitHub Actions 解析 KEY=value 时会把空格当作分隔符 →
+          #    "Invalid format 'C:\Program Files\...'" → 该步骤失败。
+          Add-Content -Path $env:GITHUB_ENV -Value "CHROME_PATH='$chrome'"
 
       # ==========================================================================
       # 0.4 · 缓存 node_modules 与 Playwright 浏览器目录
