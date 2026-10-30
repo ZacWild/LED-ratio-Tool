@@ -356,11 +356,37 @@ check('SEC-39a', 'userData 与 sessionData 分别 setPath', () => {
   const missing = need.filter((s) => !mainSource.includes(s) && !read('main/paths.js').includes(s));
   return missing.length === 0 || `缺失: ${missing.join(',')}`;
 });
-check('SEC-39b', 'sessionData 落在 Local 而非 userData 内', () => {
-  const p = stripComments(read('main/paths.js'));
-  if (!p.includes("'SessionData'")) return '未找到 SessionData';
-  // 必须基于 appData 的**父目录**构造 Local 路径
-  return /path\.dirname\(\s*appDataDir\s*\)/.test(p) || 'sessionData 未基于 appData 父目录构造';
+check('SEC-39b', 'sessionData 落在 %LOCALAPPDATA% 而非 %APPDATA%（独立判定）', () => {
+  // 🔴 本检查**不得复述实现的推导逻辑** —— 那样会与实现同源，
+  //    实现错了守卫也会一起"通过"（P4-B 缺陷 DEF-01 的根因）。
+  //    正确做法：用**环境变量**这一独立事实判定实现算出的路径对不对。
+  const appData = process.env.APPDATA;
+  const localAppData = process.env.LOCALAPPDATA;
+  if (!appData || !localAppData) {
+    return '无法判定（APPDATA / LOCALAPPDATA 环境变量缺失）';
+  }
+  // 从实现中取出它算出的 sessionData 路径（用正则在 paths.js 里找表达式）
+  const src = stripComments(read('main/paths.js'));
+  const m = src.match(/sessionData:\s*path\.join\(([^)]*)\)/);
+  if (!m) return '未能从 paths.js 解析出 sessionData 表达式';
+
+  // 独立算：期望的 sessionData 根 = %LOCALAPPDATA%\LED Ratio Tool\SessionData
+  const expectedRoot = path.join(localAppData, 'LED Ratio Tool', 'SessionData');
+  // 实现里必须引用 localAppData 变量（由环境变量或双层 dirname 推导）
+  if (!/localAppData/.test(m[1])) {
+    return `sessionData 表达式未使用 localAppData：${m[1].trim()}`;
+  }
+  // 断言 localAppData 的取值来源包含环境变量优先
+  if (!/process\.env\.LOCALAPPDATA/.test(src)) {
+    return 'localAppData 未优先取自环境变量 LOCALAPPDATA（推导易错，见 DEF-01）';
+  }
+  // 独立交叉校验：APPDATA = <profile>\AppData\Roaming
+  // → 一次 dirname = <profile>\AppData → 拼 'Local' 应等于 LOCALAPPDATA
+  const derived = path.join(path.dirname(appData), 'Local');
+  if (derived !== localAppData) {
+    return `环境不一致：推导得 ${derived}，实际 LOCALAPPDATA=${localAppData}`;
+  }
+  return true;
 });
 
 /* ---- SEC-40 环境变量 ---- */

@@ -167,6 +167,62 @@ const EXPORTS_PATCH = `/* ---- desktop-adapter: expose internals for the desktop
 `;
 
 
+/**
+ * ③ 步进按钮命中区适配：为按钮注入 data-glyph
+ *
+ * 🔴 P4-B 缺陷 DEF-02 的配套改动。
+ * 根目录 index.html 是**受保护对象**（用户明确要求不得为桌面版方便而修改
+ * 原版 HTML），因此不能在那里加属性。
+ *
+ * 桌面版把步进按钮改为「实体 32×32 命中区 + ::before 绘制 24×24 视觉符号」
+ * （见 app.css）。::before 的 content 取自 attr(data-glyph)，
+ * 因此桌面副本的按钮上必须有 data-glyph 属性。
+ *
+ * 做法：同步 index.html 后，对**桌面副本**注入 data-glyph，
+ * 并把原文字内容清空（避免重复渲染）。
+ * 仓库源文件零改动。
+ */
+const GLYPH_MAP = [
+  { id: 'step-width-minus', glyph: '−' },
+  { id: 'step-width-plus', glyph: '+' },
+  { id: 'step-height-minus', glyph: '−' },
+  { id: 'step-height-plus', glyph: '+' },
+];
+
+/**
+ * 对同步后的 index.html 应用桌面适配。
+ * @param {string} filePath desktop/renderer/index.html 的绝对路径
+ * @returns {{applied: string[], skipped: string[]}}
+ */
+function applyIndexAdapter(filePath) {
+  let src = fs.readFileSync(filePath, 'utf8');
+  const applied = [];
+  const skipped = [];
+
+  for (const { id, glyph } of GLYPH_MAP) {
+    // 匹配该按钮的完整开标签 + 内容 + 闭标签（内容可能是 − 或 +）
+    const re = new RegExp(`(<button[^>]*id="${id}"[^>]*>)([^<]*)(</button>)`);
+    const m = src.match(re);
+    if (!m) {
+      skipped.push(`glyph:${id}`);
+      continue;
+    }
+    let openTag = m[1];
+    // 已有 data-glyph 则不重复注入
+    if (!/data-glyph=/.test(openTag)) {
+      // 🔴 属性必须落在**开标签内部**（m[1] 以 '>' 结尾），
+      //    且要保留原文字内容作为 ::before 的备用来源。
+      openTag = openTag.replace(/\s*>$/, '') + ` data-glyph="${glyph}">`;
+    }
+    // 保留原文字内容（::before 的 content 优先取 data-glyph，文字作为无障碍回退）
+    src = src.replace(re, (all, o, text, c) => openTag + text + c);
+    applied.push(`glyph:${id}`);
+  }
+
+  fs.writeFileSync(filePath, src, 'utf8');
+  return { applied, skipped };
+}
+
 function applyDesktopAdapter(filePath) {
   let src = fs.readFileSync(filePath, 'utf8');
   const applied = [];
@@ -239,7 +295,7 @@ function applyDesktopAdapter(filePath) {
   return { applied, skipped };
 }
 
-module.exports = { applyDesktopAdapter };
+module.exports = { applyDesktopAdapter, applyIndexAdapter };
 
 if (require.main === module) {
   const target = path.join(__dirname, '..', 'renderer', 'app.js');

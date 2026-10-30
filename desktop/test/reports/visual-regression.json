@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "generatedAt": "2026-10-30T04:58:22.733Z",
+    "thresholdRatio": 0.001,
+    "channelTolerance": 8,
+    "masks": [
+      {
+        "id": "M1-version-line",
+        "rect": [
+          1180,
+          0,
+          1440,
+          34
+        ],
+        "reason": "顶栏版本行（版本号随构建变化）"
+      }
+    ],
+    "electron": "45.1.0",
+    "node": "v22.22.2",
+    "platform": "win32"
+  },
+  "summary": {
+    "total": 3,
+    "fail": 0,
+    "noBaseline": 0
+  },
+  "results": [
+    {
+      "size": "1440x900",
+      "layout": "three",
+      "requested": {
+        "w": 1440,
+        "h": 900
+      },
+      "clientSize": {
+        "w": 1440,
+        "h": 900
+      },
+      "actualFile": "test/shots/visual-1440x900.png",
+      "baselineFile": "test/baselines/shots/baseline-1440x900.png",
+      "actualSize": {
+        "w": 1440,
+        "h": 900
+      },
+      "diffPixels": 0,
+      "totalPixels": 1296000,
+      "maskedPixels": 8840,
+      "diffRatio": 0,
+      "diffRatioValue": 0,
+      "threshold": 0.001,
+      "diffFile": "test/reports/visual-diff-1440x900.png",
+      "hotRegions": [],
+      "verdict": "PASS",
+      "reason": "像素差 0.0000% ≤ 阈值 0.100%"
+    },
+    {
+      "size": "1200x800",
+      "layout": "two",
+      "requested": {
+        "w": 1200,
+        "h": 800
+      },
+      "clientSize": {
+        "w": 1200,
+        "h": 800
+      },
+      "actualFile": "test/shots/visual-1200x800.png",
+      "baselineFile": "test/baselines/shots/baseline-1200x800.png",
+      "actualSize": {
+        "w": 1200,
+        "h": 800
+      },
+      "diffPixels": 0,
+      "totalPixels": 960000,
+      "maskedPixels": 680,
+      "diffRatio": 0,
+      "diffRatioValue": 0,
+      "threshold": 0.001,
+      "diffFile": "test/reports/visual-diff-1200x800.png",
+      "hotRegions": [],
+      "verdict": "PASS",
+      "reason": "像素差 0.0000% ≤ 阈值 0.100%"
+    },
+    {
+      "size": "1024x680",
+      "layout": "stacked",
+      "requested": {
+        "w": 1024,
+        "h": 680
+      },
+      "clientSize": {
+        "w": 1024,
+        "h": 680
+      },
+      "actualFile": "test/shots/visual-1024x680.png",
+      "baselineFile": "test/baselines/shots/baseline-1024x680.png",
+      "actualSize": {
+        "w": 1024,
+        "h": 680
+      },
+      "diffPixels": 0,
+      "totalPixels": 696320,
+      "maskedPixels": 0,
+      "diffRatio": 0,
+      "diffRatioValue": 0,
+      "threshold": 0.001,
+      "diffFile": "test/reports/visual-diff-1024x680.png",
+      "hotRegions": [],
+      "verdict": "PASS",
+      "reason": "像素差 0.0000% ≤ 阈值 0.100%"
+    }
+  ]
+}

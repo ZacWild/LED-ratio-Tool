@@ -53,7 +53,7 @@ const normalizeEol = (buf) =>
 const sha256 = (buf) => createHash('sha256').update(normalizeEol(buf)).digest('hex');
 
 const require = createRequire(import.meta.url);
-const { applyDesktopAdapter } = require('./desktop-adapter.cjs');
+const { applyDesktopAdapter, applyIndexAdapter } = require('./desktop-adapter.cjs');
 
 /** 需要同步的资源：逐字节一致 */
 const SYNC_FILES = [
@@ -179,6 +179,15 @@ for (const file of SYNC_FILES) {
       if (html !== before) {
         writeFileSync(file.to, html, 'utf8');
         console.log('[注入] index.html 路径重写 + desktop-ui.js + app.css');
+      }
+      // 步进按钮 data-glyph 注入（DEF-02 配套；index.html 是保护对象，只改副本）
+      const ir = applyIndexAdapter(file.to);
+      if (ir.applied.length) {
+        console.log(`[注入] index.html 步进按钮 data-glyph：${ir.applied.length} 个`);
+      }
+      if (ir.skipped.length) {
+        console.error(`[注入警告] 未匹配 data-glyph：${ir.skipped.join(', ')}`);
+        process.exitCode = 1;
       }
     }
     if (file.label === 'app.js') {
