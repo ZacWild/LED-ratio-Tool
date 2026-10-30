@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-30T03:57:53.278Z",
+  "generatedAt": "2026-10-30T04:06:10.349Z",
   "platform": {
     "os": "win32",
     "release": "10.0.26300",
@@ -431,7 +431,7 @@
           "Electron": "45.1.0",
           "Chromium": "156.0.8078.49",
           "Node": "24.22.1",
-          "构建时间": "2026-10-30T03:57:35.340Z",
+          "构建时间": "2026-10-30T04:05:52.305Z",
           "应用标识": "com.ledratiotool.desktop"
         },
         "count": 9
@@ -509,50 +509,10 @@
       "id": "EV-B09",
       "title": "受保护文件零改动 + 分支合规",
       "ok": true,
-      "detail": "分支=feature/desktop-windows ｜ 变更条目 20 个（全部在 desktop/=true）｜ 受保护文件 diff=空",
+      "detail": "分支=feature/desktop-windows ｜ 变更条目 5 个（全部在 desktop/=true）｜ 受保护文件 diff=空",
       "data": {
         "branch": "feature/desktop-windows",
         "entries": [
-          {
-            "status": "M",
-            "path": "desktop/build/desktop-adapter.cjs"
-          },
-          {
-            "status": "M",
-            "path": "desktop/main/ipc.js"
-          },
-          {
-            "status": "M",
-            "path": "desktop/main/main.js"
-          },
-          {
-            "status": "M",
-            "path": "desktop/main/menu.js"
-          },
-          {
-            "status": "M",
-            "path": "desktop/package.json"
-          },
-          {
-            "status": "M",
-            "path": "desktop/renderer/app.css"
-          },
-          {
-            "status": "M",
-            "path": "desktop/renderer/app.js"
-          },
-          {
-            "status": "M",
-            "path": "desktop/renderer/desktop-ui.js"
-          },
-          {
-            "status": "M",
-            "path": "desktop/renderer/manifest.json"
-          },
-          {
-            "status": "M",
-            "path": "desktop/test/p4a-evidence.cjs"
-          },
           {
             "status": "??",
             "path": "desktop/test/desktop-suite.mjs"
@@ -567,27 +527,7 @@
           },
           {
             "status": "??",
-            "path": "desktop/test/p4b-evidence.cjs"
-          },
-          {
-            "status": "??",
             "path": "desktop/test/reports/desktop-suite.json"
-          },
-          {
-            "status": "??",
-            "path": "desktop/test/reports/p4b-evidence.json"
-          },
-          {
-            "status": "??",
-            "path": "desktop/test/shots/p4b-1024x700.png"
-          },
-          {
-            "status": "??",
-            "path": "desktop/test/shots/p4b-1200x800.png"
-          },
-          {
-            "status": "??",
-            "path": "desktop/test/shots/p4b-1440x900.png"
           },
           {
             "status": "??",
