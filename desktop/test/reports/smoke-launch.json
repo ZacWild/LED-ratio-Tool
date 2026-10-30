@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-10-30T05:24:58.568Z",
+    "generatedAt": "2026-10-30T05:35:20.469Z",
     "tool": "desktop/test/smoke-launch.mjs",
     "purpose": "TK-88 · app:// ERR_FAILED(-2) 偶发竞态 · 连续启动冒烟",
     "runs": 10,
@@ -25,7 +25,7 @@
     {
       "index": 1,
       "ok": true,
-      "durationMs": 1633,
+      "durationMs": 1621,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -167,7 +167,7 @@
     {
       "index": 2,
       "ok": true,
-      "durationMs": 1594,
+      "durationMs": 1601,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -309,7 +309,7 @@
     {
       "index": 3,
       "ok": true,
-      "durationMs": 1569,
+      "durationMs": 1608,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -451,7 +451,7 @@
     {
       "index": 4,
       "ok": true,
-      "durationMs": 1582,
+      "durationMs": 1614,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -593,7 +593,7 @@
     {
       "index": 5,
       "ok": true,
-      "durationMs": 1598,
+      "durationMs": 1575,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -735,7 +735,7 @@
     {
       "index": 6,
       "ok": true,
-      "durationMs": 1568,
+      "durationMs": 1599,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -877,7 +877,7 @@
     {
       "index": 7,
       "ok": true,
-      "durationMs": 1601,
+      "durationMs": 1570,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -1019,7 +1019,7 @@
     {
       "index": 8,
       "ok": true,
-      "durationMs": 1607,
+      "durationMs": 1570,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -1161,7 +1161,7 @@
     {
       "index": 9,
       "ok": true,
-      "durationMs": 1568,
+      "durationMs": 1634,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -1303,7 +1303,7 @@
     {
       "index": 10,
       "ok": true,
-      "durationMs": 1586,
+      "durationMs": 1630,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
