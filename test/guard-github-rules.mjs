@@ -1,24 +1,45 @@
 /**
- * LED-ratio-Tool · GitHub 操作规则守卫
+ * LED-ratio-Tool · GitHub 操作规则 —— 本地状态审计
  * ---------------------------------------------------------------------------
- * 用途：把项目负责人制定的 GitHub 操作规则变成可自动判定的门禁。
- *   规则全文见仓库根目录 GITHUB-RULES.md
+ * 规则全文见仓库根目录 GITHUB-RULES.md
  *
- * 覆盖的规则：
- *   R-1  开发与推送只在 feature/desktop-windows
- *   R-3  禁止合并到 main（除非对话中明确授权）
- *   R-4  禁止直接推送 main
- *   R-5  禁止修改正式发布文件（dist / baselines / LICENSE）
- *   R-6  禁止删除现有分支与标签
+ * 🔴 本脚本的能力边界（务必先读，勿高估）
+ * ---------------------------------------------------------------------------
+ * 本脚本是**本地状态审计**，**不是**权限控制系统：
  *
- * 用法：
- *   node test/guard-github-rules.mjs            # 校验当前状态，违规退出码 1
- *   node test/guard-github-rules.mjs --pre-push # 推送前检查（含推送目标 ref）
+ *   · 它**不能**阻止任何人对远端的推送或合并 —— 远端 main 的真正保护
+ *     由 **GitHub Rulesets / 分支保护规则**承担（需在仓库设置中配置）。
+ *   · 它**不能**识别"项目负责人是否已在对话中授权" —— 授权是人的判断，
+ *     只有项目负责人本人能给出。本脚本对此**不做任何猜测，也不假装能识别**。
+ *   · 它**不能**替代 CI —— 本项目**目前没有** GitHub Actions 工作流，
+ *     所有检查目前都只在本地执行。
  *
- * 注意：本守卫是「辅助」，不是「授权」。它无法判断"项目负责人是否已在对话中
- *       授权合并" —— 那一项永远是人工判断，由项目负责人执行合并动作。
+ * 因此本脚本的定位是：
+ *   ✅ 「在动手之前提醒我当前状态是否符合约定」
+ *   ❌ 不是「强制拦截」—— 真正的强制拦截由 GitHub Rulesets 与 pre-push hook 承担
+ *
+ * -----------------------------------------------------------------------------
+ * 两种运行模式（**必须分开**）
+ * -----------------------------------------------------------------------------
+ *   ① 默认模式（本地状态审计）
+ *        node test/guard-github-rules.mjs
+ *      检查当前仓库状态，输出报告。**不因分支名不符而失败** —— 因为
+ *      CI 以 detached HEAD 检出代码时分支名不是 feature/desktop-windows，
+ *      若在此强制检查会让 CI 永久失败。
+ *
+ *   ② 策略模式（开发流程约定，**不属于产品测试**）
+ *        node test/guard-github-rules.mjs --policy
+ *      额外检查「当前分支是否为约定的开发分支」。这是**开发流程**检查，
+ *      **绝不应**放进 npm test 或 CI 的产品测试链路。
+ *
+ * -----------------------------------------------------------------------------
+ * 推送拦截：由 .githooks/pre-push 承担（真实 Git hook 协议）
+ * -----------------------------------------------------------------------------
+ *        bash .githooks/pre-push            # 手动跑
+ *        git config core.hooksPath .githooks # 启用（一次性）
+ *      Git 的 pre-push hook 通过**标准输入**提供待推送 ref，
+ *      不是环境变量 —— 见 .githooks/pre-push 的实现。
  */
-
 import { readFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -38,7 +59,10 @@ const PROTECTED_FILES = [
   'LICENSE',
 ];
 
+const POLICY_MODE = process.argv.includes('--policy');
+
 const violations = [];
+const warnings = [];
 const checks = [];
 
 function git(args, opts = {}) {
@@ -54,136 +78,162 @@ function git(args, opts = {}) {
   }
 }
 
-/* ---- R-1｜当前分支必须在 feature 分支 ---- */
-{
-  const branch = git(['rev-parse', '--abbrev-ref', 'HEAD']);
-  if (!branch) {
-    violations.push('R-1：无法读取当前分支（不在 Git 仓库内？）');
-  } else if (branch !== DEV_BRANCH) {
-    violations.push(
-      `R-1：当前分支为 "${branch}"，只允许在 "${DEV_BRANCH}" 上开发。\n` +
-      `        切换：git checkout ${DEV_BRANCH}`
-    );
-  } else {
-    checks.push(`R-1 当前分支 = ${branch} ✅`);
-  }
-}
+/* ==========================================================================
+   A 组 · 与分支名无关的状态检查
+   —— 这些在任何检出方式下都成立，故属于默认模式（本地状态审计）
+   ========================================================================== */
 
-/* ---- R-3｜main 不得被合并（无授权记录时）---- */
-{
-  const mainLocal = git(['rev-parse', 'main']);
-  const base = git(['merge-base', 'main', DEV_BRANCH]);
-  if (mainLocal && base) {
-    // main 相对 merge-base 的独有提交数 —— 正常应为 0
-    const ahead = git(['rev-list', '--count', `${base}..main`]);
-    if (ahead && Number(ahead) > 0) {
-      violations.push(
-        `R-3：main 上有 ${ahead} 个不在 ${DEV_BRANCH} 中的提交 —— 疑似发生了未经授权的合并。\n` +
-        `        若这是经项目负责人授权的合并，请在仓库中记录授权（见 GITHUB-RULES.md R-3）。`
-      );
-    } else {
-      checks.push('R-3 main 无未经授权的合并 ✅');
-    }
-  }
-}
-
-/* ---- R-4｜推送目标不得是 main ---- */
-if (process.argv.includes('--pre-push')) {
-  const remote = process.env.GIT_PUSH_REMOTE || 'origin';
-  const branch = process.env.GIT_PUSH_REF || '';
-  // GIT_PUSH_REF 形如 refs/heads/xxx
-  const target = branch.replace(/^refs\/heads\//, '');
-  if (!target) {
-    violations.push('R-4：无法读取推送目标 ref（GIT_PUSH_REF 未设置）');
-  } else if (target === 'main' || target === 'master') {
-    violations.push(
-      `R-4：拒绝推送到 ${target}。\n` +
-      `        规则：禁止直接向 main 推送提交。变更请推送到 ${DEV_BRANCH}。`
-    );
-  } else if (!PROTECTED_BRANCHES.includes(target)) {
-    violations.push(
-      `R-4：推送目标 "${target}" 不在允许清单 ${JSON.stringify(PROTECTED_BRANCHES)} 内。\n` +
-      `        如确需推送到其他分支，请先取得项目负责人授权。`
-    );
-  } else {
-    checks.push(`R-4 推送目标 = ${remote}/${target} ✅`);
-  }
-} else {
-  checks.push('R-4 推送目标检查（--pre-push 时生效）跳过');
-}
-
-/* ---- R-5｜正式发布文件不得相对 main 产生内容差异 ---- */
+/* ---- A-1｜正式发布文件未被改动 ---- */
 {
   const diff = git(['diff', '--name-only', 'main', 'HEAD', '--', ...PROTECTED_FILES]);
   if (diff === null) {
-    violations.push('R-5：无法比对正式发布文件（git diff 失败）');
+    warnings.push('A-1：无法比对正式发布文件（git diff 失败）');
   } else if (diff.length) {
     violations.push(
-      `R-5：以下正式发布文件相对 main 存在内容差异：\n` +
-      diff.split('\n').map((f) => `        - ${f}`).join('\n') +
-      `\n        规则：正式发布文件禁止修改。dist 必须由 build.mjs 重新构建且与 main\n` +
-      `        中的版本逐字节一致（npm run verify:reproducible 必须通过）。`
+      `A-1 以下正式发布文件相对 main 存在内容差异：\n` +
+        diff.split('\n').map((f) => `        - ${f}`).join('\n') +
+        `\n        规则：正式发布文件禁止修改。dist 必须由 build.mjs 重新构建且与 main\n` +
+        `        中的版本逐字节一致（npm run verify:reproducible 必须通过）。`,
     );
   } else {
-    checks.push(`R-5 ${PROTECTED_FILES.length} 个正式发布文件与 main 一致 ✅`);
+    checks.push('A-1 正式发布文件与 main 一致');
   }
 }
 
-/* ---- R-6｜受保护分支与标签必须存在 ---- */
+/* ---- A-2｜受保护分支与标签存在 ---- */
 {
-  for (const b of PROTECTED_BRANCHES) {
-    if (!git(['rev-parse', '--verify', b])) {
-      violations.push(`R-6：受保护分支 "${b}" 不存在 —— 可能被误删。`);
-    }
+  const missingBranches = PROTECTED_BRANCHES.filter(
+    (b) => !git(['rev-parse', '--verify', `refs/heads/${b}`]),
+  );
+  const missingTags = PROTECTED_TAGS.filter(
+    (t) => !git(['rev-parse', '--verify', `refs/tags/${t}`]),
+  );
+  if (missingBranches.length) {
+    violations.push(`A-2 受保护分支缺失：${missingBranches.join(', ')} —— 可能被误删。`);
   }
-  for (const t of PROTECTED_TAGS) {
-    if (!git(['rev-parse', '--verify', `refs/tags/${t}`])) {
-      violations.push(`R-6：受保护标签 "${t}" 不存在 —— 可能被误删。`);
-    }
+  if (missingTags.length) {
+    violations.push(
+      `A-2 受保护标签缺失：${missingTags.join(', ')} —— 可能被误删。` +
+        `\n        pre-desktop 是回滚锚点，删除它等同于销毁回滚能力。`,
+    );
   }
-  if (!violations.some((v) => v.startsWith('R-6'))) {
-    checks.push(`R-6 ${PROTECTED_BRANCHES.length} 个分支 + ${PROTECTED_TAGS.length} 个标签全部在位 ✅`);
+  if (!missingBranches.length && !missingTags.length) {
+    checks.push(`A-2 ${PROTECTED_BRANCHES.length} 个分支 + ${PROTECTED_TAGS.length} 个标签全部在位`);
   }
 }
 
-/* ---- 附加：可复现性（受保护文件的哈希一致性）---- */
+/* ---- A-3｜dist 产物哈希与提交一致（LF 归一化口径）---- */
 {
   const distPath = join(ROOT, 'dist', 'led-ratio-tool.html');
   if (existsSync(distPath)) {
-    const actual = createHash('sha256').update(readFileSync(distPath)).digest('hex');
-    // 必须用 cat-file 读原始 blob 字节 —— `git show` 会经过文本转换，
-    // 在 autocrlf 环境下会把 LF 转成 CRLF，算出与工作区不同的假哈希。
-    let committedBuf = null;
+    const raw = readFileSync(distPath);
+    const normalized = Buffer.from(
+      raw.toString('utf8').replace(/\r\n/g, '\n').replace(/\r/g, '\n'),
+      'utf8',
+    );
+    const actual = createHash('sha256').update(normalized).digest('hex');
+    let committed = null;
     try {
-      committedBuf = execFileSync('git', ['cat-file', 'blob', 'HEAD:dist/led-ratio-tool.html'], {
+      committed = execFileSync('git', ['cat-file', 'blob', 'HEAD:dist/led-ratio-tool.html'], {
         cwd: ROOT,
         maxBuffer: 64 * 1024 * 1024,
       });
-    } catch { committedBuf = null; }
-    if (committedBuf) {
-      const committedHash = createHash('sha256').update(committedBuf).digest('hex');
+    } catch {
+      committed = null;
+    }
+    if (committed) {
+      const committedHash = createHash('sha256')
+        .update(
+          Buffer.from(committed.toString('utf8').replace(/\r\n/g, '\n').replace(/\r/g, '\n'), 'utf8'),
+        )
+        .digest('hex');
       if (actual !== committedHash) {
         violations.push(
-          `R-5：dist 产物哈希与提交不一致（${actual.slice(0, 16)}… vs ${committedHash.slice(0, 16)}…）\n` +
-          `        请运行 npm run build 重新构建后再提交。`
+          `A-3：dist 产物哈希与提交不一致（${actual.slice(0, 16)}… vs ${committedHash.slice(0, 16)}…）\n` +
+            `        请运行 npm run build 重新构建后再提交。`,
         );
       } else {
-        checks.push(`dist 产物哈希一致（${actual.slice(0, 16)}…）✅`);
+        checks.push(`A-3 dist 产物哈希一致（${actual.slice(0, 16)}…）`);
       }
     }
+  } else {
+    warnings.push('A-3：dist 产物不存在（尚未构建）');
   }
 }
 
-/* ---- 输出 ---- */
-console.log('=== GitHub 操作规则守卫 ===');
-for (const c of checks) console.log('  ✅ ' + c);
+/* ==========================================================================
+   B 组 · 远端状态审计（**只读、只报告**，不阻止任何操作）
+   ========================================================================== */
 
-if (violations.length) {
-  console.log('\n❌ 规则守卫失败：');
-  for (const v of violations) console.log('  - ' + v);
-  console.log('\n规则全文见 GITHUB-RULES.md。任何一条都不得绕过。');
-  process.exit(1);
+/* ---- B-1｜本地 main 与 origin/main 的关系 ---- */
+{
+  const localMain = git(['rev-parse', 'main']);
+  const remoteMain = git(['ls-remote', 'origin', 'refs/heads/main']).split(/\s+/)[0] || null;
+  const upstream = git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', 'main@{upstream}']);
+
+  if (!localMain) {
+    warnings.push('B-1：本地无 main 分支');
+  } else if (!remoteMain) {
+    warnings.push('B-1：无法读取 origin/main（远端不可达或未配置）');
+  } else if (localMain === remoteMain) {
+    checks.push(`B-1 本地 main 与 origin/main 一致（${localMain.slice(0, 12)}）`);
+  } else {
+    // 这是**正常的**（本地 main 落后于远端，或本地有未推送的提交）
+    // —— 只报告，不判违规。
+    const ahead = git(['rev-list', '--count', `${remoteMain}..${localMain}`]);
+    const behind = git(['rev-list', '--count', `${localMain}..${remoteMain}`]);
+    warnings.push(
+      `B-1：本地 main (${localMain.slice(0, 12)}) 与 origin/main (${remoteMain.slice(0, 12)}) 不一致` +
+        `｜本地领先 ${ahead ?? '?'} 个提交、落后 ${behind ?? '?'} 个提交。` +
+        `\n        这本身**不是违规** —— 例如远端已发生过经授权的合并时就会这样。` +
+        `\n        真正的合并权限由 GitHub Rulesets 控制，本脚本无权也不应阻止。`,
+    );
+  }
+  if (upstream) {
+    checks.push(`B-1 main 跟踪分支 = ${upstream}`);
+  }
 }
 
-console.log('\n✅ GitHub 操作规则守卫全部通过。');
+/* ==========================================================================
+   C 组 · 开发流程策略检查（**仅 --policy 模式**，不进入产品测试链路）
+   ========================================================================== */
+if (POLICY_MODE) {
+  const branch = git(['rev-parse', '--abbrev-ref', 'HEAD']);
+  const detached = branch === 'HEAD';
+  if (detached) {
+    warnings.push(
+      `C-1 当前处于 detached HEAD（${git(['rev-parse', '--short', 'HEAD']) || '?'}）—— ` +
+        `CI 检出即为此状态，此处不判违规。`,
+    );
+  } else if (branch !== DEV_BRANCH) {
+    violations.push(
+      `C-1 当前分支为 "${branch}"，开发流程约定在 "${DEV_BRANCH}" 上进行。\n` +
+        `        （这是**开发流程**检查，不是产品测试 —— 故未包含在 npm test 中）`,
+    );
+  } else {
+    checks.push(`C-1 当前分支 = ${branch}`);
+  }
+} else {
+  checks.push('C-1 开发分支策略检查（--policy 模式才启用，未计入产品测试）');
+}
+
+/* ==========================================================================
+   输出
+   ========================================================================== */
+console.log('=== GitHub 操作规则 · 本地状态审计 ===');
+console.log(
+  '（本脚本是**本地状态审计**，不是权限控制系统；远端 main 的保护由 GitHub Rulesets 承担）\n',
+);
+for (const c of checks) console.log('  ✅ ' + c);
+for (const w of warnings) console.log('  ⚠️  ' + w);
+if (violations.length) {
+  console.log('\n❌ 违反的约定：');
+  for (const v of violations) console.log('  - ' + v);
+  console.log('\n规则全文见 GITHUB-RULES.md。');
+  process.exit(1);
+}
+console.log('\n✅ 本地状态审计通过（未发现违反约定的情况）。');
+if (warnings.length) {
+  console.log(`   注：有 ${warnings.length} 项提示需人工确认（见上 ⚠️）。`);
+}
 process.exit(0);

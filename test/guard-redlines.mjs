@@ -26,7 +26,7 @@
  */
 
 import { readFileSync, existsSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { sha256FileNormalized } from './hash-utils.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -138,11 +138,15 @@ const notes = [];
 
 function fail(msg) { failures.push(msg); }
 
-function sha256(file) {
-  return createHash('sha256').update(readFileSync(file)).digest('hex');
-}
-
-/* ---- 2.1 core.js 哈希锁 ---- */
+/* ---- 2.1 core.js 哈希锁 ----
+ *
+ * 🔒 哈希口径：先归一化行尾符（CRLF→LF）再求 SHA-256。
+ *    理由见 test/hash-utils.mjs 的完整说明 —— 简言之：
+ *    仓库约定入库为 LF，而 Git 的 core.autocrlf 会改变**工作区**内容；
+ *    若对原始字节求哈希，同一份源码在 Windows(autocrlf=true) 与
+ *    Linux/macOS 上会得到两个不同哈希，哈希锁将与"业务是否被改"无关地失配。
+ *    归一化后哈希只反映业务内容，跨平台一致。
+ */
 const lockPath = join(ROOT, 'core.lock.json');
 const corePath = join(ROOT, 'src', 'core.js');
 
@@ -150,16 +154,21 @@ if (!existsSync(lockPath)) {
   fail(`缺少 core.lock.json —— 无法锁定 core.js 基线（应在仓库根目录存在）`);
 } else {
   const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
-  const actual = sha256(corePath);
+  const actual = sha256FileNormalized(corePath);
+  const rawBytes = readFileSync(corePath);
+  const eolStyle = rawBytes.includes(Buffer.from('\r\n')) ? 'CRLF' : 'LF';
   if (lock.sha256 !== actual) {
     fail(
       `core.js 哈希不匹配（业务规则红线被改动或文件被替换）\n` +
       `        锁中记录: ${lock.sha256}\n` +
       `        当前实际: ${actual}\n` +
-      `        若这是经确认的业务规则变更，请执行：npm run core:accept`
+      `        （哈希已按 LF 归一化，工作区行尾符 ${eolStyle} 不影响判定）\n` +
+      `        若这是经确认的业务规则变更，请按 core.lock.json 的说明走人工确认流程`
     );
   } else {
-    notes.push(`core.js 哈希锁校验通过（sha256 ${actual.slice(0, 16)}…）`);
+    notes.push(
+      `core.js 哈希锁校验通过（归一化 sha256 ${actual.slice(0, 16)}…｜工作区行尾符 ${eolStyle}）`,
+    );
   }
 }
 

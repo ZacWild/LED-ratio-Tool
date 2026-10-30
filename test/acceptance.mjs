@@ -21,9 +21,87 @@ import { readFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 const require = createRequire(import.meta.url);
-const PW_CORE = process.env.PW_CORE
-  || 'C:/Users/A/.workbuddy/binaries/node/versions/22.22.2-6/node_modules/@playwright/cli/node_modules/playwright-core';
-const { chromium } = require(PW_CORE);
+
+/**
+ * 解析 playwright-core —— 四级回退，不依赖任何特定机器的绝对路径。
+ *
+ * ① 项目内依赖        → node_modules/playwright-core（npm install 后即可用）
+ * ② 环境变量 PW_CORE  → 覆盖（用于特殊安装位置）
+ * ③ 全局 npm 根目录   → npm root -g 下的 playwright-core
+ * ④ 明确报错          → 给出可执行的安装指引，不静默失败
+ *
+ * 🔒 **浏览器要求**：本脚本用 `chromium.launch({ channel: 'chrome' })` 启动
+ *    **系统已安装的 Google Chrome**（不是 playwright 下载的 Chromium）。
+ *    → 因此**不需要**执行 `npx playwright install chromium`；
+ *    → 但**必须**在机器上安装 Google Chrome。
+ *    → 若改用 `chromium.launch()`（无 channel），则需先跑
+ *      `npx playwright install chromium` 下载浏览器。
+ */
+function resolvePlaywright() {
+  const candidates = [];
+
+  // ① 项目内依赖（首选）
+  candidates.push(['项目内依赖 node_modules/playwright-core', 'playwright-core']);
+  candidates.push(['项目内依赖 node_modules/@playwright/test', '@playwright/test']);
+
+  // ② 环境变量覆盖
+  if (process.env.PW_CORE) {
+    candidates.unshift([`环境变量 PW_CORE（${process.env.PW_CORE}）`, process.env.PW_CORE]);
+  }
+
+  for (const [label, spec] of candidates) {
+    try {
+      const mod = require(spec);
+      if (mod && mod.chromium) {
+        return { chromium: mod.chromium, source: label };
+      }
+    } catch {
+      /* 继续尝试下一个 */
+    }
+  }
+
+  // ③ 全局 npm 根目录
+  try {
+    const { execFileSync } = require('node:child_process');
+    const globalRoot = execFileSync('npm', ['root', '-g'], { encoding: 'utf8' }).trim();
+    const spec = join(globalRoot, 'playwright-core');
+    const mod = require(spec);
+    if (mod && mod.chromium) {
+      return { chromium: mod.chromium, source: `全局 npm 根目录（${spec}）` };
+    }
+  } catch {
+    /* 继续 */
+  }
+
+  // ④ 明确报错
+  console.error(
+    [
+      '',
+      '❌ 找不到 playwright-core —— 无法执行端到端验收。',
+      '',
+      '本项目已把 playwright-core 声明为**开发依赖**，请在仓库根目录执行：',
+      '',
+      '    npm install',
+      '',
+      '若你的环境把依赖装在别处，可用环境变量指定：',
+      '',
+      '    # Windows CMD',
+      '    set PW_CORE=C:\\path\\to\\playwright-core',
+      '    # Windows PowerShell',
+      '    $env:PW_CORE = "C:\\path\\to\\playwright-core"',
+      '    # bash / zsh',
+      '    PW_CORE=/path/to/playwright-core npm run test:e2e',
+      '',
+      '⚠️ 浏览器要求：本脚本用系统已安装的 **Google Chrome**（channel: chrome）。',
+      '   请确认机器上已安装 Chrome；否则安装后再运行。',
+      '   （不需要执行 npx playwright install chromium —— 除非你把脚本改成不带 channel 的启动方式）',
+      '',
+    ].join('\n'),
+  );
+  process.exit(2);
+}
+
+const { chromium, source: PW_SOURCE } = resolvePlaywright();
 
 const here = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(here, '..');

@@ -1,6 +1,10 @@
 {
   "sha256": "dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26",
-  "note": "core.js 业务规则红线锁（按入库 LF 版本计算）。任何改动都会使 test/guard-redlines.mjs 失败。更新必须由项目负责人确认后执行 npm run core:accept。",
+  "file": "src/core.js",
   "exports": 22,
-  "file": "src/core.js"
+  "coreVersion": "core@1.0.1",
+  "hashAlgorithm": "sha256",
+  "hashInput": "LF-normalized",
+  "note": "core.js 业务规则红线锁。哈希按「行尾符归一化为 LF 后」的字节计算，因此工作区是 CRLF 还是 LF 都得到同一结果，跨平台一致。",
+  "updateProcedure": "人工确认流程，不由脚本自动更新：1) 确认业务规则变更已获项目负责人批准；2) 核对本文件 exports 与 core.js 实际导出数一致；3) 用 test/hash-utils.mjs 的 sha256FileNormalized 计算新哈希并手工填入本文件；4) 提交信息中写明变更原因、影响面与回归测试。"
 }

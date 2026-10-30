@@ -41,7 +41,16 @@ const SRC_DIR = join(REPO_ROOT, 'src');
 const RENDERER_DIR = join(desktopRoot, 'renderer');
 const LOCK_PATH = join(desktopRoot, 'core.lock.json');
 
-const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
+/**
+ * 🔒 统一哈希口径：先归一化行尾符（CRLF→LF）再求 SHA-256。
+ *    理由与 test/hash-utils.mjs 相同 —— 哈希只反映业务内容，
+ *    不反映 Git checkout 策略（core.autocrlf）。
+ */
+const normalizeEol = (buf) =>
+  Buffer.isBuffer(buf) && buf.includes(0x00)
+    ? buf
+    : Buffer.from(buf.toString('utf8').replace(/\r\n/g, '\n').replace(/\r/g, '\n'), 'utf8');
+const sha256 = (buf) => createHash('sha256').update(normalizeEol(buf)).digest('hex');
 
 const require = createRequire(import.meta.url);
 const { applyDesktopAdapter } = require('./desktop-adapter.cjs');
@@ -138,7 +147,9 @@ for (const file of SYNC_FILES) {
       drift++;
     }
   } else {
-    writeFileSync(file.to, source);
+    // 🔒 写入时归一化为 LF —— 桌面副本在任何平台都一致，
+    //    且与仓库入库版本（LF）逐字节相同。
+    writeFileSync(file.to, normalizeEol(source));
     console.log(`[同步] ${file.label} → ${file.to.replace(desktopRoot, 'desktop')}`);
     // 🔒 app.js 需要两处桌面适配（持久化 / 剪贴板 → IPC）。
     //    适配只作用于**桌面副本**，仓库源文件零改动（DEC-03）。

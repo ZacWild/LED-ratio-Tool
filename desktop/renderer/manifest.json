@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-30T02:50:05.734Z",
+  "generatedAt": "2026-10-30T03:12:45.159Z",
   "files": [
     {
       "label": "core.js",
@@ -19,14 +19,14 @@
       "label": "styles.css",
       "source": ".\\src\\styles.css",
       "target": ".\\renderer\\styles.css",
-      "sha256": "cbc1b51c302a3d64ff85508f44e6b89750a55b30a8477120363d4a798f85b5ee",
+      "sha256": "c78a7e6878662591c0c8600ea53d81a95f9bfd295ad4d19a4a44043082551f36",
       "bytes": 30277
     },
     {
       "label": "index.html",
       "source": ".\\index.html",
       "target": ".\\renderer\\index.html",
-      "sha256": "2fb4dea9e28d22edcefd8c8e38cedb383ee3feaeeff27e42bf572ddb0c68258b",
+      "sha256": "0b5e73aaf66e7113213fb40dc7c6e919c9b012016150b58a6f951112419f60a2",
       "bytes": 17270
     }
   ]

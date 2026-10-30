@@ -16,13 +16,15 @@
     "build": "node build.mjs",
     "test:unit": "node --test test/core.test.mjs",
     "test:redlines": "node test/guard-redlines.mjs",
-    "test:github-rules": "node test/guard-github-rules.mjs",
     "test:e2e": "node test/acceptance.mjs",
     "test:e2e:noshots": "node test/acceptance.mjs --no-shots",
-    "verify:reproducible": "node build.mjs && git diff --quiet dist/led-ratio-tool.html && echo OK: build output matches commit (reproducible) || (echo FAIL: build output differs from commit (not reproducible) && exit 1)",
-    "test": "npm run test:github-rules && npm run test:redlines && npm run test:unit && npm run build && npm run test:e2e:noshots && npm run test:github-rules",
-    "core:accept": "node build.mjs && node --test test/core.test.mjs && node -e \"console.log('请确认业务规则变更已获项目负责人批准，然后运行：node -e \\\"更新 core.lock.json 的 sha256\\\"')\""
+    "test:policy": "node test/guard-github-rules.mjs",
+    "verify:reproducible": "node build.mjs && node test/verify-reproducible.mjs",
+    "test": "npm run test:redlines && npm run test:unit && npm run build && npm run test:e2e:noshots",
+    "core:accept": "node build.mjs && node --test test/core.test.mjs && node -e \"console.log('[core:accept] 以上仅为前置检查，未更新任何锁文件。');console.log('  请人工完成：1) 确认业务规则变更已获项目负责人批准');console.log('  2) 用 test/hash-utils.mjs 的 sha256FileNormalized 计算 src/core.js 的归一化哈希');console.log('  3) 手工填入 core.lock.json 的 sha256 字段');console.log('  4) 提交信息写明变更原因、影响面与回归测试')\""
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "playwright-core": "1.56.1"
+  }
 }

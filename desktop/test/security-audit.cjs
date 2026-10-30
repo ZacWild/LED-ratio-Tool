@@ -91,10 +91,16 @@ check('SEC-01a', '主进程无业务计算标识符', () => {
 });
 
 /* ---- SEC-01 core.js 哈希锁 ---- */
-check('SEC-01b', 'core.js SHA-256 与锁一致', () => {
+check('SEC-01b', 'core.js SHA-256 与锁一致（LF 归一化口径）', () => {
   const lock = JSON.parse(read('core.lock.json'));
-  const actual = crypto.createHash('sha256').update(fs.readFileSync(path.join(REPO, 'src', 'core.js'))).digest('hex');
-  return actual === lock.sha256 || `锁 ${lock.sha256.slice(0,16)} vs 实际 ${actual.slice(0,16)}`;
+  // 🔒 归一化口径 —— 与 test/hash-utils.mjs 一致：
+  //    工作区行尾符（CRLF/LF）不参与哈希，跨平台哈希恒定。
+  const raw = fs.readFileSync(path.join(REPO, 'src', 'core.js'));
+  const actual = crypto.createHash('sha256')
+    .update(raw.toString('utf8').replace(/\r\n/g, '\n').replace(/\r/g, '\n'))
+    .digest('hex');
+  const eol = raw.includes(Buffer.from('\r\n')) ? 'CRLF' : 'LF';
+  return actual === lock.sha256 || `锁 ${lock.sha256.slice(0,16)} vs 实际 ${actual.slice(0,16)}（工作区行尾符 ${eol}）`;
 });
 
 /* ---- SEC-02 单实例锁 ---- */
