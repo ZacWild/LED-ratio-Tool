@@ -1,2 +1,9 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# 构建产物：由 build.mjs 生成，内联了 src 资源的原始字节。
+# 声明 -text 关闭行尾符转换 —— 产物已由 build.mjs 的 toLf() 统一规范化为 LF，
+# 若再让 Git 做一次转换会导致索引大小与工作区不一致，产生假的 "已修改" 标记，
+# 干扰 CI 的可复现性判定。
+dist/led-ratio-tool.html -text
+test/baselines/led-ratio-tool.v1000.html -text

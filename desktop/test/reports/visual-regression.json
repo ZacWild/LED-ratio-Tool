@@ -1,0 +1,1122 @@
+{
+  "meta": {
+    "generatedAt": "2026-10-30T07:22:50.113Z",
+    "thresholdRatio": 0.001,
+    "channelTolerance": 8,
+    "masks": [
+      {
+        "id": "M1-version-line",
+        "rect": [
+          1180,
+          0,
+          1440,
+          34
+        ],
+        "reason": "顶栏版本行（版本号随构建变化）"
+      }
+    ],
+    "electron": "45.1.0",
+    "node": "v22.22.2",
+    "platform": "win32"
+  },
+  "summary": {
+    "total": 3,
+    "fail": 0,
+    "noBaseline": 0
+  },
+  "results": [
+    {
+      "size": "1440x900",
+      "layout": "three",
+      "requested": {
+        "w": 1440,
+        "h": 900
+      },
+      "clientSize": {
+        "w": 1440,
+        "h": 900
+      },
+      "actualFile": "test/shots/visual-1440x900.png",
+      "baselineFile": "test/baselines/shots/baseline-1440x900.png",
+      "actualSize": {
+        "w": 1440,
+        "h": 900
+      },
+      "diffPixels": 277,
+      "totalPixels": 1296000,
+      "maskedPixels": 8840,
+      "diffRatio": 0.0214,
+      "diffRatioValue": 0.00021373456790123457,
+      "threshold": 0.001,
+      "diffFile": "test/reports/visual-diff-1440x900.png",
+      "overlayFile": "test/reports/visual-overlay-1440x900.png",
+      "baselineFileAbs": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\baselines\\shots\\baseline-1440x900.png",
+      "hotRegions": [
+        {
+          "x": 224,
+          "y": 192,
+          "w": 32,
+          "h": 32,
+          "pixels": 65
+        },
+        {
+          "x": 256,
+          "y": 192,
+          "w": 32,
+          "h": 32,
+          "pixels": 56
+        },
+        {
+          "x": 32,
+          "y": 192,
+          "w": 32,
+          "h": 32,
+          "pixels": 40
+        },
+        {
+          "x": 224,
+          "y": 128,
+          "w": 32,
+          "h": 32,
+          "pixels": 38
+        },
+        {
+          "x": 256,
+          "y": 128,
+          "w": 32,
+          "h": 32,
+          "pixels": 30
+        },
+        {
+          "x": 224,
+          "y": 160,
+          "w": 32,
+          "h": 32,
+          "pixels": 27
+        },
+        {
+          "x": 256,
+          "y": 160,
+          "w": 32,
+          "h": 32,
+          "pixels": 21
+        }
+      ],
+      "domAttribution": [
+        {
+          "region": {
+            "x": 224,
+            "y": 128,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-width",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 141,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": ".panel.panel--input",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 24,
+                "y": 64,
+                "w": 320,
+                "h": 784
+              }
+            },
+            {
+              "selector": "#step-width-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 143,
+                "w": 32,
+                "h": 32
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 256,
+            "y": 128,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#step-width-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 143,
+                "w": 32,
+                "h": 32
+              }
+            },
+            {
+              "selector": ".panel.panel--input",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 24,
+                "y": 64,
+                "w": 320,
+                "h": 784
+              }
+            },
+            {
+              "selector": "#step-width-plus",
+              "text": "+",
+              "rect": {
+                "x": 281,
+                "y": 143,
+                "w": 32,
+                "h": 32
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 224,
+            "y": 160,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-width",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 141,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": "#input-width",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 141,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": "#step-height-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 187,
+                "w": 32,
+                "h": 32
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 256,
+            "y": 160,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-width",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 141,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": "#step-width-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 143,
+                "w": 32,
+                "h": 32
+              }
+            },
+            {
+              "selector": "#step-height-plus",
+              "text": "+",
+              "rect": {
+                "x": 281,
+                "y": 187,
+                "w": 32,
+                "h": 32
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 32,
+            "y": 192,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-height",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 185,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": ".panel.panel--input",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 24,
+                "y": 64,
+                "w": 320,
+                "h": 784
+              }
+            },
+            {
+              "selector": ".segmented__item.unit-segment",
+              "text": "m",
+              "rect": {
+                "x": 43,
+                "y": 219,
+                "w": 36,
+                "h": 36
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 224,
+            "y": 192,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-height",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 185,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": "#input-height",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 185,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": "#input-height",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 185,
+                "w": 276,
+                "h": 36
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 256,
+            "y": 192,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#step-height-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 187,
+                "w": 32,
+                "h": 32
+              }
+            },
+            {
+              "selector": "#step-height-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 187,
+                "w": 32,
+                "h": 32
+              }
+            },
+            {
+              "selector": "#input-height",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 185,
+                "w": 276,
+                "h": 36
+              }
+            }
+          ]
+        }
+      ],
+      "domAttributionAggregate": [
+        {
+          "selector": "#input-height",
+          "pixels": 105
+        },
+        {
+          "selector": "#input-width",
+          "pixels": 86
+        },
+        {
+          "selector": "#step-height-minus",
+          "pixels": 56
+        },
+        {
+          "selector": "#step-width-minus",
+          "pixels": 30
+        }
+      ],
+      "verdict": "PASS",
+      "reason": "像素差 0.0214% ≤ 阈值 0.100%"
+    },
+    {
+      "size": "1200x800",
+      "layout": "two",
+      "requested": {
+        "w": 1200,
+        "h": 800
+      },
+      "clientSize": {
+        "w": 1200,
+        "h": 800
+      },
+      "actualFile": "test/shots/visual-1200x800.png",
+      "baselineFile": "test/baselines/shots/baseline-1200x800.png",
+      "actualSize": {
+        "w": 1200,
+        "h": 800
+      },
+      "diffPixels": 277,
+      "totalPixels": 960000,
+      "maskedPixels": 680,
+      "diffRatio": 0.0289,
+      "diffRatioValue": 0.00028854166666666666,
+      "threshold": 0.001,
+      "diffFile": "test/reports/visual-diff-1200x800.png",
+      "overlayFile": "test/reports/visual-overlay-1200x800.png",
+      "baselineFileAbs": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\baselines\\shots\\baseline-1200x800.png",
+      "hotRegions": [
+        {
+          "x": 224,
+          "y": 192,
+          "w": 32,
+          "h": 32,
+          "pixels": 65
+        },
+        {
+          "x": 256,
+          "y": 192,
+          "w": 32,
+          "h": 32,
+          "pixels": 56
+        },
+        {
+          "x": 32,
+          "y": 192,
+          "w": 32,
+          "h": 32,
+          "pixels": 40
+        },
+        {
+          "x": 224,
+          "y": 128,
+          "w": 32,
+          "h": 32,
+          "pixels": 38
+        },
+        {
+          "x": 256,
+          "y": 128,
+          "w": 32,
+          "h": 32,
+          "pixels": 30
+        },
+        {
+          "x": 224,
+          "y": 160,
+          "w": 32,
+          "h": 32,
+          "pixels": 27
+        },
+        {
+          "x": 256,
+          "y": 160,
+          "w": 32,
+          "h": 32,
+          "pixels": 21
+        }
+      ],
+      "domAttribution": [
+        {
+          "region": {
+            "x": 224,
+            "y": 128,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-width",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 141,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": ".panel.panel--input",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 24,
+                "y": 64,
+                "w": 320,
+                "h": 684
+              }
+            },
+            {
+              "selector": "#step-width-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 143,
+                "w": 32,
+                "h": 32
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 256,
+            "y": 128,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#step-width-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 143,
+                "w": 32,
+                "h": 32
+              }
+            },
+            {
+              "selector": ".panel.panel--input",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 24,
+                "y": 64,
+                "w": 320,
+                "h": 684
+              }
+            },
+            {
+              "selector": "#step-width-plus",
+              "text": "+",
+              "rect": {
+                "x": 281,
+                "y": 143,
+                "w": 32,
+                "h": 32
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 224,
+            "y": 160,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-width",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 141,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": "#input-width",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 141,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": "#step-height-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 187,
+                "w": 32,
+                "h": 32
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 256,
+            "y": 160,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-width",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 141,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": "#step-width-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 143,
+                "w": 32,
+                "h": 32
+              }
+            },
+            {
+              "selector": "#step-height-plus",
+              "text": "+",
+              "rect": {
+                "x": 281,
+                "y": 187,
+                "w": 32,
+                "h": 32
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 32,
+            "y": 192,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-height",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 185,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": ".panel.panel--input",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 24,
+                "y": 64,
+                "w": 320,
+                "h": 684
+              }
+            },
+            {
+              "selector": ".segmented__item.unit-segment",
+              "text": "m",
+              "rect": {
+                "x": 43,
+                "y": 219,
+                "w": 36,
+                "h": 36
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 224,
+            "y": 192,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-height",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 185,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": "#input-height",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 185,
+                "w": 276,
+                "h": 36
+              }
+            },
+            {
+              "selector": "#input-height",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 185,
+                "w": 276,
+                "h": 36
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 256,
+            "y": 192,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#step-height-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 187,
+                "w": 32,
+                "h": 32
+              }
+            },
+            {
+              "selector": "#step-height-minus",
+              "text": "−",
+              "rect": {
+                "x": 247,
+                "y": 187,
+                "w": 32,
+                "h": 32
+              }
+            },
+            {
+              "selector": "#input-height",
+              "text": "",
+              "rect": {
+                "x": 41,
+                "y": 185,
+                "w": 276,
+                "h": 36
+              }
+            }
+          ]
+        }
+      ],
+      "domAttributionAggregate": [
+        {
+          "selector": "#input-height",
+          "pixels": 105
+        },
+        {
+          "selector": "#input-width",
+          "pixels": 86
+        },
+        {
+          "selector": "#step-height-minus",
+          "pixels": 56
+        },
+        {
+          "selector": "#step-width-minus",
+          "pixels": 30
+        }
+      ],
+      "verdict": "PASS",
+      "reason": "像素差 0.0289% ≤ 阈值 0.100%"
+    },
+    {
+      "size": "1024x680",
+      "layout": "stacked",
+      "requested": {
+        "w": 1024,
+        "h": 680
+      },
+      "clientSize": {
+        "w": 1024,
+        "h": 680
+      },
+      "actualFile": "test/shots/visual-1024x680.png",
+      "baselineFile": "test/baselines/shots/baseline-1024x680.png",
+      "actualSize": {
+        "w": 1024,
+        "h": 680
+      },
+      "diffPixels": 168,
+      "totalPixels": 696320,
+      "maskedPixels": 0,
+      "diffRatio": 0.0241,
+      "diffRatioValue": 0.0002412683823529412,
+      "threshold": 0.001,
+      "diffFile": "test/reports/visual-diff-1024x680.png",
+      "overlayFile": "test/reports/visual-overlay-1024x680.png",
+      "baselineFileAbs": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\baselines\\shots\\baseline-1024x680.png",
+      "hotRegions": [
+        {
+          "x": 896,
+          "y": 128,
+          "w": 32,
+          "h": 32,
+          "pixels": 80
+        },
+        {
+          "x": 896,
+          "y": 192,
+          "w": 32,
+          "h": 32,
+          "pixels": 36
+        },
+        {
+          "x": 864,
+          "y": 128,
+          "w": 32,
+          "h": 32,
+          "pixels": 30
+        },
+        {
+          "x": 864,
+          "y": 192,
+          "w": 32,
+          "h": 32,
+          "pixels": 14
+        },
+        {
+          "x": 928,
+          "y": 128,
+          "w": 32,
+          "h": 32,
+          "pixels": 6
+        },
+        {
+          "x": 928,
+          "y": 192,
+          "w": 32,
+          "h": 32,
+          "pixels": 2
+        }
+      ],
+      "domAttribution": [
+        {
+          "region": {
+            "x": 864,
+            "y": 128,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#input-width",
+              "text": "",
+              "rect": {
+                "x": 33,
+                "y": 133,
+                "w": 948,
+                "h": 36
+              }
+            },
+            {
+              "selector": ".panel.panel--input",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 16,
+                "y": 56,
+                "w": 992,
+                "h": 140
+              }
+            },
+            {
+              "selector": "#input-width",
+              "text": "",
+              "rect": {
+                "x": 33,
+                "y": 133,
+                "w": 948,
+                "h": 36
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 896,
+            "y": 128,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": "#step-width-minus",
+              "text": "−",
+              "rect": {
+                "x": 911,
+                "y": 135,
+                "w": 32,
+                "h": 32
+              }
+            },
+            {
+              "selector": ".panel.panel--input",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 16,
+                "y": 56,
+                "w": 992,
+                "h": 140
+              }
+            },
+            {
+              "selector": "#step-width-minus",
+              "text": "−",
+              "rect": {
+                "x": 911,
+                "y": 135,
+                "w": 32,
+                "h": 32
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 928,
+            "y": 128,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": ".stepper",
+              "text": "− +",
+              "rect": {
+                "x": 911,
+                "y": 135,
+                "w": 66,
+                "h": 32
+              }
+            },
+            {
+              "selector": ".panel.panel--input",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 16,
+                "y": 56,
+                "w": 992,
+                "h": 140
+              }
+            },
+            {
+              "selector": "#step-width-plus",
+              "text": "+",
+              "rect": {
+                "x": 945,
+                "y": 135,
+                "w": 32,
+                "h": 32
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 864,
+            "y": 192,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": ".panel.panel--stage",
+              "text": "完整显示 铺满 中心线 九宫格 ▣完整显示 · 留黑边 3.4973 画布 留黑",
+              "rect": {
+                "x": 16,
+                "y": 208,
+                "w": 992,
+                "h": 110
+              }
+            },
+            {
+              "selector": ".layout",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 0,
+                "y": 40,
+                "w": 1024,
+                "h": 612
+              }
+            },
+            {
+              "selector": "#toggle-center",
+              "text": "中心线",
+              "rect": {
+                "x": 881,
+                "y": 211,
+                "w": 52,
+                "h": 36
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 896,
+            "y": 192,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": ".panel.panel--stage",
+              "text": "完整显示 铺满 中心线 九宫格 ▣完整显示 · 留黑边 3.4973 画布 留黑",
+              "rect": {
+                "x": 16,
+                "y": 208,
+                "w": 992,
+                "h": 110
+              }
+            },
+            {
+              "selector": ".layout",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 0,
+                "y": 40,
+                "w": 1024,
+                "h": 612
+              }
+            },
+            {
+              "selector": "#toggle-center",
+              "text": "中心线",
+              "rect": {
+                "x": 881,
+                "y": 211,
+                "w": 52,
+                "h": 36
+              }
+            }
+          ]
+        },
+        {
+          "region": {
+            "x": 928,
+            "y": 192,
+            "w": 32,
+            "h": 32
+          },
+          "hits": [
+            {
+              "selector": ".panel.panel--stage",
+              "text": "完整显示 铺满 中心线 九宫格 ▣完整显示 · 留黑边 3.4973 画布 留黑",
+              "rect": {
+                "x": 16,
+                "y": 208,
+                "w": 992,
+                "h": 110
+              }
+            },
+            {
+              "selector": ".layout",
+              "text": "屏幕输入 屏幕尺寸 m − + m − + m cm mm 宽高互换 恢复默认值",
+              "rect": {
+                "x": 0,
+                "y": 40,
+                "w": 1024,
+                "h": 612
+              }
+            },
+            {
+              "selector": "#toggle-grid",
+              "text": "九宫格",
+              "rect": {
+                "x": 937,
+                "y": 211,
+                "w": 52,
+                "h": 36
+              }
+            }
+          ]
+        }
+      ],
+      "domAttributionAggregate": [
+        {
+          "selector": "#step-width-minus",
+          "pixels": 80
+        },
+        {
+          "selector": ".panel.panel--stage",
+          "pixels": 52
+        },
+        {
+          "selector": "#input-width",
+          "pixels": 30
+        },
+        {
+          "selector": ".stepper",
+          "pixels": 6
+        }
+      ],
+      "verdict": "PASS",
+      "reason": "像素差 0.0241% ≤ 阈值 0.100%"
+    }
+  ]
+}

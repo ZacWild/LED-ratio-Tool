@@ -1,0 +1,296 @@
+{
+  "generatedAt": "2026-10-30T02:50:41.833Z",
+  "platform": {
+    "os": "win32",
+    "release": "10.0.26300",
+    "node": "22.22.2"
+  },
+  "versions": {
+    "electronCli": "",
+    "declared": "45.1.0",
+    "installed": "45.1.0"
+  },
+  "evidence": [
+    {
+      "id": "EV-A01",
+      "title": "构建与启动命令 + 退出码",
+      "ok": true,
+      "detail": "全部 4 条命令退出码 0",
+      "data": {
+        "commands": [
+          {
+            "name": "preflight",
+            "cmd": "node build/preflight.cjs",
+            "code": 0,
+            "tail": "[前置检查通过] Node 22.22.2 ｜ VC++ 运行库就绪 ｜ ELECTRON_RUN_AS_NODE 未设置"
+          },
+          {
+            "name": "sync",
+            "cmd": "node build/sync-assets.mjs",
+            "code": 0,
+            "tail": "[core] SHA-256 dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26 | [core] 与 core.lock.json 一致（22 个受保护导出） | [同步] 完成"
+          },
+          {
+            "name": "sync:check",
+            "cmd": "node build/sync-assets.mjs --check-only",
+            "code": 0,
+            "tail": "[core] SHA-256 dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26 | [core] 与 core.lock.json 一致（22 个受保护导出） | [校验] 通过，无漂移"
+          },
+          {
+            "name": "audit:security",
+            "cmd": "node test/security-audit.cjs",
+            "code": 0,
+            "tail": "  ✅ SEC-40b  dev 与 build:win 均先跑 preflight |  | 总计 47 项，通过 47，失败 0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "EV-A02",
+      "title": "Electron / Chromium / Node 实际版本",
+      "ok": true,
+      "detail": "electron --version =  ｜ package.json = 45.1.0 ｜ 已安装 = 45.1.0",
+      "data": {
+        "electronCli": "",
+        "declared": "45.1.0",
+        "installed": "45.1.0"
+      }
+    },
+    {
+      "id": "EV-A03",
+      "title": "core.js SHA-256 比对",
+      "ok": true,
+      "detail": "仓库 dd49a7829618f77d… ｜ 桌面副本 dd49a7829618f77d… ｜ 逐字节一致=true ｜ 锁匹配=true ｜ 受保护文件 diff=空",
+      "data": {
+        "repoHash": "dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26",
+        "desktopHash": "dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26",
+        "identical": true,
+        "matchLock": true,
+        "protectedDiff": ""
+      }
+    },
+    {
+      "id": "EV-A04",
+      "title": "app:// 加载结果与控制台",
+      "ok": true,
+      "detail": "protocol=app: ｜ console error=0 warning=0 ｜ pageerror=0 ｜ 加载失败=0 ｜ core 导出 22 个 ｜ ledApi 8 个（冻结=true）",
+      "data": {
+        "probe": {
+          "protocol": "app:",
+          "href": "app://bundle/index.html",
+          "title": "LED 大屏比例与视频画布换算工具",
+          "hasCore": true,
+          "coreExportCount": 22,
+          "ledApiKeys": [
+            "settingsGet",
+            "settingsSet",
+            "clipboardWriteText",
+            "specOpen",
+            "specExport",
+            "appVersion",
+            "windowAction",
+            "openExternal"
+          ],
+          "ledApiFrozen": true,
+          "hasInvokePassthrough": false,
+          "dpr": 1,
+          "stylesheets": 2
+        },
+        "consoleErrors": [],
+        "consoleWarnings": [],
+        "pageErrors": [],
+        "failedLoads": []
+      }
+    },
+    {
+      "id": "EV-A08",
+      "title": "settings.json 与 sessionData 实际存储路径",
+      "ok": true,
+      "detail": "userData=C:\\Users\\A\\AppData\\Roaming\\LED Ratio Tool ｜ sessionData=C:\\Users\\A\\AppData\\LED Ratio Tool\\SessionData ｜ 已分离=true ｜ userData 内容=[lockfile] ｜ 越界业务文件 0 个",
+      "data": {
+        "userData": "C:\\Users\\A\\AppData\\Roaming\\LED Ratio Tool",
+        "sessionData": "C:\\Users\\A\\AppData\\LED Ratio Tool\\SessionData",
+        "appData": "C:\\Users\\A\\AppData\\Roaming",
+        "version": "1.1.0",
+        "versions": {
+          "node": "24.22.1",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.9",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "150",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026e",
+          "undici": "7.30.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.6.75.19-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "45.1.0",
+          "chrome": "156.0.8078.49"
+        },
+        "userDataListing": [
+          "lockfile"
+        ],
+        "sessionExists": true
+      }
+    },
+    {
+      "id": "EV-A06",
+      "title": "CSP 实际验证（CSP 报错 + 实际计算样式 + 截图）",
+      "ok": true,
+      "detail": "自然 violation=0（探测触发 3 条 = CSP 生效证据）｜ fetch=blocked 内联脚本=blocked ｜ eval=allowed（CDP 绕过 CSP，不作判据）｜ 计算样式 7 条命中 ｜ 样式表 2 份",
+      "data": {
+        "cspA": {
+          "violations": [],
+          "behavior": {
+            "fetch": "blocked",
+            "eval": "allowed",
+            "evalIsValidJudge": false,
+            "inlineScript": "blocked"
+          },
+          "styles": {
+            "field-mode-height.display": "none",
+            "field-mode-width.display": "block",
+            "body.backgroundColor": "rgb(20, 21, 24)",
+            "group__label.marginTop": "0px",
+            "match-body.fontVariantNumeric": "tabular-nums",
+            "layout.gridTemplateColumns": "320px 630px 400px",
+            "stylesheets.length": 2
+          }
+        },
+        "naturalViolations": [],
+        "probeViolations": [
+          {
+            "type": "error",
+            "text": "Connecting to 'https://example.com/' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+          },
+          {
+            "type": "error",
+            "text": "Fetch API cannot load https://example.com/. Refused to connect because it violates the document's Content Security Policy."
+          },
+          {
+            "type": "error",
+            "text": "Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-dJYae+W3GX82ruZoPJIjzlOLjfawFBAElslXPRXyLXs='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked."
+          }
+        ]
+      }
+    },
+    {
+      "id": "EV-A07",
+      "title": "三种窗口尺寸截图（客户区口径）",
+      "ok": true,
+      "detail": "1440x900 → 客户区 1440×900 ｜ 1200x800 → 客户区 1200×800 ｜ 1024x680 → 客户区 1024×680",
+      "data": {
+        "shots": [
+          {
+            "size": "1440x900",
+            "requested": {
+              "name": "1440x900",
+              "w": 1440,
+              "h": 900
+            },
+            "actual": {
+              "width": 1440,
+              "height": 900
+            },
+            "ok": true,
+            "file": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\p4a-1440x900.png"
+          },
+          {
+            "size": "1200x800",
+            "requested": {
+              "name": "1200x800",
+              "w": 1200,
+              "h": 800
+            },
+            "actual": {
+              "width": 1200,
+              "height": 800
+            },
+            "ok": true,
+            "file": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\p4a-1200x800.png"
+          },
+          {
+            "size": "1024x680",
+            "requested": {
+              "name": "1024x680",
+              "w": 1024,
+              "h": 680
+            },
+            "actual": {
+              "width": 1024,
+              "height": 680
+            },
+            "ok": true,
+            "file": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\p4a-1024x680.png"
+          }
+        ],
+        "dpr": 1
+      }
+    },
+    {
+      "id": "EV-A05",
+      "title": "离线运行与网络请求检查",
+      "ok": true,
+      "detail": "onBeforeRequest=0 onCompleted=0 ｜ 交互期间新增=0 ｜ 期望全 0",
+      "data": {
+        "netProbe": {
+          "before": 0,
+          "after": 0
+        },
+        "netAfter": 0
+      }
+    },
+    {
+      "id": "EV-A09",
+      "title": "修改文件清单与 Git commit",
+      "ok": true,
+      "detail": "分支=feature/desktop-windows ｜ 变更条目 1 个（全部在 desktop/=true）｜ 受保护文件 diff=空",
+      "data": {
+        "branch": "feature/desktop-windows",
+        "entries": [
+          {
+            "status": "??",
+            "path": "desktop/"
+          }
+        ],
+        "protectedDiff": ""
+      }
+    }
+  ],
+  "failures": [],
+  "conditional": [],
+  "knownLimitations": [
+    {
+      "id": "LIM-01",
+      "topic": "CSP 对 eval 的拦截",
+      "detail": "Playwright 的 page.evaluate 走 CDP Runtime.evaluate，该通道绕过页面 CSP，因此 script-src 未含 unsafe-eval 时 eval 仍会执行。故 eval 不作为 CSP 判据；有效的行为级判据是「外部 fetch 被拒」与「内联 <script> 注入被拒」两项。",
+      "impact": "不影响 CSP 配置本身的正确性（静态断言已确认 script-src 为 self 且无 unsafe-eval/unsafe-inline）。",
+      "verifyBy": "如需在真实浏览器上下文验证 eval 拦截，须用非 CDP 驱动（如人工在 DevTools Console 之外执行）。"
+    },
+    {
+      "id": "LIM-02",
+      "topic": "高 DPI 三档",
+      "detail": "本机系统缩放为 100%（scaleFactor=1）。125% / 150% 两档需物理机改系统缩放并重启才能采证，本阶段仅实测 100%。",
+      "impact": "EV-A07 的 DPR 实测只覆盖 100%；150% 档属 P5 范围。",
+      "verifyBy": "物理机固定 1920×1080 改缩放逐档实测（测试官 EV-A07 口径）。"
+    }
+  ]
+}

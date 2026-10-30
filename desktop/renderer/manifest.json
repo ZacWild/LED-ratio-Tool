@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-10-30T07:22:44.710Z",
+  "files": [
+    {
+      "label": "core.js",
+      "source": ".\\src\\core.js",
+      "target": ".\\renderer\\core.js",
+      "sha256": "dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26",
+      "bytes": 54620
+    },
+    {
+      "label": "app.js",
+      "source": ".\\src\\app.js",
+      "target": ".\\renderer\\app.js",
+      "sha256": "edf95ca1de70d35a3d71e65d02da5b2d2c7caa0a96bae7d0bfda7a492fd92815",
+      "bytes": 79651
+    },
+    {
+      "label": "styles.css",
+      "source": ".\\src\\styles.css",
+      "target": ".\\renderer\\styles.css",
+      "sha256": "c78a7e6878662591c0c8600ea53d81a95f9bfd295ad4d19a4a44043082551f36",
+      "bytes": 30277
+    },
+    {
+      "label": "index.html",
+      "source": ".\\index.html",
+      "target": ".\\renderer\\index.html",
+      "sha256": "0b5e73aaf66e7113213fb40dc7c6e919c9b012016150b58a6f951112419f60a2",
+      "bytes": 17270
+    }
+  ]
+}
