@@ -168,13 +168,22 @@ function git(args, opts = {}) {
 /* ---- B-1｜本地 main 与 origin/main 的关系 ---- */
 {
   const localMain = git(['rev-parse', 'main']);
-  const remoteMain = git(['ls-remote', 'origin', 'refs/heads/main']).split(/\s+/)[0] || null;
+  // 🔴 git ls-remote 失败（网络抖动 / 代理 / 认证）时返回 null ——
+  //    必须判空，否则会把**环境问题**变成**未捕获异常**（非 0 退出码），
+  //    被误读成「违规」。此处只提示、不判违规。
+  const remoteRaw = git(['ls-remote', 'origin', 'refs/heads/main']);
+  const remoteMain = remoteRaw ? remoteRaw.split(/\s+/)[0] || null : null;
   const upstream = git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', 'main@{upstream}']);
 
   if (!localMain) {
     warnings.push('B-1：本地无 main 分支');
+  } else if (remoteRaw === null) {
+    warnings.push(
+      'B-1：无法读取 origin/main —— git ls-remote 调用失败（网络/代理/认证问题）。' +
+        '\n        这是**环境问题**，不是违规；本次审计未核对远端 main 状态。',
+    );
   } else if (!remoteMain) {
-    warnings.push('B-1：无法读取 origin/main（远端不可达或未配置）');
+    warnings.push('B-1：远端无 main 分支（或输出格式异常）');
   } else if (localMain === remoteMain) {
     checks.push(`B-1 本地 main 与 origin/main 一致（${localMain.slice(0, 12)}）`);
   } else {
