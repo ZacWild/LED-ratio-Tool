@@ -77,6 +77,16 @@ const allSourceFiles = walk(DESKTOP).filter(
     path.basename(f) !== 'security-audit.cjs' &&
     path.basename(f) !== 'desktop-adapter.cjs',
 );
+/**
+ * 🔒 产品代码 = 排除 test/ 目录后的全部源文件。
+ *    理由：SEC-10「剪贴板只写不读」针对的是**产品**行为；证据采集脚本
+ *    必须**回读**刚写入的剪贴板才能证明「IPC 真实写入」这一条，
+ *    因此对 test/ 作显式豁免（豁免范围仅限 test/，其余目录全部纳入）。
+ */
+const productSourceFiles = allSourceFiles.filter(
+  (f) => !path.relative(DESKTOP, f).startsWith('test' + path.sep),
+);
+const productSource = productSourceFiles.map((f) => stripComments(fs.readFileSync(f, 'utf8'))).join('\n');
 const allSource = allSourceFiles.map((f) => stripComments(fs.readFileSync(f, 'utf8'))).join('\n');
 const mainSource = ['main/main.js','main/ipc.js','main/settings-store.js','main/paths.js','main/csp.js','main/menu.js']
   .map((f) => stripComments(read(f))).join('\n');
@@ -182,8 +192,8 @@ check('SEC-07b', '无 ipcMain.on 作业务通道', () => {
 });
 
 /* ---- SEC-10 剪贴板只写不读 ---- */
-check('SEC-10a', '无剪贴板读取', () => {
-  const hits = allSource.match(/clipboard\.readText|clipboard\.readHTML|navigator\.clipboard\.read/g);
+check('SEC-10a', '产品代码无剪贴板读取（test/ 证据脚本回读校验已豁免）', () => {
+  const hits = productSource.match(/clipboard\.readText|clipboard\.readHTML|navigator\.clipboard\.read/g);
   return hits === null || `命中: ${hits.length}`;
 });
 check('SEC-10b', 'renderer 不用 navigator.clipboard', () => {

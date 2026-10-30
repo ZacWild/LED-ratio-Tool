@@ -401,10 +401,15 @@ console.log('\n【⑨】本阶段修改文件清单与 Git commit');
   const status = run('git', ['status', '--porcelain'], { cwd: REPO });
   const protectedDiff = run('git', ['diff', '--stat', '--', 'src/', 'index.html', 'test/', 'core.lock.json', 'docs/'], { cwd: REPO });
   const branch = run('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: REPO });
-  const entries = status.out.trim() ? status.out.trim().split('\n').map((l) => ({
-    status: l.slice(0, 2).trim(),
-    path: l.slice(3),
-  })) : [];
+  // 🔒 不可用 trim()：porcelain 首行以 " M " 开头，trim() 会吃掉行首空格
+  //    → slice(3) 变成 "esktop/..."，路径判定误报（P4-B 阶段修正）。
+  const entries = status.out.split('\n')
+    .map((l) => l.replace(/\r$/, ''))
+    .filter((l) => l.trim().length > 0)
+    .map((l) => ({
+      status: l.slice(0, 2).trim(),
+      path: l.slice(3),
+    }));
   const onlyDesktop = entries.every((e) => e.path.startsWith('desktop/'));
   const ok9 = onlyDesktop && protectedDiff.out.trim() === '' && branch.out.trim() === 'feature/desktop-windows';
   record('EV-A09', '修改文件清单与 Git commit', ok9,

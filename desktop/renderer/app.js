@@ -1543,9 +1543,20 @@
     }
   }
 
+/* ---- desktop-adapter: copy feedback — restore each button's own label ---- */
   function showCopyFeedback(button, ok) {
     var icon = button.querySelector('.icon');
     var label = button.querySelector('.label');
+    if (!icon || !label) return;
+    // 🔒 记住各自原始文案与图标（首次使用时捕获）
+    if (!button.getAttribute('data-desktop-orig-label')) {
+      button.setAttribute('data-desktop-orig-label', label.textContent);
+    }
+    if (!button.getAttribute('data-desktop-orig-icon')) {
+      button.setAttribute('data-desktop-orig-icon', icon.textContent);
+    }
+    var origLabel = button.getAttribute('data-desktop-orig-label');
+    var origIcon = button.getAttribute('data-desktop-orig-icon');
     if (ok) {
       button.classList.add('is-success');
       button.classList.remove('is-error');
@@ -1554,8 +1565,8 @@
       setText(els.liveFeedback, '已复制到剪贴板');
       window.setTimeout(function () {
         button.classList.remove('is-success');
-        icon.textContent = '⧉';
-        label.textContent = '复制';
+        icon.textContent = origIcon;
+        label.textContent = origLabel;
       }, COPY_OK_MS);
     } else {
       button.classList.add('is-error');
@@ -1565,8 +1576,8 @@
       setText(els.liveFeedback, '复制失败，请手动选取文本复制');
       window.setTimeout(function () {
         button.classList.remove('is-error');
-        icon.textContent = '⧉';
-        label.textContent = '复制';
+        icon.textContent = origIcon;
+        label.textContent = origLabel;
       }, COPY_FAIL_MS);
     }
   }
@@ -2012,5 +2023,29 @@
     }
   }
 
-  return { init: init, state: state };
+/* ---- desktop-adapter: expose internals for the desktop interaction layer ---- */
+  return {
+    init: init,
+    state: state,
+    // 🔒 只暴露既有函数，不新增计算；全部实现仍委托 core.js（DEC-02）。
+    buildResolutionText: buildResolutionText,
+    buildFullParameterText: buildFullParameterText,
+    copyText: copyText,
+    readDimensions: readDimensions,
+    resolveTargetRatio: resolveTargetRatio,
+    computeCandidates: computeCandidates,
+    primaryCandidate: primaryCandidate,
+    describeFit: describeFit,
+    formatMm: formatMm,
+    formatDeviation: formatDeviation,
+    formatResolution: formatResolution,
+    plainResolution: plainResolution,
+    ratioTextOf: ratioTextOf,
+    buildCoreNote: buildCoreNote,
+    buildLiveSummary: buildLiveSummary,
+    renderBadge: renderBadge,
+    unitSpec: UNIT_SPEC,
+    siteFields: SITE_FIELDS,
+    defaultTolerancePercent: Core.DEFAULT_TOLERANCE_PERCENT
+  };
 });

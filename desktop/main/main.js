@@ -83,6 +83,16 @@ const MIME = Object.freeze({
 });
 
 let mainWindow = null;
+let menuStateTimer = null;
+
+/**
+ * 🔒 三线版本（DEC-13）—— 全工程**唯一**的版本真源。
+ *   桌面 1.1.0    ← app.getVersion()（读 desktop/package.json）
+ *   内核 core@1.0.1 ← core.lock.json 的 coreVersion
+ *   HTML 1.0.1    ← 仓库根 package.json 的 version（HTML 版永久保留，DEC-03）
+ * 渲染层只允许通过 IPC `app:v1:app.version` 读取，不得在多处手工维护。
+ */
+const HTML_VERSION = '1.0.1';
 
 /* ==========================================================================
    工作区检测（DEC-09）
@@ -191,6 +201,45 @@ function installSecurityInterceptors() {
 }
 
 /* ==========================================================================
+   菜单状态同步（D-05 §4「置灰」规则）
+   --------------------------------------------------------------------------
+   🔒 硬规则：任何在当前状态下不可用的菜单项必须**置灰**，鼠标悬停给出原因，
+      不得「点了没反应」。
+   🔒 载荷是否可生成、当前布局档位、舞台是否折叠 —— 这些都是渲染层的知识，
+      主进程不重复实现业务判断（SEC-01）。
+   🔒 同步通道用 executeJavaScript（只读查询），**不新增 IPC 通道**（SEC-07）。
+   ========================================================================== */
+function syncMenuState() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const menu = Menu.getApplicationMenu();
+  if (!menu) return;
+  mainWindow.webContents
+    .executeJavaScript('window.__desktopMenuState ? window.__desktopMenuState() : null', true)
+    .then((state) => {
+      if (!state) return;
+      const set = (id, props) => {
+        const item = menu.getMenuItemById(id);
+        if (!item) return;
+        if (props.enabled !== undefined) item.enabled = props.enabled;
+        if (props.label !== undefined) item.label = props.label;
+      };
+      // 载荷为 null 时置灰（D-05 §4）
+      set('copy-resolution', { enabled: !!state.canCopyResolution });
+      set('copy-full-parameters', { enabled: !!state.canCopyFull });
+      // 舞台折叠/展开只在两栏档可用；单栏/三栏档置灰并注明原因
+      set('toggle-stage', {
+        enabled: !!state.canToggleStage,
+        label: state.canToggleStage ? '展开/折叠舞台' : '展开/折叠舞台（当前布局档位无独立舞台面板）',
+      });
+      // 只读项：布局档位
+      set('layout-tier', { label: '布局档位：' + (state.layoutLabel || '—') });
+    })
+    .catch(() => {
+      /* 渲染层未就绪时忽略 */
+    });
+}
+
+/* ==========================================================================
    窗口创建
    ========================================================================== */
 function createWindow() {
@@ -219,6 +268,11 @@ function createWindow() {
       allowRunningInsecureContent: false,
       spellcheck: false, // 现场输入尺寸数字，禁拼写检查下划线
       backgroundThrottling: false,
+      // 🔒 D-02 §11 约束 3：交付版禁用开发者工具入口。
+      //    同时使 Chromium 的 Ctrl+Shift+C「检查元素」绑定在交付版**不存在**，
+      //    SK-06（复制完整参数）因此不会被 DevTools 抢占（D-02 §11 约束 2）。
+      //    开发版（未打包）保留 DevTools 以便排障。
+      devTools: !app.isPackaged,
     },
   });
 
@@ -301,12 +355,20 @@ app.whenReady().then(() => {
     userDataDir: storage.userData,
     appVersion: app.getVersion(),
     coreVersion: 'core@1.0.1',
+    htmlVersion: HTML_VERSION,
   });
 
   Menu.setApplicationMenu(buildMenu({ mainWindow: win }));
 
   // 🔴 加载放在 IPC 注册与菜单设置之后 —— 保证渲染层首次调用 IPC 时 handler 就绪
   loadMainDocument(win);
+
+  // 菜单状态同步（D-05 §4 置灰规则）—— 只读查询，不新增 IPC 通道
+  if (menuStateTimer) clearInterval(menuStateTimer);
+  menuStateTimer = setInterval(syncMenuState, 900);
+  win.webContents.on('did-finish-load', () => {
+    syncMenuState();
+  });
 
   logRuntimeVersions();
 
@@ -317,6 +379,11 @@ app.whenReady().then(() => {
       loadMainDocument(w);
     }
   });
+});
+
+// 退出前清理菜单状态轮询
+app.on('will-quit', () => {
+  if (menuStateTimer) clearInterval(menuStateTimer);
 });
 
 // 关闭唯一窗口后进程完全退出（SEC-26 反向核验的最强证据）

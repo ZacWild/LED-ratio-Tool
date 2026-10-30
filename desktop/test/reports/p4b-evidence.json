@@ -1,0 +1,619 @@
+{
+  "generatedAt": "2026-10-30T03:57:53.278Z",
+  "platform": {
+    "os": "win32",
+    "release": "10.0.26300",
+    "node": "22.22.2"
+  },
+  "evidence": [
+    {
+      "id": "EV-B01",
+      "title": "三档响应式布局（客户区回读）",
+      "ok": true,
+      "detail": "客户区 1440×900 → 档位 three ｜ 客户区 1200×800 → 档位 two ｜ 客户区 1024×700 → 档位 stacked",
+      "data": {
+        "tiers": [
+          {
+            "requested": {
+              "w": 1440,
+              "h": 900,
+              "expect": "three"
+            },
+            "content": {
+              "width": 1440,
+              "height": 900
+            },
+            "probe": {
+              "attr": "three",
+              "clientWidth": 1440,
+              "docScrollH": 900,
+              "docClientH": 900,
+              "panels": [
+                {
+                  "cls": "panel panel--input",
+                  "display": "block",
+                  "clientW": 308,
+                  "clientH": 782,
+                  "scrollH": 976
+                },
+                {
+                  "cls": "panel panel--stage",
+                  "display": "flex",
+                  "clientW": 628,
+                  "clientH": 782,
+                  "scrollH": 782
+                },
+                {
+                  "cls": "panel panel--result",
+                  "display": "block",
+                  "clientW": 388,
+                  "clientH": 782,
+                  "scrollH": 2465
+                }
+              ],
+              "stageSummaryHidden": true
+            },
+            "shot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\p4b-1440x900.png"
+          },
+          {
+            "requested": {
+              "w": 1200,
+              "h": 800,
+              "expect": "two"
+            },
+            "content": {
+              "width": 1200,
+              "height": 800
+            },
+            "probe": {
+              "attr": "two",
+              "clientWidth": 1200,
+              "docScrollH": 800,
+              "docClientH": 800,
+              "panels": [
+                {
+                  "cls": "panel panel--input",
+                  "display": "block",
+                  "clientW": 308,
+                  "clientH": 682,
+                  "scrollH": 976
+                },
+                {
+                  "cls": "panel panel--stage",
+                  "display": "none",
+                  "clientW": 0,
+                  "clientH": 0,
+                  "scrollH": 0
+                },
+                {
+                  "cls": "panel panel--result",
+                  "display": "block",
+                  "clientW": 804,
+                  "clientH": 682,
+                  "scrollH": 2098
+                }
+              ],
+              "stageSummaryHidden": false
+            },
+            "shot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\p4b-1200x800.png"
+          },
+          {
+            "requested": {
+              "w": 1024,
+              "h": 700,
+              "expect": "stacked"
+            },
+            "content": {
+              "width": 1024,
+              "height": 700
+            },
+            "probe": {
+              "attr": "stacked",
+              "clientWidth": 1024,
+              "docScrollH": 700,
+              "docClientH": 700,
+              "panels": [
+                {
+                  "cls": "panel panel--input",
+                  "display": "block",
+                  "clientW": 980,
+                  "clientH": 138,
+                  "scrollH": 918
+                },
+                {
+                  "cls": "panel panel--stage",
+                  "display": "flex",
+                  "clientW": 980,
+                  "clientH": 108,
+                  "scrollH": 120
+                },
+                {
+                  "cls": "panel panel--result",
+                  "display": "block",
+                  "clientW": 980,
+                  "clientH": 324,
+                  "scrollH": 2005
+                }
+              ],
+              "stageSummaryHidden": true
+            },
+            "shot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\p4b-1024x700.png"
+          }
+        ]
+      }
+    },
+    {
+      "id": "EV-B02",
+      "title": "滚动模型与核心结果 sticky 可见",
+      "ok": true,
+      "detail": "document scrollHeight 900 ≤ clientHeight 900 ｜ 结果栏可滚动=true 已滚动=true ｜ 滚到底后核心卡可见=true 复制组可见=true",
+      "data": {
+        "before": {
+          "scrollH": 900,
+          "clientH": 900
+        },
+        "after": {
+          "scrollH": 900,
+          "clientH": 900
+        },
+        "panelScrollable": true,
+        "panelScrolled": true,
+        "coreVisible": true,
+        "actionsVisible": true,
+        "coreRect": {
+          "top": 65,
+          "bottom": 288
+        },
+        "actionsRect": {
+          "top": 762,
+          "bottom": 831
+        },
+        "panelRectBefore": {
+          "top": 64,
+          "bottom": 848
+        },
+        "panelRectAfter": {
+          "top": 64,
+          "bottom": 848
+        }
+      }
+    },
+    {
+      "id": "EV-B02b",
+      "title": "吸顶层三层无内容截断（核心卡/警示条/复制组）",
+      "ok": true,
+      "detail": "吸顶层溢出=0px ｜ 警示条完整可见=true（\"▲\n      目标比例不属于常见标准画幅（容差\"）｜ 复制组可见=true",
+      "data": {
+        "bandOverflow": 0,
+        "bandH": 223,
+        "coreNoteH": 36,
+        "coreNoteScrollH": 36,
+        "warnVisible": true,
+        "warnText": "▲\n      目标比例不属于常见标准画幅（容差",
+        "actionsVisible": true
+      }
+    },
+    {
+      "id": "EV-B02c",
+      "title": "窄窗口纵向堆叠：三面板可见 + 核心结果/警告/复制均可见",
+      "ok": true,
+      "detail": "档位=stacked ｜ 面板 3 个全部可见=true ｜ 警示条可见=true ｜ 复制组可见=true ｜ 核心卡可见=true ｜ 折叠摘要已隐藏=true(display=none)",
+      "data": {
+        "tier": "stacked",
+        "panelsVisible": true,
+        "panelCount": 3,
+        "warnVisible": true,
+        "actionsVisible": true,
+        "bandVisible": true,
+        "summaryHidden": true,
+        "summaryDisplay": "none"
+      }
+    },
+    {
+      "id": "EV-B03",
+      "title": "复制载荷与 HTML 版逐项核对（顺序取自 src/app.js）",
+      "ok": true,
+      "detail": "行序一致=true（期望 16 行 / 实际 16 行）｜ 分辨率载荷=\"1920×549\"（宽×高、无千分位=true）｜ ②③④未填显示「未填写」=true",
+      "data": {
+        "expectedOrder": [
+          "LED 屏比例换算参数",
+          "屏幕实际尺寸：",
+          "实际比例：",
+          "最简整数比例：",
+          "目标比例来源：",
+          "目标画布分辨率：",
+          "输出比例：",
+          "宽高比相对误差：",
+          "像素尺寸误差：",
+          "是否严格匹配：",
+          "等比适配方案：",
+          "",
+          "以下参数需现场确认（本工具不推导）：",
+          "  ② LED 控制系统接收分辨率：",
+          "  ③ 后期软件视频合成分辨率：",
+          "  ④ 实际交付的视频文件分辨率："
+        ],
+        "actualPrefixes": [
+          "LED 屏比例换算参数",
+          "屏幕实际尺寸：",
+          "实际比例：",
+          "最简整数比例：",
+          "目标比例来源：",
+          "目标画布分辨率：",
+          "输出比例：",
+          "宽高比相对误差：",
+          "像素尺寸误差：",
+          "是否严格匹配：",
+          "等比适配方案：",
+          "",
+          "以下参数需现场确认（本工具不推导）：",
+          "  ② LED 控制系统接收分辨率：",
+          "  ③ 后期软件视频合成分辨率：",
+          "  ④ 实际交付的视频文件分辨率："
+        ],
+        "actualFull": "LED 屏比例换算参数\n屏幕实际尺寸：14 m × 4 m\n实际比例：3.5000 : 1\n最简整数比例：7:2\n目标比例来源：屏幕实际比例\n目标画布分辨率：1920×549\n输出比例：3.4973 : 1\n宽高比相对误差：+0.0781%\n像素尺寸误差：+0.0781%\n是否严格匹配：否（存在取整误差）\n等比适配方案：需裁切（左右各 0.75px）（不建议拉伸画面）\n\n以下参数需现场确认（本工具不推导）：\n  ② LED 控制系统接收分辨率：未填写\n  ③ 后期软件视频合成分辨率：未填写\n  ④ 实际交付的视频文件分辨率：未填写",
+        "resolution": "1920×549"
+      }
+    },
+    {
+      "id": "EV-B04a",
+      "title": "复制分辨率：IPC 真实写入 + 成功反馈",
+      "ok": true,
+      "detail": "剪贴板=\"1920×549\"（期望 \"1920×549\"）｜ 按钮文案=\"已复制\" ｜ live=\"已复制到剪贴板\" ｜ 状态栏=\"已复制到剪贴板\"",
+      "data": {
+        "clipRes": "1920×549",
+        "fbRes": {
+          "label": "已复制",
+          "live": "已复制到剪贴板",
+          "ftMessage": "已复制到剪贴板"
+        }
+      }
+    },
+    {
+      "id": "EV-B04b",
+      "title": "复制完整参数：IPC 真实写入 + 成功反馈",
+      "ok": true,
+      "detail": "剪贴板长度=268（期望 268）逐字一致=true ｜ 按钮文案=\"已复制\"",
+      "data": {
+        "clipFull": "LED 屏比例换算参数\n屏幕实际尺寸：14 m × 4 m\n实际比例：3.5000 : 1\n最简整数比例：7:2\n目标比例来源：屏幕实际比例\n目标画布分辨率：1920×549\n输出比例：3.4973 : 1\n宽高比相对误差：+0.0781%\n像素尺寸误差：+0.0781%\n是否严格匹配：否（存在取整误差）\n等比适配方案：需裁切（左右各 0.75px）（不建议拉伸画面）\n\n以下参数需现场确认（本工具不推导）：\n  ② LED 控制系统接收分辨率：未填写\n  ③ 后期软件视频合成分辨率：未填写\n  ④ 实际交付的视频文件分辨率：未填写",
+        "fbFull": {
+          "label": "已复制",
+          "live": "已复制到剪贴板"
+        }
+      }
+    },
+    {
+      "id": "EV-B04c",
+      "title": "复制反馈复原时恢复各自原始标签（D-02 Q-02）",
+      "ok": true,
+      "detail": "复原后文案：分辨率=\"复制分辨率\" 完整参数=\"复制完整参数\"",
+      "data": {
+        "res": "复制分辨率",
+        "full": "复制完整参数"
+      }
+    },
+    {
+      "id": "EV-B05a",
+      "title": "菜单「复制完整参数」→ 复制完整参数文本",
+      "ok": true,
+      "detail": "菜单项=\"复制完整参数\" accelerator 已注册为显示项 ｜ 剪贴板逐字一致=true",
+      "data": {
+        "mCopy": {
+          "found": true,
+          "enabled": true,
+          "label": "复制完整参数"
+        },
+        "clipMenu": "LED 屏比例换算参数\n屏幕实际尺寸：14 m × 4 m\n实际比例：3.5000 : 1\n最简整数比例：7:2\n目标比例来源：屏幕实际比例\n目标画布分辨率：1920×549\n输出比例：3.4973 : 1\n宽高比相对误差：+0.0781%\n像素尺寸误差：+0.0781%\n是否严格匹配：否（存在取整误差）\n等比适配方案：需裁切（左右各 0.75px）（不建议拉伸画面）\n\n以下参数需现场确认（本工具不推导）：\n  ② LED 控制系统接收分辨率：未填写\n  ③ 后期软件视频合成分辨率：未填写\n  ④ 实际交付的视频文件分辨率：未填写"
+      }
+    },
+    {
+      "id": "EV-B05b",
+      "title": "菜单「复制分辨率」→ 复制宽×高（无千分位）",
+      "ok": true,
+      "detail": "剪贴板=\"1920×549\"",
+      "data": {
+        "mCopyRes": {
+          "found": true,
+          "enabled": true,
+          "label": "复制分辨率"
+        },
+        "clipMenuRes": "1920×549"
+      }
+    },
+    {
+      "id": "EV-B05c",
+      "title": "菜单切画布模式 → led:mode 业务事件生效",
+      "ok": true,
+      "detail": "切换后 aria-checked=height ｜ app.js state.canvasMode=height",
+      "data": {
+        "checked": "height",
+        "stateMode": "height"
+      }
+    },
+    {
+      "id": "EV-B05d",
+      "title": "菜单恢复默认值 → led:reset 业务事件生效",
+      "ok": true,
+      "detail": "输入框回到 14×4 ｜ state.widthText=14 ｜ state.canvasMode=width",
+      "data": {
+        "width": "14",
+        "height": "4",
+        "stateWidth": "14",
+        "stateHeight": "4",
+        "stateMode": "width"
+      }
+    },
+    {
+      "id": "EV-B05e",
+      "title": "菜单宽高互换 → 文本与毫米值同步",
+      "ok": true,
+      "detail": "互换后 4×14",
+      "data": {
+        "width": "4",
+        "height": "14"
+      }
+    },
+    {
+      "id": "EV-B06a",
+      "title": "SK-01 Ctrl+3（普通焦点）→ 切画布模式",
+      "ok": true,
+      "detail": "state.canvasMode=preset",
+      "data": {
+        "sk01": "preset"
+      }
+    },
+    {
+      "id": "EV-B06b",
+      "title": "SK-01 Ctrl+3（输入框聚焦）→ 不响应且不插入字符",
+      "ok": true,
+      "detail": "state.canvasMode 保持=preset ｜ 输入框内容=\"14\"",
+      "data": {
+        "mode": "preset",
+        "value": "14"
+      }
+    },
+    {
+      "id": "EV-B06c",
+      "title": "SK-05 Ctrl+C（输入框有选区）→ 原生复制选区",
+      "ok": true,
+      "detail": "剪贴板=\"1414\"（期望 \"1414\"；工具复制载荷应为 \"1920×549\"）",
+      "data": {
+        "clipNative": "1414"
+      }
+    },
+    {
+      "id": "EV-B06d",
+      "title": "SK-05 Ctrl+C（输入框无选区）→ 不触发工具复制",
+      "ok": true,
+      "detail": "哨兵写入生效=true ｜ 按键后剪贴板保持=\"__SENTINEL__\"",
+      "data": {
+        "clipNone": "__SENTINEL__",
+        "sentinelOk": true
+      }
+    },
+    {
+      "id": "EV-B06e",
+      "title": "SK-04 Ctrl+R → 恢复默认值且**不刷新窗口**",
+      "ok": true,
+      "detail": "页面标记仍在=true ｜ state.widthText=14 ｜ beforeReload=null",
+      "data": {
+        "mark": "alive",
+        "width": "14",
+        "stateWidth": "14"
+      }
+    },
+    {
+      "id": "EV-B06f",
+      "title": "FS-D 对话框打开时仅 Esc 有效，其余快捷键失效",
+      "ok": true,
+      "detail": "帮助表 12 行 ｜ 对话框内 Ctrl+1 后模式仍为 width ｜ Esc 关闭=true",
+      "data": {
+        "modalProbe": {
+          "open": true,
+          "title": "快捷键帮助（12 组）",
+          "rows": 12
+        },
+        "modeInModal": "width",
+        "modalClosed": true
+      }
+    },
+    {
+      "id": "EV-B07a",
+      "title": "关于对话框三线版本（IPC 实读）",
+      "ok": true,
+      "detail": "桌面=1.1.0 ｜ 内核=core@1.0.1 ｜ HTML=1.0.1 ｜ Electron=45.1.0",
+      "data": {
+        "map": {
+          "应用名称": "LED 比例换算台",
+          "桌面版本": "1.1.0",
+          "计算内核": "core@1.0.1",
+          "HTML 版": "1.0.1",
+          "Electron": "45.1.0",
+          "Chromium": "156.0.8078.49",
+          "Node": "24.22.1",
+          "构建时间": "2026-10-30T03:57:35.340Z",
+          "应用标识": "com.ledratiotool.desktop"
+        },
+        "count": 9
+      }
+    },
+    {
+      "id": "EV-B07b",
+      "title": "IX-17 模态焦点锁（Tab 在对话框内循环）",
+      "ok": true,
+      "detail": "可聚焦元素 2 个 ｜ 末位 Tab 后回到首位=true",
+      "data": {
+        "focusLoop": {
+          "count": 2,
+          "lastIsFocused": true
+        },
+        "wrapped": true
+      }
+    },
+    {
+      "id": "EV-B07c",
+      "title": "IX-18 焦点归还（关闭后回到触发元素）",
+      "ok": true,
+      "detail": "对话框已关闭=true ｜ 焦点落点=#input-width",
+      "data": {
+        "modalHidden": true,
+        "active": "input-width"
+      }
+    },
+    {
+      "id": "EV-B07d",
+      "title": "设置对话框：容差输入框在模态内可见可聚焦 + 即时生效",
+      "ok": true,
+      "detail": "容差输入框在模态内=true 可见=true 初始焦点=true ｜ 改为 0.8 后 state.tolerancePercent=0.8",
+      "data": {
+        "settings": {
+          "inModal": true,
+          "visible": true,
+          "focused": true,
+          "value": "0.5",
+          "title": "设置"
+        },
+        "tolState": 0.8
+      }
+    },
+    {
+      "id": "EV-B08",
+      "title": "状态栏九项与 28px 高度",
+      "ok": true,
+      "detail": "单位=m ｜ 比例=3.5000 : 1 ｜ 模式=按宽度 ｜ 徽标=▲非标准比例 ｜ 错误出口=\"\" ｜ 档位=三栏 ｜ 缩放=100% ｜ 高度=28px",
+      "data": {
+        "unit": "m",
+        "ratio": "3.5000 : 1",
+        "mode": "按宽度",
+        "badge": "▲非标准比例",
+        "error": "",
+        "layout": "三栏",
+        "message": "已复制到剪贴板",
+        "settings": "设置",
+        "scale": "100%",
+        "height": 28
+      }
+    },
+    {
+      "id": "EV-B10",
+      "title": "渲染层 console 零 error/warning（SEC-31）",
+      "ok": true,
+      "detail": "console error=0 warning=0 ｜ pageerror=0",
+      "data": {
+        "errs": [],
+        "warns": [],
+        "pageErrors": []
+      }
+    },
+    {
+      "id": "EV-B09",
+      "title": "受保护文件零改动 + 分支合规",
+      "ok": true,
+      "detail": "分支=feature/desktop-windows ｜ 变更条目 20 个（全部在 desktop/=true）｜ 受保护文件 diff=空",
+      "data": {
+        "branch": "feature/desktop-windows",
+        "entries": [
+          {
+            "status": "M",
+            "path": "desktop/build/desktop-adapter.cjs"
+          },
+          {
+            "status": "M",
+            "path": "desktop/main/ipc.js"
+          },
+          {
+            "status": "M",
+            "path": "desktop/main/main.js"
+          },
+          {
+            "status": "M",
+            "path": "desktop/main/menu.js"
+          },
+          {
+            "status": "M",
+            "path": "desktop/package.json"
+          },
+          {
+            "status": "M",
+            "path": "desktop/renderer/app.css"
+          },
+          {
+            "status": "M",
+            "path": "desktop/renderer/app.js"
+          },
+          {
+            "status": "M",
+            "path": "desktop/renderer/desktop-ui.js"
+          },
+          {
+            "status": "M",
+            "path": "desktop/renderer/manifest.json"
+          },
+          {
+            "status": "M",
+            "path": "desktop/test/p4a-evidence.cjs"
+          },
+          {
+            "status": "??",
+            "path": "desktop/test/desktop-suite.mjs"
+          },
+          {
+            "status": "??",
+            "path": "desktop/test/differential-200.mjs"
+          },
+          {
+            "status": "??",
+            "path": "desktop/test/oracle/"
+          },
+          {
+            "status": "??",
+            "path": "desktop/test/p4b-evidence.cjs"
+          },
+          {
+            "status": "??",
+            "path": "desktop/test/reports/desktop-suite.json"
+          },
+          {
+            "status": "??",
+            "path": "desktop/test/reports/p4b-evidence.json"
+          },
+          {
+            "status": "??",
+            "path": "desktop/test/shots/p4b-1024x700.png"
+          },
+          {
+            "status": "??",
+            "path": "desktop/test/shots/p4b-1200x800.png"
+          },
+          {
+            "status": "??",
+            "path": "desktop/test/shots/p4b-1440x900.png"
+          },
+          {
+            "status": "??",
+            "path": "desktop/test/vectors/"
+          }
+        ],
+        "protectedDiff": ""
+      }
+    }
+  ],
+  "failures": [],
+  "conditional": [],
+  "knownLimitations": [
+    {
+      "id": "LIM-B01",
+      "topic": "125% / 150% 系统缩放",
+      "detail": "本机系统缩放为 100%，DPR 三档需物理机改系统缩放后重新采证。",
+      "impact": "EV-B08 的缩放档位指示只覆盖 100%。",
+      "verifyBy": "物理机固定 1920×1080 逐档改缩放后复跑本脚本。"
+    },
+    {
+      "id": "LIM-B02",
+      "topic": "200 组差分测试（DEC-15）",
+      "detail": "DEC-15 的 200 组可观察结果零未解释差分属 P4-B 出口条件，本轮未执行。",
+      "impact": "本轮只完成 1 组默认态 + 若干交互态的载荷逐字核对。",
+      "verifyBy": "按 D-09 的差分计划批量生成输入向量后复跑。"
+    }
+  ]
+}

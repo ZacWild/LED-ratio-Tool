@@ -67,8 +67,9 @@ function pickOnly(obj, whitelist) {
  * @param {string} deps.userDataDir
  * @param {string} deps.appVersion
  * @param {string} deps.coreVersion
+ * @param {string} deps.htmlVersion
  */
-function registerIpc({ mainWindow, userDataDir, appVersion, coreVersion }) {
+function registerIpc({ mainWindow, userDataDir, appVersion, coreVersion, htmlVersion }) {
   const handle = (channel, fn) => {
     ipcMain.handle(channel, async (event, payload) => {
       try {
@@ -130,11 +131,13 @@ function registerIpc({ mainWindow, userDataDir, appVersion, coreVersion }) {
     return ok({ cancelled: true });
   });
 
-  /* 6. 版本信息 —— 三线版本（DEC-13） */
+  /* 6. 版本信息 —— 三线版本（DEC-13）
+   * 🔒 三条版本线**一次性**从本 IPC 返回，渲染层不得在多处手工维护。 */
   handle(CHANNELS.APP_VERSION, () =>
     ok({
       version: appVersion,
       coreVersion,
+      htmlVersion,
       buildTime: new Date().toISOString(),
       electron: process.versions.electron,
       chrome: process.versions.chrome,

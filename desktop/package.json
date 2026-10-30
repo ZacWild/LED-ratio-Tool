@@ -14,6 +14,8 @@
     "sync:check": "node build/sync-assets.mjs --check-only",
     "core:accept": "node build/sync-assets.mjs --accept-core",
     "audit:security": "node test/security-audit.cjs",
+    "evidence:p4a": "node test/p4a-evidence.cjs",
+    "evidence:p4b": "node test/p4b-evidence.cjs",
     "dev": "npm run preflight && node build/sync-assets.mjs && electron .",
     "build:win": "npm run preflight && node build/sync-assets.mjs && electron-builder --win --x64 --config build/electron-builder.yml"
   },
