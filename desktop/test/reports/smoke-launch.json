@@ -1,0 +1,1446 @@
+{
+  "meta": {
+    "generatedAt": "2026-10-30T05:24:58.568Z",
+    "tool": "desktop/test/smoke-launch.mjs",
+    "purpose": "TK-88 · app:// ERR_FAILED(-2) 偶发竞态 · 连续启动冒烟",
+    "runs": 10,
+    "perRunTimeoutMs": 60000,
+    "electron": "45.1.0",
+    "node": "v22.22.2",
+    "platform": "win32",
+    "repo": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo"
+  },
+  "summary": {
+    "total": 10,
+    "pass": 10,
+    "fail": 0,
+    "lockContention": 0,
+    "totalConsoleErrors": 0,
+    "totalConsoleWarnings": 0,
+    "totalPageErrors": 0,
+    "totalFailedLoads": 0,
+    "verdict": "PASS"
+  },
+  "runs": [
+    {
+      "index": 1,
+      "ok": true,
+      "durationMs": 1633,
+      "probe": {
+        "protocol": "app:",
+        "href": "app://bundle/index.html",
+        "title": "LED 大屏比例与视频画布换算工具",
+        "hasCore": true,
+        "coreExportCount": 22,
+        "ledApiKeys": [
+          "settingsGet",
+          "settingsSet",
+          "clipboardWriteText",
+          "specOpen",
+          "specExport",
+          "appVersion",
+          "windowAction",
+          "openExternal"
+        ],
+        "ledApiFrozen": true,
+        "hasInvokePassthrough": false,
+        "bodyChildCount": 9
+      },
+      "checks": [
+        {
+          "id": "S-01 app:// 协议",
+          "ok": true,
+          "detail": "protocol=app:"
+        },
+        {
+          "id": "S-02 主文档 200 + CSP 头",
+          "ok": true,
+          "detail": "webRequest: app://bundle/index.html status=200 csp=default-src 'none'; script-src 'self'; style-src…"
+        },
+        {
+          "id": "S-03 console error = 0",
+          "ok": true,
+          "detail": "error=0"
+        },
+        {
+          "id": "S-04 pageerror = 0",
+          "ok": true,
+          "detail": "pageerror=0"
+        },
+        {
+          "id": "S-05 core 导出 22 个",
+          "ok": true,
+          "detail": "hasCore=true count=22"
+        },
+        {
+          "id": "S-06 ledApi 8 方法且冻结",
+          "ok": true,
+          "detail": "keys=8 frozen=true passthrough=false"
+        },
+        {
+          "id": "S-07 无资源加载失败",
+          "ok": true,
+          "detail": "requestfailed=0"
+        }
+      ],
+      "failedCheckIds": [],
+      "consoleErrorCount": 0,
+      "consoleWarningCount": 0,
+      "pageErrorCount": 0,
+      "requestFailedCount": 0,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "failedLoads": [],
+      "responses": [
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        }
+      ],
+      "mainHeaders": [
+        {
+          "url": "app://bundle/index.html",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        }
+      ],
+      "mainDocProbe": {
+        "status": 200,
+        "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+      },
+      "screenshot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\smoke\\smoke-run-01.png",
+      "error": null
+    },
+    {
+      "index": 2,
+      "ok": true,
+      "durationMs": 1594,
+      "probe": {
+        "protocol": "app:",
+        "href": "app://bundle/index.html",
+        "title": "LED 大屏比例与视频画布换算工具",
+        "hasCore": true,
+        "coreExportCount": 22,
+        "ledApiKeys": [
+          "settingsGet",
+          "settingsSet",
+          "clipboardWriteText",
+          "specOpen",
+          "specExport",
+          "appVersion",
+          "windowAction",
+          "openExternal"
+        ],
+        "ledApiFrozen": true,
+        "hasInvokePassthrough": false,
+        "bodyChildCount": 9
+      },
+      "checks": [
+        {
+          "id": "S-01 app:// 协议",
+          "ok": true,
+          "detail": "protocol=app:"
+        },
+        {
+          "id": "S-02 主文档 200 + CSP 头",
+          "ok": true,
+          "detail": "webRequest: app://bundle/index.html status=200 csp=default-src 'none'; script-src 'self'; style-src…"
+        },
+        {
+          "id": "S-03 console error = 0",
+          "ok": true,
+          "detail": "error=0"
+        },
+        {
+          "id": "S-04 pageerror = 0",
+          "ok": true,
+          "detail": "pageerror=0"
+        },
+        {
+          "id": "S-05 core 导出 22 个",
+          "ok": true,
+          "detail": "hasCore=true count=22"
+        },
+        {
+          "id": "S-06 ledApi 8 方法且冻结",
+          "ok": true,
+          "detail": "keys=8 frozen=true passthrough=false"
+        },
+        {
+          "id": "S-07 无资源加载失败",
+          "ok": true,
+          "detail": "requestfailed=0"
+        }
+      ],
+      "failedCheckIds": [],
+      "consoleErrorCount": 0,
+      "consoleWarningCount": 0,
+      "pageErrorCount": 0,
+      "requestFailedCount": 0,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "failedLoads": [],
+      "responses": [
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        }
+      ],
+      "mainHeaders": [
+        {
+          "url": "app://bundle/index.html",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        }
+      ],
+      "mainDocProbe": {
+        "status": 200,
+        "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+      },
+      "screenshot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\smoke\\smoke-run-02.png",
+      "error": null
+    },
+    {
+      "index": 3,
+      "ok": true,
+      "durationMs": 1569,
+      "probe": {
+        "protocol": "app:",
+        "href": "app://bundle/index.html",
+        "title": "LED 大屏比例与视频画布换算工具",
+        "hasCore": true,
+        "coreExportCount": 22,
+        "ledApiKeys": [
+          "settingsGet",
+          "settingsSet",
+          "clipboardWriteText",
+          "specOpen",
+          "specExport",
+          "appVersion",
+          "windowAction",
+          "openExternal"
+        ],
+        "ledApiFrozen": true,
+        "hasInvokePassthrough": false,
+        "bodyChildCount": 9
+      },
+      "checks": [
+        {
+          "id": "S-01 app:// 协议",
+          "ok": true,
+          "detail": "protocol=app:"
+        },
+        {
+          "id": "S-02 主文档 200 + CSP 头",
+          "ok": true,
+          "detail": "webRequest: app://bundle/index.html status=200 csp=default-src 'none'; script-src 'self'; style-src…"
+        },
+        {
+          "id": "S-03 console error = 0",
+          "ok": true,
+          "detail": "error=0"
+        },
+        {
+          "id": "S-04 pageerror = 0",
+          "ok": true,
+          "detail": "pageerror=0"
+        },
+        {
+          "id": "S-05 core 导出 22 个",
+          "ok": true,
+          "detail": "hasCore=true count=22"
+        },
+        {
+          "id": "S-06 ledApi 8 方法且冻结",
+          "ok": true,
+          "detail": "keys=8 frozen=true passthrough=false"
+        },
+        {
+          "id": "S-07 无资源加载失败",
+          "ok": true,
+          "detail": "requestfailed=0"
+        }
+      ],
+      "failedCheckIds": [],
+      "consoleErrorCount": 0,
+      "consoleWarningCount": 0,
+      "pageErrorCount": 0,
+      "requestFailedCount": 0,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "failedLoads": [],
+      "responses": [
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        }
+      ],
+      "mainHeaders": [
+        {
+          "url": "app://bundle/index.html",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        }
+      ],
+      "mainDocProbe": {
+        "status": 200,
+        "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+      },
+      "screenshot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\smoke\\smoke-run-03.png",
+      "error": null
+    },
+    {
+      "index": 4,
+      "ok": true,
+      "durationMs": 1582,
+      "probe": {
+        "protocol": "app:",
+        "href": "app://bundle/index.html",
+        "title": "LED 大屏比例与视频画布换算工具",
+        "hasCore": true,
+        "coreExportCount": 22,
+        "ledApiKeys": [
+          "settingsGet",
+          "settingsSet",
+          "clipboardWriteText",
+          "specOpen",
+          "specExport",
+          "appVersion",
+          "windowAction",
+          "openExternal"
+        ],
+        "ledApiFrozen": true,
+        "hasInvokePassthrough": false,
+        "bodyChildCount": 9
+      },
+      "checks": [
+        {
+          "id": "S-01 app:// 协议",
+          "ok": true,
+          "detail": "protocol=app:"
+        },
+        {
+          "id": "S-02 主文档 200 + CSP 头",
+          "ok": true,
+          "detail": "webRequest: app://bundle/index.html status=200 csp=default-src 'none'; script-src 'self'; style-src…"
+        },
+        {
+          "id": "S-03 console error = 0",
+          "ok": true,
+          "detail": "error=0"
+        },
+        {
+          "id": "S-04 pageerror = 0",
+          "ok": true,
+          "detail": "pageerror=0"
+        },
+        {
+          "id": "S-05 core 导出 22 个",
+          "ok": true,
+          "detail": "hasCore=true count=22"
+        },
+        {
+          "id": "S-06 ledApi 8 方法且冻结",
+          "ok": true,
+          "detail": "keys=8 frozen=true passthrough=false"
+        },
+        {
+          "id": "S-07 无资源加载失败",
+          "ok": true,
+          "detail": "requestfailed=0"
+        }
+      ],
+      "failedCheckIds": [],
+      "consoleErrorCount": 0,
+      "consoleWarningCount": 0,
+      "pageErrorCount": 0,
+      "requestFailedCount": 0,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "failedLoads": [],
+      "responses": [
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        }
+      ],
+      "mainHeaders": [
+        {
+          "url": "app://bundle/index.html",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        }
+      ],
+      "mainDocProbe": {
+        "status": 200,
+        "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+      },
+      "screenshot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\smoke\\smoke-run-04.png",
+      "error": null
+    },
+    {
+      "index": 5,
+      "ok": true,
+      "durationMs": 1598,
+      "probe": {
+        "protocol": "app:",
+        "href": "app://bundle/index.html",
+        "title": "LED 大屏比例与视频画布换算工具",
+        "hasCore": true,
+        "coreExportCount": 22,
+        "ledApiKeys": [
+          "settingsGet",
+          "settingsSet",
+          "clipboardWriteText",
+          "specOpen",
+          "specExport",
+          "appVersion",
+          "windowAction",
+          "openExternal"
+        ],
+        "ledApiFrozen": true,
+        "hasInvokePassthrough": false,
+        "bodyChildCount": 9
+      },
+      "checks": [
+        {
+          "id": "S-01 app:// 协议",
+          "ok": true,
+          "detail": "protocol=app:"
+        },
+        {
+          "id": "S-02 主文档 200 + CSP 头",
+          "ok": true,
+          "detail": "webRequest: app://bundle/index.html status=200 csp=default-src 'none'; script-src 'self'; style-src…"
+        },
+        {
+          "id": "S-03 console error = 0",
+          "ok": true,
+          "detail": "error=0"
+        },
+        {
+          "id": "S-04 pageerror = 0",
+          "ok": true,
+          "detail": "pageerror=0"
+        },
+        {
+          "id": "S-05 core 导出 22 个",
+          "ok": true,
+          "detail": "hasCore=true count=22"
+        },
+        {
+          "id": "S-06 ledApi 8 方法且冻结",
+          "ok": true,
+          "detail": "keys=8 frozen=true passthrough=false"
+        },
+        {
+          "id": "S-07 无资源加载失败",
+          "ok": true,
+          "detail": "requestfailed=0"
+        }
+      ],
+      "failedCheckIds": [],
+      "consoleErrorCount": 0,
+      "consoleWarningCount": 0,
+      "pageErrorCount": 0,
+      "requestFailedCount": 0,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "failedLoads": [],
+      "responses": [
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        }
+      ],
+      "mainHeaders": [
+        {
+          "url": "app://bundle/index.html",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        }
+      ],
+      "mainDocProbe": {
+        "status": 200,
+        "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+      },
+      "screenshot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\smoke\\smoke-run-05.png",
+      "error": null
+    },
+    {
+      "index": 6,
+      "ok": true,
+      "durationMs": 1568,
+      "probe": {
+        "protocol": "app:",
+        "href": "app://bundle/index.html",
+        "title": "LED 大屏比例与视频画布换算工具",
+        "hasCore": true,
+        "coreExportCount": 22,
+        "ledApiKeys": [
+          "settingsGet",
+          "settingsSet",
+          "clipboardWriteText",
+          "specOpen",
+          "specExport",
+          "appVersion",
+          "windowAction",
+          "openExternal"
+        ],
+        "ledApiFrozen": true,
+        "hasInvokePassthrough": false,
+        "bodyChildCount": 9
+      },
+      "checks": [
+        {
+          "id": "S-01 app:// 协议",
+          "ok": true,
+          "detail": "protocol=app:"
+        },
+        {
+          "id": "S-02 主文档 200 + CSP 头",
+          "ok": true,
+          "detail": "webRequest: app://bundle/index.html status=200 csp=default-src 'none'; script-src 'self'; style-src…"
+        },
+        {
+          "id": "S-03 console error = 0",
+          "ok": true,
+          "detail": "error=0"
+        },
+        {
+          "id": "S-04 pageerror = 0",
+          "ok": true,
+          "detail": "pageerror=0"
+        },
+        {
+          "id": "S-05 core 导出 22 个",
+          "ok": true,
+          "detail": "hasCore=true count=22"
+        },
+        {
+          "id": "S-06 ledApi 8 方法且冻结",
+          "ok": true,
+          "detail": "keys=8 frozen=true passthrough=false"
+        },
+        {
+          "id": "S-07 无资源加载失败",
+          "ok": true,
+          "detail": "requestfailed=0"
+        }
+      ],
+      "failedCheckIds": [],
+      "consoleErrorCount": 0,
+      "consoleWarningCount": 0,
+      "pageErrorCount": 0,
+      "requestFailedCount": 0,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "failedLoads": [],
+      "responses": [
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        }
+      ],
+      "mainHeaders": [
+        {
+          "url": "app://bundle/index.html",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        }
+      ],
+      "mainDocProbe": {
+        "status": 200,
+        "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+      },
+      "screenshot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\smoke\\smoke-run-06.png",
+      "error": null
+    },
+    {
+      "index": 7,
+      "ok": true,
+      "durationMs": 1601,
+      "probe": {
+        "protocol": "app:",
+        "href": "app://bundle/index.html",
+        "title": "LED 大屏比例与视频画布换算工具",
+        "hasCore": true,
+        "coreExportCount": 22,
+        "ledApiKeys": [
+          "settingsGet",
+          "settingsSet",
+          "clipboardWriteText",
+          "specOpen",
+          "specExport",
+          "appVersion",
+          "windowAction",
+          "openExternal"
+        ],
+        "ledApiFrozen": true,
+        "hasInvokePassthrough": false,
+        "bodyChildCount": 9
+      },
+      "checks": [
+        {
+          "id": "S-01 app:// 协议",
+          "ok": true,
+          "detail": "protocol=app:"
+        },
+        {
+          "id": "S-02 主文档 200 + CSP 头",
+          "ok": true,
+          "detail": "webRequest: app://bundle/index.html status=200 csp=default-src 'none'; script-src 'self'; style-src…"
+        },
+        {
+          "id": "S-03 console error = 0",
+          "ok": true,
+          "detail": "error=0"
+        },
+        {
+          "id": "S-04 pageerror = 0",
+          "ok": true,
+          "detail": "pageerror=0"
+        },
+        {
+          "id": "S-05 core 导出 22 个",
+          "ok": true,
+          "detail": "hasCore=true count=22"
+        },
+        {
+          "id": "S-06 ledApi 8 方法且冻结",
+          "ok": true,
+          "detail": "keys=8 frozen=true passthrough=false"
+        },
+        {
+          "id": "S-07 无资源加载失败",
+          "ok": true,
+          "detail": "requestfailed=0"
+        }
+      ],
+      "failedCheckIds": [],
+      "consoleErrorCount": 0,
+      "consoleWarningCount": 0,
+      "pageErrorCount": 0,
+      "requestFailedCount": 0,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "failedLoads": [],
+      "responses": [
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        }
+      ],
+      "mainHeaders": [
+        {
+          "url": "app://bundle/index.html",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        }
+      ],
+      "mainDocProbe": {
+        "status": 200,
+        "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+      },
+      "screenshot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\smoke\\smoke-run-07.png",
+      "error": null
+    },
+    {
+      "index": 8,
+      "ok": true,
+      "durationMs": 1607,
+      "probe": {
+        "protocol": "app:",
+        "href": "app://bundle/index.html",
+        "title": "LED 大屏比例与视频画布换算工具",
+        "hasCore": true,
+        "coreExportCount": 22,
+        "ledApiKeys": [
+          "settingsGet",
+          "settingsSet",
+          "clipboardWriteText",
+          "specOpen",
+          "specExport",
+          "appVersion",
+          "windowAction",
+          "openExternal"
+        ],
+        "ledApiFrozen": true,
+        "hasInvokePassthrough": false,
+        "bodyChildCount": 9
+      },
+      "checks": [
+        {
+          "id": "S-01 app:// 协议",
+          "ok": true,
+          "detail": "protocol=app:"
+        },
+        {
+          "id": "S-02 主文档 200 + CSP 头",
+          "ok": true,
+          "detail": "webRequest: app://bundle/index.html status=200 csp=default-src 'none'; script-src 'self'; style-src…"
+        },
+        {
+          "id": "S-03 console error = 0",
+          "ok": true,
+          "detail": "error=0"
+        },
+        {
+          "id": "S-04 pageerror = 0",
+          "ok": true,
+          "detail": "pageerror=0"
+        },
+        {
+          "id": "S-05 core 导出 22 个",
+          "ok": true,
+          "detail": "hasCore=true count=22"
+        },
+        {
+          "id": "S-06 ledApi 8 方法且冻结",
+          "ok": true,
+          "detail": "keys=8 frozen=true passthrough=false"
+        },
+        {
+          "id": "S-07 无资源加载失败",
+          "ok": true,
+          "detail": "requestfailed=0"
+        }
+      ],
+      "failedCheckIds": [],
+      "consoleErrorCount": 0,
+      "consoleWarningCount": 0,
+      "pageErrorCount": 0,
+      "requestFailedCount": 0,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "failedLoads": [],
+      "responses": [
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        }
+      ],
+      "mainHeaders": [
+        {
+          "url": "app://bundle/index.html",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        }
+      ],
+      "mainDocProbe": {
+        "status": 200,
+        "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+      },
+      "screenshot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\smoke\\smoke-run-08.png",
+      "error": null
+    },
+    {
+      "index": 9,
+      "ok": true,
+      "durationMs": 1568,
+      "probe": {
+        "protocol": "app:",
+        "href": "app://bundle/index.html",
+        "title": "LED 大屏比例与视频画布换算工具",
+        "hasCore": true,
+        "coreExportCount": 22,
+        "ledApiKeys": [
+          "settingsGet",
+          "settingsSet",
+          "clipboardWriteText",
+          "specOpen",
+          "specExport",
+          "appVersion",
+          "windowAction",
+          "openExternal"
+        ],
+        "ledApiFrozen": true,
+        "hasInvokePassthrough": false,
+        "bodyChildCount": 9
+      },
+      "checks": [
+        {
+          "id": "S-01 app:// 协议",
+          "ok": true,
+          "detail": "protocol=app:"
+        },
+        {
+          "id": "S-02 主文档 200 + CSP 头",
+          "ok": true,
+          "detail": "webRequest: app://bundle/index.html status=200 csp=default-src 'none'; script-src 'self'; style-src…"
+        },
+        {
+          "id": "S-03 console error = 0",
+          "ok": true,
+          "detail": "error=0"
+        },
+        {
+          "id": "S-04 pageerror = 0",
+          "ok": true,
+          "detail": "pageerror=0"
+        },
+        {
+          "id": "S-05 core 导出 22 个",
+          "ok": true,
+          "detail": "hasCore=true count=22"
+        },
+        {
+          "id": "S-06 ledApi 8 方法且冻结",
+          "ok": true,
+          "detail": "keys=8 frozen=true passthrough=false"
+        },
+        {
+          "id": "S-07 无资源加载失败",
+          "ok": true,
+          "detail": "requestfailed=0"
+        }
+      ],
+      "failedCheckIds": [],
+      "consoleErrorCount": 0,
+      "consoleWarningCount": 0,
+      "pageErrorCount": 0,
+      "requestFailedCount": 0,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "failedLoads": [],
+      "responses": [
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        }
+      ],
+      "mainHeaders": [
+        {
+          "url": "app://bundle/index.html",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        }
+      ],
+      "mainDocProbe": {
+        "status": 200,
+        "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+      },
+      "screenshot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\smoke\\smoke-run-09.png",
+      "error": null
+    },
+    {
+      "index": 10,
+      "ok": true,
+      "durationMs": 1586,
+      "probe": {
+        "protocol": "app:",
+        "href": "app://bundle/index.html",
+        "title": "LED 大屏比例与视频画布换算工具",
+        "hasCore": true,
+        "coreExportCount": 22,
+        "ledApiKeys": [
+          "settingsGet",
+          "settingsSet",
+          "clipboardWriteText",
+          "specOpen",
+          "specExport",
+          "appVersion",
+          "windowAction",
+          "openExternal"
+        ],
+        "ledApiFrozen": true,
+        "hasInvokePassthrough": false,
+        "bodyChildCount": 9
+      },
+      "checks": [
+        {
+          "id": "S-01 app:// 协议",
+          "ok": true,
+          "detail": "protocol=app:"
+        },
+        {
+          "id": "S-02 主文档 200 + CSP 头",
+          "ok": true,
+          "detail": "webRequest: app://bundle/index.html status=200 csp=default-src 'none'; script-src 'self'; style-src…"
+        },
+        {
+          "id": "S-03 console error = 0",
+          "ok": true,
+          "detail": "error=0"
+        },
+        {
+          "id": "S-04 pageerror = 0",
+          "ok": true,
+          "detail": "pageerror=0"
+        },
+        {
+          "id": "S-05 core 导出 22 个",
+          "ok": true,
+          "detail": "hasCore=true count=22"
+        },
+        {
+          "id": "S-06 ledApi 8 方法且冻结",
+          "ok": true,
+          "detail": "keys=8 frozen=true passthrough=false"
+        },
+        {
+          "id": "S-07 无资源加载失败",
+          "ok": true,
+          "detail": "requestfailed=0"
+        }
+      ],
+      "failedCheckIds": [],
+      "consoleErrorCount": 0,
+      "consoleWarningCount": 0,
+      "pageErrorCount": 0,
+      "requestFailedCount": 0,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "failedLoads": [],
+      "responses": [
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+        }
+      ],
+      "mainHeaders": [
+        {
+          "url": "app://bundle/index.html",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/styles.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.css",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/core.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/app.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        },
+        {
+          "url": "app://bundle/desktop-ui.js",
+          "status": 200,
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
+          "via": "webRequest"
+        }
+      ],
+      "mainDocProbe": {
+        "status": 200,
+        "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
+      },
+      "screenshot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\smoke\\smoke-run-10.png",
+      "error": null
+    }
+  ]
+}

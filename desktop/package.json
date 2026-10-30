@@ -16,6 +16,9 @@
     "audit:security": "node test/security-audit.cjs",
     "evidence:p4a": "node test/p4a-evidence.cjs",
     "evidence:p4b": "node test/p4b-evidence.cjs",
+    "test:smoke": "node test/smoke-launch.mjs --runs=10",
+    "test:desktop": "node test/desktop-suite.mjs",
+    "test:differential": "node test/differential-200.mjs",
     "dev": "npm run preflight && node build/sync-assets.mjs && electron .",
     "build:win": "npm run preflight && node build/sync-assets.mjs && electron-builder --win --x64 --config build/electron-builder.yml"
   },

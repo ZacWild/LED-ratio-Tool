@@ -1,0 +1,424 @@
+# =============================================================================
+# LED-ratio-Tool · Windows CI 工作流
+# =============================================================================
+# 🔴 **两条必须先读的声明**
+#
+# ① **本工作流「已建立」≠「CI 已通过」**
+#    本文件由 P4-B · P4-1 任务创建。**截至创建时刻，GitHub Actions 从未在本仓库
+#    实际运行过本工作流** —— 首次真实运行发生在本文件被推送到远端之后。
+#    任何「CI 绿了」「CI 跑通了」的说法，在看到本仓库 Actions 页面上的一次
+#    真实绿色运行记录之前，都不成立。
+#
+# ② **在 CI 尚未实际成功运行前，禁止把任何状态检查设为 GitHub Ruleset 的
+#    必需项（required check）**
+#    理由：把一个「从未成功运行过」的检查设为 required，等于给所有后续 PR 判死刑
+#    —— 任何人推 PR 都会因为一个从未被验证能通过的工作流而被永久阻塞。
+#    正确顺序是：
+#      a. 先推送本文件
+#      b. 在 Actions 页面上确认**至少一次真实的绿色运行**
+#      c. 再由项目负责人手动把该 job 名加入 Ruleset 的 required status checks
+#    在 (c) 完成之前，Ruleset 的 required checks **必须为空**。
+#    本文件不代替 (c) —— 配置 Ruleset 是项目负责人的动作，且需要仓库管理员权限。
+#
+# -----------------------------------------------------------------------------
+# 触发条件
+# -----------------------------------------------------------------------------
+#   · push 到 feature/desktop-windows
+#   · 面向 feature/desktop-windows 与 main 的 pull_request
+#   · workflow_dispatch（手动触发，便于排障）
+#
+# 🔒 **不触发 main 分支上的 push** —— main 的保护由 GitHub Ruleset 承担
+#    （GITHUB-RULES.md R-3/R-4）。本工作流不做合并判定，只做质量门禁。
+#
+# -----------------------------------------------------------------------------
+# 门禁顺序（与 P4-B 任务书第九节一致）
+# -----------------------------------------------------------------------------
+#   1. npm ci（仓库根）
+#   2. npm ci（desktop/）
+#   3. npm run sync:check          ← 资源副本零漂移 + core.js 哈希锁
+#   4. npm run audit:security      ← 47 项安全静态审计
+#   5. npm run test:redlines       ← 8 处受保护业务口径（A-01~A-08）
+#   6. npm run test:unit           ← core.js 单元测试
+#   7. 构建（root build + desktop sync + electron-builder 打包配置校验）
+#   8. Electron 启动冒烟 **连续 10 次**   ← TK-88：app:// ERR_FAILED(-2) 竞态
+#   9. 桌面 E2E（desktop-suite.mjs，76 条用例）
+#  10. 200 组差分（differential-200.mjs，DEC-15 三层期望源）
+#
+# -----------------------------------------------------------------------------
+# 关键环境约束
+# -----------------------------------------------------------------------------
+#   · SEC-40 / E-1：`ELECTRON_RUN_AS_NODE` 必须**真正 delete**。
+#     设为空字符串仍会被 Electron 视为「已设置」→ electron.exe 退化为纯 Node
+#     → 报 `Cannot read properties of undefined (reading 'enableSandbox')`，
+#     报错信息与真实原因不匹配，极易误判为产品缺陷。
+#   · E-12：Windows 运行库（vcruntime140*.dll）必须在 Electron 启动前就绪。
+#   · Chrome：200 组差分与 HTML 版 E2E 使用 `chromium.launch({channel:'chrome'})`
+#     → **必须**有系统安装的 Google Chrome，不能只靠 ms-playwright 的 chromium。
+# =============================================================================
+
+name: Windows CI
+
+on:
+  push:
+    branches:
+      - feature/desktop-windows
+  pull_request:
+    branches:
+      - feature/desktop-windows
+      - main
+  workflow_dispatch:
+
+# 🔒 并发：同一分支的新推送取消旧的未完成运行
+concurrency:
+  group: windows-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows · 桌面版门禁
+    # 🔴 30 分钟上限 —— 10 次启动冒烟 + E2E + 200 组差分的实测耗时约 8~14 分钟
+    timeout-minutes: 30
+    runs-on: windows-latest
+
+    env:
+      # 🔴 SEC-40：这里**只写空字符串是不够的**，必须在下方步骤里显式 delete。
+      # 保留该变量是为了让「哪里需要清它」在日志里可见；实际清理见
+      # 「清除 ELECTRON_RUN_AS_NODE」步骤（run: pwsh，Remove-Item Env:）。
+      CI: 'true'
+      # 🔒 供 electron-builder 使用（下载 Electron 二进制需要）
+      ELECTRON_CACHE: ${{ github.workspace }}\.cache\electron
+      # 🔒 Playwright 浏览器缓存目录（ms-playwright）
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}\.cache\ms-playwright
+
+    steps:
+      # ==========================================================================
+      # 0 · 检出
+      # ==========================================================================
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # ==========================================================================
+      # 0.1 · 清除 ELECTRON_RUN_AS_NODE（SEC-40 / E-1）
+      # ==========================================================================
+      # 🔴 **必须是 delete，不是置空**。
+      #    Electron 的判定是「环境变量是否存在」，空字符串同样算存在。
+      #    本步骤在**每一个**会启动 Electron 的后续步骤之前确保它是干净的；
+      #    同时所有测试脚本内部也会再次 delete（幂等，双保险）。
+      - name: 清除 ELECTRON_RUN_AS_NODE（SEC-40）
+        shell: pwsh
+        run: |
+          Write-Host "=== 启动前环境检查 ==="
+          Write-Host "ELECTRON_RUN_AS_NODE = '$($env:ELECTRON_RUN_AS_NODE)'"
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          if (Test-Path Env:ELECTRON_RUN_AS_NODE) {
+            Write-Error "ELECTRON_RUN_AS_NODE 未能清除 —— Electron 将退化为纯 Node 运行（E-1）"
+            exit 1
+          }
+          Write-Host "✅ ELECTRON_RUN_AS_NODE 已清除"
+
+      # ==========================================================================
+      # 0.2 · Node 版本
+      # ==========================================================================
+      - name: 安装 Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            desktop/package-lock.json
+
+      # ==========================================================================
+      # 0.3 · 系统 Chrome（200 组差分 / HTML 版 E2E 用 channel:'chrome'）
+      # ==========================================================================
+      # 🔴 **必须装系统 Chrome**：playwright-core 的 chromium.launch({channel:'chrome'})
+      #    要求**系统安装**的 Google Chrome，只装 ms-playwright 的 chromium 不够。
+      #    choco 是 windows-latest runner 的预装包管理器。
+      - name: 安装 Google Chrome（channel chrome 必需）
+        shell: pwsh
+        run: |
+          $existing = @(
+            "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
+          ) | Where-Object { Test-Path $_ }
+          if ($existing) {
+            Write-Host "✅ Chrome 已存在：$existing"
+          } else {
+            Write-Host "→ 通过 chocolatey 安装 Google Chrome…"
+            choco install googlechrome --yes --no-progress
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "chrome 安装失败（choco 退出码 $LASTEXITCODE）"
+              exit 1
+            }
+          }
+          $chrome = @(
+            "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $chrome) {
+            Write-Error "未找到 chrome.exe —— channel:'chrome' 将无法启动"
+            exit 1
+          }
+          Write-Host "✅ Chrome 路径：$chrome"
+          $chrome | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Add-Content -Path $env:GITHUB_ENV -Value "CHROME_PATH=$chrome"
+
+      # ==========================================================================
+      # 0.4 · 缓存 node_modules 与 Playwright 浏览器目录
+      # ==========================================================================
+      - name: 缓存 Playwright 浏览器目录
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('desktop/package-lock.json') }}
+          restore-keys: |
+            playwright-browsers-${{ runner.os }}-
+
+      - name: 缓存 Electron 二进制
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.ELECTRON_CACHE }}
+          key: electron-45.1.0-${{ runner.os }}
+          restore-keys: |
+            electron-${{ runner.os }}-
+
+      - name: 缓存 desktop/node_modules
+        uses: actions/cache@v4
+        with:
+          path: desktop/node_modules
+          key: desktop-node-modules-${{ runner.os }}-${{ hashFiles('desktop/package-lock.json') }}
+          restore-keys: |
+            desktop-node-modules-${{ runner.os }}-
+
+      # ==========================================================================
+      # 1 · 安装依赖（仓库根）
+      # ==========================================================================
+      - name: npm ci（仓库根）
+        shell: pwsh
+        run: npm ci
+
+      # ==========================================================================
+      # 2 · 安装依赖（desktop/）
+      # ==========================================================================
+      - name: npm ci（desktop）
+        shell: pwsh
+        working-directory: desktop
+        run: npm ci
+
+      # ==========================================================================
+      # 3 · 资源副本零漂移 + core.js 哈希锁
+      # ==========================================================================
+      - name: sync:check（副本漂移 + core 哈希锁）
+        shell: pwsh
+        working-directory: desktop
+        run: npm run sync:check
+
+      # ==========================================================================
+      # 4 · 安全静态审计（47 项）
+      # ==========================================================================
+      - name: audit:security（47 项安全静态审计）
+        shell: pwsh
+        working-directory: desktop
+        run: npm run audit:security
+
+      # ==========================================================================
+      # 5 · 受保护业务口径守卫（A-01~A-08）
+      # ==========================================================================
+      - name: test:redlines（8 处受保护口径）
+        shell: pwsh
+        run: npm run test:redlines
+
+      # ==========================================================================
+      # 6 · core.js 单元测试
+      # ==========================================================================
+      - name: test:unit（core 单元测试）
+        shell: pwsh
+        run: npm run test:unit
+
+      # ==========================================================================
+      # 7 · 构建
+      # ==========================================================================
+      # 7.1 HTML 版单文件构建（产物写入 dist/，**不在 CI 中提交**）
+      - name: 构建 HTML 单文件版
+        shell: pwsh
+        run: npm run build
+
+      # 7.2 桌面版资源同步（把仓库根 src/ 同步到 desktop/renderer/）
+      - name: 构建桌面版资源（sync）
+        shell: pwsh
+        working-directory: desktop
+        run: npm run sync
+
+      # 7.3 桌面版打包配置校验（不产出 EXE）
+      # 🔴 **不执行 electron-builder 实际打包**：正式发行包属 P7 阶段，
+      #    且当前 desktop/resources/icon.ico 尚未产出（P4-B 不含 D-08 图标）。
+      #    本步骤只做 **配置可解析性** 校验，不产出任何交付物。
+      - name: 校验打包配置（不产出 EXE）
+        shell: pwsh
+        working-directory: desktop
+        run: |
+          $cfg = "build/electron-builder.yml"
+          if (-not (Test-Path $cfg)) { Write-Error "缺少 $cfg"; exit 1 }
+          $content = Get-Content $cfg -Raw
+          foreach ($must in @('com.ledratiotool.desktop','LED Ratio Tool','LED 比例换算台','deleteAppDataOnUninstall: false')) {
+            if (-not $content.Contains($must)) {
+              Write-Error "打包配置缺少必需项：$must"
+              exit 1
+            }
+          }
+          Write-Host "✅ 打包配置校验通过（appId / productName / shortcutName / 卸载保留设置）"
+
+      # ==========================================================================
+      # 8 · Electron 启动冒烟 —— 连续 10 次（TK-88）
+      # ==========================================================================
+      # 🔴 针对此前的 `app:// ERR_FAILED (-2)` 偶发竞态：单次启动无法判定，
+      #    必须连续多轮跑同一路径。**任一轮失败即整体非 0 退出。**
+      #    每轮的 console error / pageerror 计数写入报告 JSON。
+      - name: Electron 启动冒烟 × 10
+        shell: pwsh
+        working-directory: desktop
+        env:
+          ELECTRON_RUN_AS_NODE: ''
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          # test:smoke 已内置 --runs=10（见 desktop/package.json）
+          npm run test:smoke
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "启动冒烟失败（退出码 $LASTEXITCODE）—— 见 test/reports/smoke-launch.json"
+            exit $LASTEXITCODE
+          }
+
+      # ==========================================================================
+      # 9 · 桌面 E2E（desktop-suite.mjs）
+      # ==========================================================================
+      # 退出码：0 = 全通过 ｜ 1 = 有失败 ｜ 2 = 有阻塞（BLOCKED）｜ 3 = 环境阻塞
+      # 🔴 **BLOCKED（退出码 2）不等于通过** —— 阻塞项必须暴露，不能吞掉。
+      - name: 桌面 E2E（desktop-suite）
+        shell: pwsh
+        working-directory: desktop
+        env:
+          ELECTRON_RUN_AS_NODE: ''
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          npm run test:desktop
+          $code = $LASTEXITCODE
+          Write-Host "desktop-suite 退出码 = $code"
+          if ($code -eq 1) { Write-Error "桌面 E2E 存在失败用例"; exit 1 }
+          if ($code -eq 2) { Write-Error "桌面 E2E 存在 BLOCKED 用例（阻塞≠通过）"; exit 1 }
+          if ($code -eq 3) { Write-Error "桌面 E2E 环境阻塞（Electron / 依赖不可用）"; exit 1 }
+          exit 0
+
+      # ==========================================================================
+      # 10 · 200 组差分（DEC-15）
+      # ==========================================================================
+      # 退出码：0 = 全通过且未覆盖字段 = 0 ｜ 1 = 存在差异 ｜ 2 = N=0 但 M>0（有条件通过）｜ 3 = 环境阻塞
+      # 🔴 **退出码 2（有条件通过）按「不通过」处理** —— DEC-15 明确 N=0 ∧ M>0
+      #    判「有条件通过」，不得写「完全通过」。CI 的绿灯必须对应严格门禁。
+      - name: 200 组差分（DEC-15）
+        shell: pwsh
+        working-directory: desktop
+        env:
+          ELECTRON_RUN_AS_NODE: ''
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          npm run test:differential
+          $code = $LASTEXITCODE
+          Write-Host "differential-200 退出码 = $code"
+          if ($code -eq 1) { Write-Error "存在未解释差异（N>0）"; exit 1 }
+          if ($code -eq 2) { Write-Error "有条件通过（N=0 但 M>0）—— 按 DEC-15 不算通过"; exit 1 }
+          if ($code -eq 3) { Write-Error "差分执行环境阻塞"; exit 1 }
+          exit 0
+
+      # ==========================================================================
+      # 11 · 产物收集 + SHA-256
+      # ==========================================================================
+      - name: 生成产物 SHA-256 清单
+        shell: pwsh
+        run: |
+          $targets = @(
+            "desktop/test/reports",
+            "desktop/test/shots"
+          ) | Where-Object { Test-Path $_ }
+          if (-not $targets) {
+            Write-Host "⚠️ 无产物目录可哈希"
+            New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+            "（无产物）" | Out-File -FilePath artifacts/SHA256SUMS.txt -Encoding utf8
+            exit 0
+          }
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          $lines = @()
+          foreach ($t in $targets) {
+            Get-ChildItem -Path $t -Recurse -File | Sort-Object FullName | ForEach-Object {
+              $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLower()
+              $rel = $_.FullName.Replace("$PWD\", "").Replace("\", "/")
+              $lines += "$hash  $rel"
+              Write-Host "$hash  $rel"
+            }
+          }
+          $lines | Out-File -FilePath artifacts/SHA256SUMS.txt -Encoding utf8
+          Write-Host "✅ 已生成 $($lines.Count) 条 SHA-256"
+
+      - name: 上传产物（报告 JSON + 截图 + SHA-256）
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows-artifacts
+          path: |
+            artifacts/
+            desktop/test/reports/
+            desktop/test/shots/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: 上传 CI 日志
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs
+          path: |
+            desktop/test/reports/*.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # ==========================================================================
+      # 12 · 汇总
+      # ==========================================================================
+      - name: 汇总门禁结果
+        if: always()
+        shell: pwsh
+        run: |
+          $summary = @()
+          $steps = @{
+            'sync:check'         = 'sync:check（副本漂移 + core 哈希锁）'
+            'audit:security'     = 'audit:security（安全静态审计）'
+            'test:redlines'      = 'test:redlines（受保护业务口径）'
+            'test:unit'          = 'test:unit（core 单元测试）'
+            '构建'                = '构建（HTML + 桌面资源 + 打包配置）'
+            'Electron 启动冒烟'   = 'Electron 启动冒烟 × 10（TK-88）'
+            '桌面 E2E'            = '桌面 E2E（desktop-suite）'
+            '200 组差分'          = '200 组差分（DEC-15）'
+          }
+          foreach ($k in $steps.Keys) {
+            $summary += "| $k | $steps[$k] |"
+          }
+          $body = @"
+          ## Windows CI 门禁汇总
+
+          > ⚠️ **本汇总只反映本次运行的实际结果。** 工作流「已建立」≠「CI 已通过」；
+          > 在 Ruleset 把本 job 设为 required 之前，请确认下方**至少一次真实绿色运行**。
+
+          | 门禁 | 说明 |
+          |---|---|
+          $($summary -join "`n")
+
+          **Ruleset 约束（重要）**：在 CI 尚未于本仓库**实际成功运行过**之前，
+          禁止把任何状态检查设为 GitHub Ruleset 的必需项。
+
+          **报告产物**：`desktop/test/reports/`（含 `smoke-launch.json`、`desktop-suite.json`、
+          `differential-200-report.json`、`p4b-evidence.json`），
+          SHA-256 清单见 `artifacts/SHA256SUMS.txt`。
+          "@
+          $body | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+          Write-Host "✅ 汇总已写入 GITHUB_STEP_SUMMARY"

@@ -1,0 +1,63 @@
+# =============================================================================
+# ⚠️ 本文件**不是**可执行的工作流 —— 它只是一份指向说明。
+# =============================================================================
+#
+# GitHub Actions **只执行仓库根目录下的 `.github/workflows/*.yml`**。
+# 放在 `desktop/.github/workflows/` 下的 yml **永远不会被 GitHub 识别、永远不会运行** ——
+# 它只是一个普通文件，会被 Git 当作源码提交。
+#
+# 因此，**真正生效的 Windows CI 工作流位于**：
+#
+#     →  仓库根目录 `.github/workflows/windows.yml`
+#
+# # 为什么要放在仓库根？
+# -----------------------------------------------------------------------------
+# P4-B 任务书第九节原本写的是「`desktop/.github/workflows/windows.yml`」，
+# 同时也明确写了「或仓库根 `.github/workflows/`（根 `.github/` 目前不存在 —— 新建目录本身是允许的）」。
+#
+# 选**仓库根**的唯一原因是功能性的：**只有根目录的路径会被 GitHub Actions 执行。**
+# 若把可执行的工作流放在 `desktop/` 下，它将「看起来已建立」却**一次都不会运行** ——
+# 这与「不得声称 CI 已通过」的纪律直接冲突（工作流存在 ≠ 工作流跑过）。
+#
+# # 根 `.github/` 目录是否违反项目保护规则？
+# -----------------------------------------------------------------------------
+# 不违反。本轮的保护规则是「**只改 `desktop/` 目录内的文件**」，且明确列出了受保护对象：
+#
+#     src/core.js ｜ src/app.js ｜ src/styles.css ｜ 根 index.html
+#     dist/led-ratio-tool.html ｜ 基准截图 ｜ LICENSE ｜ 根 test/**
+#
+# 根 `.github/workflows/windows.yml` **不属于上述任何一项** —— 它是新建的 CI 配置目录，
+# 不含任何受保护文件，也不修改任何受保护文件。任务书本身也已授权新建根 `.github/`。
+#
+# # 想要修改工作流内容时，请编辑
+# -----------------------------------------------------------------------------
+#     仓库根 `.github/workflows/windows.yml`
+#
+# 关键内容索引：
+#   · 触发条件：push 到 feature/desktop-windows + pull_request + workflow_dispatch
+#   · 门禁顺序：npm ci(根) → npm ci(desktop) → sync:check → audit:security
+#                → test:redlines → test:unit → 构建 → 启动冒烟 × 10 → 桌面 E2E → 200 组差分
+#   · SEC-40：ELECTRON_RUN_AS_NODE 的清除（必须是 delete，不是置空）
+#   · Chrome：choco install googlechrome（channel:'chrome' 必需）
+#   · 缓存：desktop/node_modules + Playwright 浏览器目录 + Electron 二进制
+#   · 产物：报告 JSON + 截图 + SHA-256 清单
+#   · 🔴 Ruleset 约束注释：**CI 实际成功运行前，禁止把任何状态检查设为 required**
+#
+# 相关文档：desktop/DESIGN-ALIGNMENT.md（实施台账）｜ desktop/README.md（使用说明）
+# =============================================================================
+
+name: pointer-only-not-an-active-workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  pointer:
+    name: 这是一份指向说明，不是 CI 门禁
+    runs-on: ubuntu-latest
+    steps:
+      - name: 提示
+        run: |
+          echo "真正生效的 Windows CI 工作流位于仓库根：.github/workflows/windows.yml"
+          echo "本文件位于 desktop/ 下，GitHub Actions 不会执行它。"
+          exit 0
