@@ -1,0 +1,26 @@
+{
+  "name": "led-ratio-tool-desktop",
+  "version": "1.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "LED 大屏比例与视频画布换算工具 · Windows 桌面版",
+  "main": "main/main.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "preflight": "node build/preflight.cjs",
+    "sync": "node build/sync-assets.mjs",
+    "sync:check": "node build/sync-assets.mjs --check-only",
+    "core:accept": "node build/sync-assets.mjs --accept-core",
+    "audit:security": "node test/security-audit.cjs",
+    "dev": "npm run preflight && node build/sync-assets.mjs && electron .",
+    "build:win": "npm run preflight && node build/sync-assets.mjs && electron-builder --win --x64 --config build/electron-builder.yml"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "45.1.0",
+    "electron-builder": "26.18.0",
+    "playwright-core": "1.56.1"
+  }
+}
