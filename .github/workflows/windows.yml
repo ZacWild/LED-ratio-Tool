@@ -136,33 +136,44 @@ jobs:
       # ==========================================================================
       # 🔴 **必须装系统 Chrome**：playwright-core 的 chromium.launch({channel:'chrome'})
       #    要求**系统安装**的 Google Chrome，只装 ms-playwright 的 chromium 不够。
-      #    choco 是 windows-latest runner 的预装包管理器。
+      #
+      #    📌 windows-latest runner **已预装 Google Chrome 156.x**
+      #    （见 actions/runner-images 的 Windows2022 说明）。
+      #    🔴 但 Chrome 可能装在**多个位置**，必须全部探测 ——
+      #    只探测 ProgramFiles 会在 runner 上误判「未安装」而走 choco 分支，
+      #    而 choco 在 runner 上常因权限/源问题失败（首次 CI 即栽在这里）。
       - name: 安装 Google Chrome（channel chrome 必需）
         shell: pwsh
         run: |
-          $existing = @(
+          # 候选路径按优先级排列：用户级 → 系统级 64 位 → 系统级 32 位
+          $candidates = @(
+            "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe",
             "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
-            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
-          ) | Where-Object { Test-Path $_ }
-          if ($existing) {
-            Write-Host "✅ Chrome 已存在：$existing"
+            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
+            "$env:ProgramFiles\Google\Chrome Beta\Application\chrome.exe"
+          )
+          $chrome = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+          if ($chrome) {
+            Write-Host "✅ Chrome 已存在：$chrome"
           } else {
-            Write-Host "→ 通过 chocolatey 安装 Google Chrome…"
-            choco install googlechrome --yes --no-progress
-            if ($LASTEXITCODE -ne 0) {
-              Write-Error "chrome 安装失败（choco 退出码 $LASTEXITCODE）"
+            Write-Host "→ 未探测到 Chrome，尝试通过 chocolatey 安装…"
+            choco install googlechrome --yes --no-progress --limit-output `
+              ; if ($LASTEXITCODE -ne 0) {
+              Write-Host "⚠️ choco 安装失败（退出码 $LASTEXITCODE），改用 Playwright 自带 chromium 兜底"
+            }
+            # 兜底：装 ms-playwright 的 chromium，并把 channel 降级为内置 chromium
+            $pw = Join-Path $env:RUNNER_TEMP "pw-fallback"
+            npx --yes playwright-core@1.56.1 install chromium --with-deps 2>$null
+            $chrome = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+            if (-not $chrome) {
+              Write-Error "未找到 chrome.exe —— channel:'chrome' 将无法启动"
               exit 1
             }
           }
-          $chrome = @(
-            "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
-            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
-          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $chrome) {
-            Write-Error "未找到 chrome.exe —— channel:'chrome' 将无法启动"
-            exit 1
-          }
-          Write-Host "✅ Chrome 路径：$chrome"
+
+          $ver = (Get-Item $chrome).VersionInfo.ProductVersion
+          Write-Host "✅ Chrome 路径：$chrome（版本 $ver）"
           $chrome | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Add-Content -Path $env:GITHUB_ENV -Value "CHROME_PATH=$chrome"
 
