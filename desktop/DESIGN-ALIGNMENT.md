@@ -140,6 +140,8 @@
 | F-04 状态栏不进 Tab 序列，唯一例外 EL-FT-08 | `app.css:596-605`（`#ft-settings` 是 `<button>`） | ✅ |
 | F-05 隐藏元素不占 Tab 位 | `app.css:299-301`（折叠组 `display:none`） | ✅ |
 | F-06 roving tabindex | `desktop-ui.js:1543-1554` | ✅ |
+| F-07 跨断点焦点迁移 | 见 `P3-D01-线框.md` §6.3 | ⚠️ **TK-142 未实现**（见 §3 DEV-03） |
+| **TK-106 分隔条 Tab 顺序** | `#drag-handle-a` / `#drag-handle-c` 是 `<button role="separator">`（`desktop-ui.js:583-600`），**天然进入 Tab 序列**；其 DOM 位置在 A 栏与 B 栏、B 栏与 C 栏之间 → Tab 顺序 = 「A 栏内容 → 分隔条 A → B 栏内容 → 分隔条 C → C 栏内容」，与视觉顺序一致 | ✅ 已实测（TC-D-19：停靠 40 个、隐藏焦点 0、与 DOM 顺序一致=true） |
 | F-08 焦点环画在边框盒 | `app.css:269-272, 520-523`（`:focus-visible{outline:2px solid var(--accent-strong)}`） | ✅ |
 
 ### 2.3 错误类型 ER-01~ER-14
@@ -552,6 +554,50 @@ else                                        tier = 3   // 极低高度（重量�
 | 未改共享业务源码 | ✅ `src/core.js`、`src/app.js`、`src/styles.css`、根 `index.html` 本轮**零改动**（`sync:check` 退出码 0 佐证） |
 | 待决编号不重号（TK-140 起） | ✅ TK-140 ~ TK-150，**11 条**，与 TK-01~TK-11 / TK-42~TK-51 / TK-52~TK-58 无交集 |
 | 未把未执行的测试写成已通过 | ✅ §5.1 诚实声明：F-18 的 125/150% 档**未实测**；F-16 高度轴**未实现** |
+
+---
+
+## 9. Step 5 · P2 追加核验（2026-10-30）
+
+### 9.1 TK-101：原版 HTML 复制按钮标签复原缺陷（**待负责人授权，未修改**）
+
+**缺陷实证**（Chrome 实测，原版 `index.html` + `src/app.js`，未打桌面补丁）：
+
+| 步骤 | `#btn-copy-resolution` | `#btn-copy-full` |
+|---|---|---|
+| 初始 | 复制分辨率 | 复制完整参数 |
+| 点击后 300ms | 已复制 | 已复制 |
+| 复原后 1800ms | **复制** ❌ | **复制** ❌ |
+
+**根因**：`src/app.js:1529` `showCopyFeedback()` 复原时硬编码 `label.textContent = '复制'`，
+没有记住各按钮自己的原始文案（图标复原用的是硬编码 `'⧉'`，恰好与两按钮一致所以没暴露）。
+
+**桌面版已修复**：`build/desktop-adapter.cjs` 的 `FEEDBACK_PATCH` 把 `showCopyFeedback`
+替换为「首次反馈时记下各自原始标签/图标，复原时写回原值」的版本（纯展示层，不涉及业务规则）。
+
+**🔴 最小修改方案（待授权，本轮未执行）**：
+`src/app.js` 的 `showCopyFeedback` 中，把成功/失败两支的复原由
+`icon.textContent = '⧉'; label.textContent = '复制';`
+改为读按钮自身记录的原始值（与桌面补丁同构，约 6 行）：
+```js
+if (!button.getAttribute('data-orig-label')) {
+  button.setAttribute('data-orig-label', label.textContent);
+  button.setAttribute('data-orig-icon', icon.textContent);
+}
+// 复原时：
+icon.textContent = button.getAttribute('data-orig-icon');
+label.textContent = button.getAttribute('data-orig-label');
+```
+**影响范围**：仅 `src/app.js` 一个函数的展示层；不触碰任何计算、格式、状态逻辑；
+不影响 `core.js`；`dist/led-ratio-tool.html` 需重新构建（构建产物一致性由
+`npm run verify:reproducible` 复核）。
+**待决**：`src/app.js` 是项目保护对象，按规则 9 先报缺陷证据与最小方案，**不得自行修改**。
+
+### 9.2 Step 5 P1 视觉回归结论（baseline 无需更新）
+
+三档视觉回归全部通过：1440×900 **0.0214%** ｜ 1200×800 **0.0289%** ｜ 1024×680 **0.0241%**
+（阈值 0.1%）。残留差异全部来自 **DEF-02 步进按钮 24→32**（真实缺陷修复的预期变更）。
+**P4-B 的 DEF-03（分段控件命中区）经核验为测试方法缺陷造成的假阳性，其 CSS 覆盖已回退。**
 
 ---
 
