@@ -133,21 +133,24 @@ async function main() {
   const validations = new Map();
   const valid = [];
   const invalid = [];
+  const notApplicable = [];
   for (const v of vectors) {
     const r = validateVector(v);
     validations.set(v.id, r);
-    if (r.ok && v.reachability !== 'ui-unreachable') valid.push(v);
+    // 🔴 Step 6：N/A 是**一等状态** —— 单独归类，既不算「未通过校验」也不算「待确认」
+    if (r.notApplicable) notApplicable.push(v);
+    else if (r.ok) valid.push(v);
     else invalid.push(v);
   }
-  console.log(`     结构校验：通过 ${valid.length} ｜ 未通过 ${invalid.length}`);
+  console.log(`     结构校验：通过 ${valid.length} ｜ 不适用 ${notApplicable.length} ｜ 未通过 ${invalid.length}`);
+  for (const v of notApplicable) {
+    console.log(`     ⚪ ${v.id}（${v.field}）**不适用** —— 该字段在产品 UI 上不可达`);
+    console.log(`        不执行、不计覆盖、不计 pending、不判失败（Step 6 口径修订）`);
+    console.log(`        理由：${v.review.note.slice(0, 110)}…`);
+  }
   for (const v of invalid) {
     const r = validations.get(v.id);
-    if (v.reachability === 'ui-unreachable') {
-      console.log(`     ⚪ ${v.id}（${v.field}）UI 不可达 —— 不执行、不计覆盖、不判失败`);
-      console.log(`        理由：${v.review.note.slice(0, 120)}…`);
-    } else {
-      console.log(`     ❌ ${v.id}（${v.field}）结构校验失败：${r.errors.join('; ')}`);
-    }
+    console.log(`     ❌ ${v.id}（${v.field}）结构校验失败：${r.errors.join('; ')}`);
   }
 
   /* ---- 3.2 启动双版本 ---- */
@@ -314,24 +317,23 @@ async function main() {
   /* 🔴 口径一致性：未通过结构校验 / UI 不可达的向量也必须进入统计，
      否则「头部说未通过 1、汇总说 0」自相矛盾。 */
   const statsResults = results.slice();
+  for (const v of notApplicable) {
+    statsResults.push({ id: v.id, field: v.field, confirmed: false, status: 'not_applicable' });
+  }
   for (const v of invalid) {
     const r = validations.get(v.id);
-    if (v.reachability === 'ui-unreachable') {
-      statsResults.push({ id: v.id, field: v.field, confirmed: false, status: 'unreachable' });
-    } else {
-      statsResults.push({ id: v.id, field: v.field, confirmed: false, status: 'invalid', errors: r.errors });
-    }
+    statsResults.push({ id: v.id, field: v.field, confirmed: false, status: 'invalid', errors: r.errors });
   }
   const stats = summarize(vectors, statsResults);
   console.log('\n============================================================');
   console.log('【5】L2 汇总');
   console.log('============================================================');
-  console.log(`  向量总数 ${stats.total} ｜ 已确认 ${stats.confirmed} ｜ 待确认 ${stats.pending}`);
+  console.log(`  向量总数 ${stats.total} ｜ 已确认 ${stats.confirmed} ｜ 待确认 ${stats.pending} ｜ 不适用 ${stats.notApplicable}`);
   console.log(`  结构校验通过并执行 ${stats.executed} ｜ 通过 ${stats.passed} ｜ 失败 ${stats.failed} ｜ 阻塞 ${stats.blocked}`);
-  console.log(`  结构校验未通过 ${stats.invalid} ｜ UI 不可达 ${stats.unreachable}`);
+  console.log(`  结构校验未通过 ${stats.invalid}`);
   console.log(`  🔴 L2 已确认覆盖字段数 = ${stats.coveredByL2Confirmed}（pending 不计入 —— 机器闸 TK-130）`);
   console.log(`  待确认字段：${stats.pendingFields.join(', ') || '无'}`);
-  if (stats.unreachableFields.length) console.log(`  UI 不可达字段：${stats.unreachableFields.join(', ')}`);
+  if (stats.notApplicableFields.length) console.log(`  不适用字段（UI 不可达，不计入覆盖缺口）：${stats.notApplicableFields.join(', ')}`);
   const crossBad = results.filter((r) => r.crossConsistent === false);
   console.log(`  L3 交叉校验（同输入双版观测一致）：${results.length - crossBad.length}/${results.length}`);
   for (const r of crossBad) {
@@ -356,11 +358,12 @@ async function main() {
     },
     summary: {
       total: stats.total, confirmed: stats.confirmed, pending: stats.pending,
+      notApplicable: stats.notApplicable,
       executed: stats.executed, passed: stats.passed, failed: stats.failed,
-      invalid: stats.invalid, unreachable: stats.unreachable, blocked: stats.blocked,
+      invalid: stats.invalid, blocked: stats.blocked,
       coveredByL2Confirmed: stats.coveredByL2Confirmed,
       coveredFields: stats.coveredFields, pendingFields: stats.pendingFields,
-      unreachableFields: stats.unreachableFields,
+      notApplicableFields: stats.notApplicableFields,
       diffCount, verdict,
     },
     validations: Object.fromEntries([...validations].map(([k, v]) => [k, { ok: v.ok, errors: v.errors, warnings: v.warnings }])),

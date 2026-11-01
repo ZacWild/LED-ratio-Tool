@@ -614,6 +614,10 @@ async function main() {
   const goldenPending = (golden.vectors || []).filter((v) => v.confirmation_status !== 'confirmed');
   // 🔴 L2 已确认字段集合：判定在独立套件 golden-vectors.mjs，本器只做字段归属。
   const l2ConfirmedFields = new Set(goldenConfirmed.map((v) => v.field));
+  // 🔴 Step 6：待确认向量所覆盖的字段 → 属「待 L2 确认」，与「L1 真实缺口」区分开
+  const l2PendingFields = new Set(goldenPending
+    .filter((v) => v.field && !(v.reachability === 'ui-unreachable'))
+    .map((v) => v.field));
   console.log(`\n【3】L2 黄金向量：共 ${(golden.vectors || []).length} 条 ｜ 已确认 ${goldenConfirmed.length} 条 ｜ 待确认 ${goldenPending.length} 条`);
   console.log('     🔴 黄金向量的驱动与判定已在独立套件 desktop/test/golden-vectors.mjs 中进行');
   console.log('        （每条向量用自己的 input 驱动 HTML 与 Electron 两端）——');
@@ -735,7 +739,12 @@ async function main() {
 
   const results = [];
   let diffCount = 0;         // N：字段级不一致项总数
-  let uncoveredCount = 0;    // M：未覆盖字段数（字段级，出现一次计一次）
+  // 🔴 Step 6 覆盖口径修订：
+  //    DEC-15 的 M 是「未覆盖**字段数**」（unique），不是 (场景×字段) 对数。
+  //    → M 改为**字段级 unique**（汇总阶段由 uncoveredFields.size 计算）；
+  //      uncoveredPairs 保留 (场景×字段) 对数作为**诊断指标**，不参与门禁。
+  let uncoveredPairs = 0;    // 诊断：(场景 × 字段) 未覆盖对数
+  // 🔴 M（字段级 unique）在汇总阶段由 uncoveredFields.size 计算，不在此递增。
   const uncoveredDetail = {};
   const diffDetail = [];
   const uncoveredFields = new Set();
@@ -837,8 +846,18 @@ async function main() {
      *   - 布尔/枚举严格 ===
      *   - 键集合双向 diff = ∅
      */
+    // 🔴 Step 6 覆盖口径修订：NA 由**期望源**声明（oracle._notApplicable），
+    //    不再依赖观测侧的 null（探针在无画布场景给 false 占位，会被误判为未覆盖）。
+    const naFields = new Set(l1._notApplicable || []);
+
     const check = (field, expected, actual, layer) => {
-      if (expected === undefined) { l1Uncovered.push(field); uncoveredCount += 1; uncoveredFields.add(field); return; }
+      // 🔴 NA 判定**优先于**期望值形态：oracle 声明不适用时，
+      //    期望值可能是 undefined（无画布）或 null（整数倍无解的占位），
+      //    两者都不得记为「未覆盖」。
+      if (naFields.has(field)) { rec.naFields = rec.naFields || []; rec.naFields.push(field); return; }
+      if (expected === undefined) {
+        l1Uncovered.push(field); uncoveredFields.add(field); uncoveredPairs += 1; return;
+      }
       coveredTotal += 1;
       if (layer === 'L1') coveredByL1 += 1; else if (layer === 'L2') coveredByL2 += 1;
       coveredFields.add(field);
@@ -858,6 +877,13 @@ async function main() {
      *    ② 与 ③ 必须分开，否则 M 会虚高。
      */
     const checkBoth = (field, expected, pick, layer) => {
+      // 🔴 NA 判定**优先于**期望值形态（oracle 声明不适用时，
+      //    expected 可能是 undefined 也可能是 null 占位，两者都不计入 M）
+      if (naFields.has(field)) {
+        rec.naFields = rec.naFields || [];
+        rec.naFields.push(field);
+        return;                                     // ② 不适用
+      }
       const hv = pick(htmlCore);
       const ev = pick(elCore);
       if (expected === undefined) {
@@ -867,11 +893,11 @@ async function main() {
           rec.naFields.push(field);
           return;                                   // ② 不适用
         }
-        l1Uncovered.push(field); uncoveredCount += 1; uncoveredFields.add(field);
+        l1Uncovered.push(field); uncoveredFields.add(field); uncoveredPairs += 1;
         return;                                     // ③ 未覆盖
       }
       if (hv === undefined || ev === undefined) {
-        l1Uncovered.push(field); uncoveredCount += 1; uncoveredFields.add(field); return;
+        l1Uncovered.push(field); uncoveredFields.add(field); uncoveredPairs += 1; return;
       }
       coveredTotal += 1;
       if (layer === 'L1') coveredByL1 += 1; else if (layer === 'L2') coveredByL2 += 1;
@@ -1032,7 +1058,6 @@ async function main() {
     for (const v of goldenPending) {
       if (l2ConfirmedFields.has(v.field)) continue;  // 已由独立套件的 confirmed 向量覆盖
       if (coveredFields.has(v.field)) continue;      // L1 已覆盖（DEC-15：任一层覆盖即算覆盖）
-      uncoveredCount += 1;
       uncoveredFields.add(v.field);
       l2Uncovered.push(v.id + ':' + v.field + '(pending_confirmation)');
     }
@@ -1064,8 +1089,29 @@ async function main() {
   }
 
   /* ---- 5.6 汇总与报告 ---- */
-  const coveragePct = coveredTotal + uncoveredCount > 0
-    ? (coveredTotal / (coveredTotal + uncoveredCount) * 100) : 0;
+  /* 🔴 Step 6 覆盖口径修订 —— **两级覆盖定义**（此前混为一谈）：
+   *
+   *   【字段级覆盖 field-level】
+   *     某字段 F 被覆盖 ⟺ 存在期望来源：
+   *        ① L1 在**至少一个场景**能产出 F 的期望值，或
+   *        ② 存在**已确认（confirmed）**的 L2 向量覆盖 F。
+   *     M（DEC-15 的「未覆盖字段数」）= **unique 的未覆盖字段数**。
+   *     字段级覆盖率 P = |已覆盖字段| / (|已覆盖字段| + |未覆盖字段|)。
+   *
+   *   【场景级覆盖 scenario-level】
+   *     某场景 S 通过 ⟺ S 的所有**适用字段**都有期望值且判定通过、无差异。
+   *     场景级统计 = PASS / CONDITIONAL / FAIL / BLOCKED 的组数分布。
+   *
+   *   🔴 此前把 (场景 × 字段) **对数**当作 M → 数字虚高（3036 对 / 仅 14 个 unique 字段），
+   *      且与 DEC-15 的「未覆盖字段数」字面定义不符。已改为字段级口径，
+   *      对数保留为诊断指标 uncoveredPairs（不参与门禁判定）。
+   */
+  const uncoveredFieldList = [...uncoveredFields];
+  const uncoveredFieldCount = uncoveredFieldList.length;   // M：字段级（unique）
+  const coveredFieldList = [...coveredFields];
+  const coveredFieldCount = coveredFieldList.length;
+  const totalFields = coveredFieldCount + uncoveredFieldCount;
+  const coveragePct = totalFields > 0 ? (coveredFieldCount / totalFields * 100) : 0;
 
   const htmlCons = htmlConsole.length;
   const elCons = elConsole.length;
@@ -1074,8 +1120,18 @@ async function main() {
   console.log('\n============================================================');
   console.log('【6】差分结论');
   console.log('============================================================');
-  console.log(`  差异条数 = ${diffCount} ｜ 未覆盖字段数 = ${uncoveredCount} ｜ L1/L2 覆盖率 = ${coveragePct.toFixed(2)}%`);
-  console.log(`  L1 覆盖 ${coveredByL1} 项 ｜ L2(已确认) 覆盖 ${coveredByL2} 项 ｜ L3 交叉校验 ${rows.length} 组`);
+  console.log('  ── 字段级覆盖（DEC-15 的 M 与 P）──');
+  console.log(`  差异条数 N = ${diffCount} ｜ 未覆盖字段数 M = ${uncoveredFieldCount} ｜ L1/L2 覆盖率 P = ${coveragePct.toFixed(2)}%`);
+  console.log(`  已覆盖字段 ${coveredFieldCount} 个 ｜ 未覆盖字段 ${uncoveredFieldCount} 个`);
+  if (uncoveredFieldList.length) {
+    console.log(`  未覆盖字段清单：${uncoveredFieldList.join(', ')}`);
+    const byPending = uncoveredFieldList.filter((f) => l2PendingFields.has(f));
+    const byL1Gap = uncoveredFieldList.filter((f) => !l2PendingFields.has(f));
+    if (byPending.length) console.log(`    ├ 待 L2 黄金向量确认（已确认后即覆盖）：${byPending.join(', ')}`);
+    if (byL1Gap.length) console.log(`    └ L1 oracle 真实缺口（与 L2 无关）：${byL1Gap.join(', ')}`);
+  }
+  console.log(`  诊断：(场景 × 字段) 未覆盖对数 = ${uncoveredPairs}（不参与门禁判定）`);
+  console.log(`  L1 覆盖判定 ${coveredByL1} 次 ｜ L2(已确认) 覆盖判定 ${coveredByL2} 次 ｜ L3 交叉校验 ${rows.length} 组`);
   const naTotal = results.reduce((a, r) => a + (r.notApplicable ? r.notApplicable.length : 0), 0);
   const naFields = [...new Set(results.flatMap((r) => r.notApplicable || []))];
   console.log(`  不适用字段（该场景无此字段，不计入覆盖也不计入未覆盖）：${naTotal} 项次 ｜ ${naFields.join(', ') || '无'}`);
@@ -1083,6 +1139,7 @@ async function main() {
   const condN = results.filter((r) => r.verdict === 'CONDITIONAL').length;
   const failN = results.filter((r) => r.verdict === 'FAIL').length;
   const blockN = results.filter((r) => r.verdict === 'BLOCKED').length;
+  console.log('  ── 场景级覆盖（200 组的判定分布）──');
   console.log(`  组判定：PASS ${passN} ｜ CONDITIONAL ${condN} ｜ FAIL ${failN} ｜ BLOCKED ${blockN}`);
   console.log(`  HTML 版 console error/warning = ${htmlCons} ｜ Electron 版 = ${elCons} ｜ pageerror = ${elErrs}`);
   if (diffDetail.length) {
@@ -1093,7 +1150,7 @@ async function main() {
     if (diffDetail.length > 60) console.log(`    … 其余 ${diffDetail.length - 60} 条见 JSON 报告`);
   }
   const verdict = diffCount > 0 ? 'FAIL（有未解释差异）'
-    : (uncoveredCount > 0 ? 'CONDITIONAL（有条件通过 —— N=0 但 M>0）'
+    : (uncoveredFieldCount > 0 ? 'CONDITIONAL（有条件通过 —— N=0 但 M>0，M 为字段级）'
       : 'PASS（完全通过）');
   console.log(`\n  🔴 门禁判定（G-03 差分项）：${verdict}`);
 
@@ -1110,9 +1167,16 @@ async function main() {
       consoleErrors: { html: htmlCons, electron: elCons, pageError: elErrs },
     },
     summary: {
+      // 🔴 Step 6：M 为**字段级 unique**；pairs 为诊断指标（不参与门禁）
       diffCount,
-      uncoveredCount,
+      uncoveredCount: uncoveredFieldCount,
+      uncoveredFieldCount,
+      uncoveredFieldList,
+      coveredFieldCount,
+      coveredFieldList,
+      uncoveredPairs,
       coveragePercent: Number(coveragePct.toFixed(2)),
+      coverageBasis: 'field-level(unique)',
       coveredByL1,
       coveredByL2,
       passCount: passN, conditionalCount: condN, failCount: failN, blockedCount: blockN,
@@ -1133,7 +1197,7 @@ async function main() {
   /* ---- 5.9 退出码 ---- */
   if (blockN > 0) process.exit(3);
   if (diffCount > 0) process.exit(1);
-  if (uncoveredCount > 0) process.exit(2);
+  if (uncoveredFieldCount > 0) process.exit(2);
   process.exit(0);
 }
 

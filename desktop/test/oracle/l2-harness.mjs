@@ -210,6 +210,23 @@ export function validateVector(v) {
   if (!v || typeof v !== 'object') return { ok: false, errors: ['向量不是对象'], warnings };
   if (!v.id) errors.push('missing_id');
 
+  /* 🔴 Step 6：**不适用（not_applicable）是一等状态**。
+   *    某些字段在产品 UI 上**根本不可达**（如 nearest.text 的非空路径：
+   *    parseDimension 只接受一位小数 → mm 恒为整数 → 整数约分可无损还原
+   *    → exact 恒为 true → nearest 恒为 null）。
+   *    这类向量**不提供 input/expected**，也**不需要**人工确认 ——
+   *    它们既不是「待确认」，也不是「未覆盖」。
+   *    → 单独标记，计入 notApplicable，不计入 pending，不计入覆盖缺口。
+   */
+  if (v.reachability === 'ui-unreachable' || v.confirmation_status === 'not_applicable') {
+    if (!v.field) errors.push('missing_field');
+    if (!v.review || !v.review.note) errors.push('missing_na_reason');
+    if (v.confirmation_status && !['not_applicable', 'pending_confirmation'].includes(v.confirmation_status)) {
+      errors.push('invalid_confirmation_status:' + v.confirmation_status);
+    }
+    return { ok: errors.length === 0, errors, warnings, notApplicable: true };
+  }
+
   /* —— input ---- */
   if (!v.input || typeof v.input !== 'object' || Object.keys(v.input).length === 0) {
     errors.push('missing_input');
@@ -300,15 +317,18 @@ export function judgeVector(v, obs) {
  *   { id, status: 'pass'|'fail'|'invalid'|'unreachable'|'blocked', confirmed:boolean, field }
  */
 export function summarize(vectors, results) {
+  const isNA = (v) => v.reachability === 'ui-unreachable' || v.confirmation_status === 'not_applicable';
   const stats = {
     total: vectors.length,
     confirmed: vectors.filter((v) => v.confirmation_status === 'confirmed').length,
-    pending: vectors.filter((v) => v.confirmation_status === 'pending_confirmation').length,
+    pending: vectors.filter((v) => v.confirmation_status === 'pending_confirmation' && !isNA(v)).length,
+    notApplicable: vectors.filter(isNA).length,
     executed: 0, passed: 0, failed: 0, invalid: 0, unreachable: 0, blocked: 0,
     coveredByL2Confirmed: 0,
     coveredFields: [],
     pendingFields: [],
     unreachableFields: [],
+    notApplicableFields: [],
     invalidVectors: [],
   };
   for (const r of results) {
@@ -317,13 +337,17 @@ export function summarize(vectors, results) {
     if (r.status === 'fail') stats.failed++;
     if (r.status === 'invalid') { stats.invalid++; stats.invalidVectors.push(r); }
     if (r.status === 'unreachable') { stats.unreachable++; stats.unreachableFields.push(r.field); }
+    if (r.status === 'not_applicable') {
+      stats.notApplicableFields.push(r.field);
+    }
     if (r.status === 'blocked') stats.blocked++;
     /* 🔴 pending 不计入已确认覆盖（机器闸） */
     if (r.confirmed && r.status === 'pass') {
       stats.coveredByL2Confirmed++;
       if (stats.coveredFields.indexOf(r.field) < 0) stats.coveredFields.push(r.field);
     }
-    if (!r.confirmed && r.status !== 'invalid') {
+    // 🔴 N/A 既不是「待确认」也不是「未覆盖」→ 不进 pendingFields
+    if (!r.confirmed && r.status !== 'invalid' && r.status !== 'not_applicable') {
       if (stats.pendingFields.indexOf(r.field) < 0) stats.pendingFields.push(r.field);
     }
   }

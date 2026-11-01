@@ -865,8 +865,17 @@ function ownExpect(spec) {
     ? rawTolerance
     : DEFAULT_TOLERANCE_PERCENT;
 
-  const expected = { _covered: [] };
+  const expected = { _covered: [], _notApplicable: [] };
   const cover = (field, layer) => { expected._covered.push({ field, layer }); };
+  /**
+   * 声明「本场景下该字段不适用」。
+   * 🔴 Step 6 覆盖口径修订：此前「不适用」靠**观测侧的 null** 判定，
+   *    而 Core 探针在无画布场景返回 **false 占位**（strictMatch=false），
+   *    导致 NA 被误判为「未覆盖」（36 个场景 × 7 字段 = 252 对虚高）。
+   *    → 改为**期望源自己声明** NA：oracle 独立知道「有没有画布」，
+   *      观测侧的占位值不再参与 NA 判定。
+   */
+  const na = (field) => { expected._notApplicable.push(field); };
 
   // —— 尺寸解析 ——
   const w = ownToMm(widthText, unit);
@@ -1020,6 +1029,31 @@ function ownExpect(spec) {
       cover('fitCropPx', 'L1'); cover('fitPillarboxPx', 'L1');
       cover('fitCoverCropPx', 'L1'); cover('fitContainBarPx', 'L1');
     }
+  }
+
+  // 🔴 Step 6 覆盖口径修订：**无画布 / 画布无解** → 相关字段「不适用」
+  //    （而不是「未覆盖」）。此时 L1 不产出这些字段的期望值，
+  //    观测侧可能给出 false/null 等占位值 —— 占位值不得算作差异，
+  //    也不得把该字段记入 M（未覆盖字段数）。
+  const CANVAS_FIELDS = [
+    'ratioErrorPercent', 'pixelErrorPercent',
+    'roundedHeight', 'bestRoundedHeight', 'roundedWidth', 'bestRoundedWidth',
+    'outputWidth', 'outputHeight', 'outputRatio', 'strictMatch',
+    'fitMode', 'fitCropAxis', 'fitPillarboxAxis', 'fitCoverCropAxis', 'fitContainBarAxis',
+    'fitCropPx', 'fitPillarboxPx', 'fitCoverCropPx', 'fitContainBarPx',
+  ];
+  const INT_FIELDS = ['withinBounds.k', 'exactSolution.k', 'overflowPx', 'recommended.k',
+    'withinBounds.wh', 'exactSolution.wh', 'overflowFallback'];
+  if (!canvas) {
+    for (const f of CANVAS_FIELDS) na(f);
+    for (const f of INT_FIELDS) na(f);
+  } else if (!canvas.ok) {
+    // 整数倍无解（上限过小）→ 有画布对象但无有效解
+    for (const f of ['ratioErrorPercent', 'pixelErrorPercent', 'outputWidth', 'outputHeight',
+      'outputRatio', 'strictMatch', 'roundedHeight', 'bestRoundedHeight',
+      'roundedWidth', 'bestRoundedWidth']) na(f);
+    for (const f of ['withinBounds.k', 'exactSolution.k', 'overflowPx', 'recommended.k',
+      'withinBounds.wh', 'exactSolution.wh', 'overflowFallback']) na(f);
   }
 
   // —— 复制分辨率载荷（F24）——
