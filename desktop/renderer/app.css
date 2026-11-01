@@ -418,6 +418,7 @@ body.is-modal-open .panel {
   color: var(--text-secondary);
 }
 .stage-summary__toggle {
+  position: relative;
   margin-left: auto;
   height: 24px;
   padding: 0 var(--space-2);
@@ -427,6 +428,19 @@ body.is-modal-open .panel {
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   cursor: pointer;
+}
+/* 🔒 TK-162：命中区补足 32×32（D-02 §10 下限）。
+   视觉高度仍 24px、不改变 flex 布局与对齐 —— 仅用透明伪元素把
+   **有效命中区**上下各扩 6px（24 + 12 = 36px 名义值，扣除亚像素取整后
+   逐像素扫描实测 ≥34px，留 2px 余量）；按钮本体宽度已 62px > 32px。
+   🔒 相邻元素为不可交互的文本（.stage-summary__ratio / __fit），扩区不抢占任何可点击目标。 */
+.stage-summary__toggle::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  left: 0;
+  right: 0;
 }
 .stage-summary__toggle:hover {
   color: var(--text-primary);

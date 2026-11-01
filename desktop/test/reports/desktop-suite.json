@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-01T17:41:46.626Z",
+    "generatedAt": "2026-11-01T18:24:38.798Z",
     "electron": "45.1.0",
     "node": "v22.22.2",
     "platform": "win32",
@@ -35,37 +35,37 @@
       "effectiveWorkArea": {
         "x": 0,
         "y": 0,
-        "width": 1024,
-        "height": 720
+        "width": 2560,
+        "height": 1392
       },
-      "clamped": true,
+      "clamped": false,
       "maxClientArea": {
-        "width": 1024,
-        "height": 720
+        "width": 2560,
+        "height": 1392
       },
       "realClientArea": {
-        "width": 1024,
-        "height": 720
+        "width": 2560,
+        "height": 1392
       },
       "screenAvail": {
         "width": 2560,
         "height": 1392
       },
       "dpr": 1,
-      "heightTier": "compact",
+      "heightTier": "standard",
       "viewportSim": "CDP Emulation.setDeviceMetricsOverride",
       "nativeReachable": {
-        "1440x900": false,
-        "1200x800": false,
+        "1440x900": true,
+        "1200x800": true,
         "1024x680": true
       }
     }
   },
   "summary": {
     "total": 93,
-    "pass": 91,
+    "pass": 93,
     "fail": 0,
-    "blocked": 2,
+    "blocked": 0,
     "byCat": {
       "TC-D": {
         "n": 20,
@@ -75,9 +75,9 @@
       },
       "TC-DP": {
         "n": 10,
-        "pass": 8,
+        "pass": 10,
         "fail": 0,
-        "blocked": 2
+        "blocked": 0
       },
       "TC-DS": {
         "n": 10,
@@ -116,20 +116,7 @@
         "blocked": 0
       }
     },
-    "blockedList": [
-      {
-        "id": "TC-DP-01",
-        "title": "客户区尺寸回读（DEC-14 useContentSize）",
-        "note": "环境阻塞：工作区装不下 1440×900 客户区（视口模拟不适用于原生客户区断言）",
-        "actual": "回读=1024×720｜环境工作区=1024×720｜最大可达客户区=1024×720 → 环境装不下 1440×900 客户区（原生窗口路径无法执行）"
-      },
-      {
-        "id": "TC-DP-04",
-        "title": "三尺寸截图产出",
-        "note": "环境阻塞：工作区装不下 1440×900 / 1200×800 客户区",
-        "actual": "1440×900→未达成（实测客户区 1024×720，未截图） ｜ 1200×800→未达成（实测客户区 1024×720，未截图） ｜ 1024×680→PNG 1024×680｜环境工作区=1024×720｜最大可达客户区=1024×720 → 环境装不下全部三档客户区，截图未按目标尺寸产出"
-      }
-    ],
+    "blockedList": [],
     "consoleErrors": [],
     "pageErrors": []
   },
@@ -232,7 +219,7 @@
       "target": "匹配表 16 行；closest 高亮恰好 1 个；无横向滚动",
       "input": "宽 14 m / 高 4 m",
       "expect": "16 行 + closest 唯一 + scrollWidth ≤ clientWidth+1",
-      "actual": "行数=16 closest=1 scrollW=938 clientW=938",
+      "actual": "行数=16 closest=1 scrollW=346 clientW=346",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -323,7 +310,7 @@
       "target": "每次改输入后，结果区 DOM 在 100ms 内完成更新",
       "input": "连续 5 次改输入宽度",
       "expect": "5 次延迟全部 ≤100ms",
-      "actual": "各次延迟=[2.5999999940395355, 2.7999999821186066, 3.4000000059604645, 3.2999999821186066, 3.9000000059604645] ms 最大=3.9000000059604645ms",
+      "actual": "各次延迟=[2.7000000178813934, 3.0999999940395355, 3.199999988079071, 3.9000000059604645, 3.800000011920929] ms 最大=3.9000000059604645ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -401,11 +388,11 @@
       "target": "设 1440×900 → getContentSize 回读 1440×900 ±1",
       "input": "setContentSize(1440,900)",
       "expect": "客户区 = 1440×900 ±1px",
-      "actual": "回读=1024×720｜环境工作区=1024×720｜最大可达客户区=1024×720 → 环境装不下 1440×900 客户区（原生窗口路径无法执行）",
+      "actual": "回读=1440×900",
       "evidence": "reports/desktop-suite.json",
-      "blocked": true,
-      "note": "环境阻塞：工作区装不下 1440×900 客户区（视口模拟不适用于原生客户区断言）",
-      "verdict": "BLOCKED"
+      "blocked": false,
+      "note": "",
+      "verdict": "PASS"
     },
     {
       "id": "TC-DP-02",
@@ -440,11 +427,11 @@
       "target": "1440×900 / 1200×800 / 1024×680 各一张 PNG；客户区必须真的达成；PNG 栅格尺寸与客户区一致",
       "input": "三个客户区尺寸",
       "expect": "3 张 PNG，客户区达成 + 栅格尺寸一致（环境装不下时判 BLOCKED）",
-      "actual": "1440×900→未达成（实测客户区 1024×720，未截图） ｜ 1200×800→未达成（实测客户区 1024×720，未截图） ｜ 1024×680→PNG 1024×680｜环境工作区=1024×720｜最大可达客户区=1024×720 → 环境装不下全部三档客户区，截图未按目标尺寸产出",
+      "actual": "1440×900：客户区 1440×900 → PNG 1440×900（k=1，DPR=1） ｜ 1200×800：客户区 1200×800 → PNG 1200×800（k=1，DPR=1） ｜ 1024×680：客户区 1024×680 → PNG 1024×680（k=1，DPR=1）",
       "evidence": "shots/",
-      "blocked": true,
-      "note": "环境阻塞：工作区装不下 1440×900 / 1200×800 客户区",
-      "verdict": "BLOCKED"
+      "blocked": false,
+      "note": "",
+      "verdict": "PASS"
     },
     {
       "id": "TC-DP-05",
@@ -1272,7 +1259,7 @@
       "target": "焦点在舞台内 → 切到第③档 → 焦点迁移到 EL-ST-16，出现 400ms 高亮，全程不落 body",
       "input": "焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600",
       "expect": "焦点=EL-ST-16 且有高亮类；无 body 焦点",
-      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793554897197}",
+      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793557469398}",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1324,7 +1311,7 @@
       "target": "视口模拟三档宽度判定正确 + 高度档自洽 + 纯逻辑判定表正确 + 复位后视口还原",
       "input": "判定表 (900,1392)(780,1392)(700,1392)(660,1392)(900,700)；视口 1440×900 / 1200×800 / 1024×680",
       "expect": "判定表 = [1,2,2,3,3]；布局档 = three / two / stacked；高度档逐档自洽；复位后视口回到真实值",
-      "actual": "判定表=[1,2,2,3,3]（期望 [1,2,2,3,3]）✅｜1440×900→layout=three(期望 three) 视口=1440×900 高度档=standard/纯算=standard (clientH=900 workH=900) ｜ 1200×800→layout=two(期望 two) 视口=1200×800 高度档=standard/纯算=standard (clientH=800 workH=800) ｜ 1024×680→layout=stacked(期望 stacked) 视口=1024×680 高度档=tight/纯算=tight (clientH=680 workH=680)｜复原：前=1024×720 后=1024×720✅",
+      "actual": "判定表=[1,2,2,3,3]（期望 [1,2,2,3,3]）✅｜1440×900→layout=three(期望 three) 视口=1440×900 高度档=standard/纯算=standard (clientH=900 workH=900) ｜ 1200×800→layout=two(期望 two) 视口=1200×800 高度档=standard/纯算=standard (clientH=800 workH=800) ｜ 1024×680→layout=stacked(期望 stacked) 视口=1024×680 高度档=tight/纯算=tight (clientH=680 workH=680)｜复原：前=1440×900 后=1440×900✅",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",

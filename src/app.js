@@ -1549,13 +1549,23 @@
     }
     var origLabel = button.getAttribute('data-orig-label');
     var origIcon = button.getAttribute('data-orig-icon');
+    /* 🔴 缺陷修复（TK-164）：每轮反馈必须**独占**自己的复原定时器。
+       原实现只 setTimeout 不记录句柄 → 快速连续复制时，上一轮的定时器会在
+       新一轮反馈尚未走完时先把按钮复原（反馈时长被截断，实测第二轮 700ms
+       点击后在 1600ms 就被清掉）。修复方式：新一轮开始先取消旧定时器。
+       —— 只改定时器生命周期，复制 API、判据与业务逻辑一字未改。 */
+    if (button.__copyFeedbackTimer) {
+      window.clearTimeout(button.__copyFeedbackTimer);
+      button.__copyFeedbackTimer = 0;
+    }
     if (ok) {
       button.classList.add('is-success');
       button.classList.remove('is-error');
       icon.textContent = '✓';
       label.textContent = '已复制';
       setText(els.liveFeedback, '已复制到剪贴板');
-      window.setTimeout(function () {
+      button.__copyFeedbackTimer = window.setTimeout(function () {
+        button.__copyFeedbackTimer = 0;
         button.classList.remove('is-success');
         icon.textContent = origIcon;
         label.textContent = origLabel;
@@ -1566,7 +1576,8 @@
       icon.textContent = '!';
       label.textContent = '复制失败';
       setText(els.liveFeedback, '复制失败，请手动选取文本复制');
-      window.setTimeout(function () {
+      button.__copyFeedbackTimer = window.setTimeout(function () {
+        button.__copyFeedbackTimer = 0;
         button.classList.remove('is-error');
         icon.textContent = origIcon;
         label.textContent = origLabel;

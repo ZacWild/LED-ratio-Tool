@@ -48,6 +48,10 @@
   var COL_RESULT_DEFAULT = 400;
   var COL_STEP = 8;                // D-05 SK-12
   var COL_STEP_FINE = 2;           // Shift + ←/→
+  /* 🔒 TK-163：B 栏最小宽 —— 必须与 app.css `.layout` 的
+     `grid-template-columns: var(--col-input) minmax(480px, 1fr) var(--col-result)`
+     同源，否则钳制口径与实际网格脱节。 */
+  var COL_STAGE_MIN = 480;
 
   var IX13_CONTENT_MIN = 300;      // IX-13 触发基准（A 栏内容盒宽）
 
@@ -673,7 +677,37 @@
   }
 
 
+  /**
+   * TK-163：三栏档 A/C 同时拖到上限时网格总宽超出客户区
+   *          （420 + 560 + 480 + 16×2 + 24×2 = 1540 > 1440）
+   *          → `.layout{overflow:hidden}` 直接裁掉 C 栏右侧（#res-value right=1489）。
+   * 🔒 修复口径：栏宽上限按「客户区宽 − B 最小宽 − gap×2 − padding」**动态钳制**；
+   *    超出量先收 C（结果栏为弹性视觉列），C 收到下限仍超出再收 A。
+   * 🔒 只调整栏宽数值：不改网格结构、不隐藏内容、不缩小字号、不引入横向滚动。
+   */
+  function columnBudget() {
+    // 两栏/堆叠档 C 为弹性列（minmax(0,1fr)），A 固定宽 → 不存在溢出
+    if (tier !== TIER_THREE) return Infinity;
+    if (!layout || !layout.clientWidth) return Infinity;
+    var cs = getComputedStyle(layout);
+    var pad = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    var gap = (parseFloat(cs.columnGap) || 0) * 2;
+    return layout.clientWidth - pad - gap - COL_STAGE_MIN;
+  }
+
+  function clampColumnsToViewport() {
+    var budget = columnBudget();
+    if (!isFinite(budget)) return;
+    var over = colInput + colResult - budget;
+    if (over <= 0) return;
+    var cutResult = Math.min(over, Math.max(0, colResult - COL_RESULT_MIN));
+    colResult -= cutResult;
+    over -= cutResult;
+    if (over > 0) colInput = Math.max(COL_INPUT_MIN, colInput - over);
+  }
+
   function applyColumnWidths() {
+    clampColumnsToViewport();
     layout.style.setProperty('--col-input', colInput + 'px');
     layout.style.setProperty('--col-result', colResult + 'px');
   }

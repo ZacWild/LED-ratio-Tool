@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T12:28:47.757Z",
+  "generatedAt": "2026-11-01T18:19:35.542Z",
   "files": [
     {
       "label": "core.js",
@@ -12,8 +12,8 @@
       "label": "app.js",
       "source": ".\\src\\app.js",
       "target": ".\\renderer\\app.js",
-      "sha256": "7696bfed94fc48f388abc3e068f1652c506e892573d43ead63a83b684080ad30",
-      "bytes": 80866
+      "sha256": "1eefe19acdf49a6f7469e78b2dd6034fb30f271cd754ff4a1834841fc6ca873f",
+      "bytes": 81640
     },
     {
       "label": "styles.css",
