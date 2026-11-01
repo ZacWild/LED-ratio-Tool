@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-01T12:48:17.550Z",
+    "generatedAt": "2026-11-01T14:08:22.216Z",
     "expectedPercent": 100,
     "realScaleFactor": 1,
     "devicePixelRatio": 1,
@@ -9,8 +9,8 @@
   },
   "summary": {
     "total": 21,
-    "pass": 18,
-    "fail": 3
+    "pass": 21,
+    "fail": 0
   },
   "results": [
     {
@@ -58,8 +58,8 @@
     {
       "id": "DPI-1440x900-tier",
       "name": "高度档位已判定",
-      "pass": false,
-      "actual": "data-height-tier=(未设置)",
+      "pass": true,
+      "actual": "data-height-tier=standard",
       "evidence": "reports/dpi-acceptance.json"
     },
     {
@@ -107,8 +107,8 @@
     {
       "id": "DPI-1200x800-tier",
       "name": "高度档位已判定",
-      "pass": false,
-      "actual": "data-height-tier=(未设置)",
+      "pass": true,
+      "actual": "data-height-tier=standard",
       "evidence": "reports/dpi-acceptance.json"
     },
     {
@@ -156,8 +156,8 @@
     {
       "id": "DPI-1024x680-tier",
       "name": "高度档位已判定",
-      "pass": false,
-      "actual": "data-height-tier=(未设置)",
+      "pass": true,
+      "actual": "data-height-tier=compact",
       "evidence": "reports/dpi-acceptance.json"
     }
   ]
