@@ -1,11 +1,14 @@
 {
   "meta": {
-    "generatedAt": "2026-11-01T15:49:43.066Z",
+    "generatedAt": "2026-11-01T16:03:49.039Z",
     "electron": "45.1.0",
     "node": "v22.22.2",
     "platform": "win32",
     "env": {
       "display": {
+        "id": 2175172920,
+        "label": "S2719DGF",
+        "scaleFactor": 1,
         "workArea": {
           "x": 0,
           "y": 0,
@@ -18,8 +21,10 @@
           "width": 2560,
           "height": 1440
         },
-        "scaleFactor": 1,
-        "label": "S2719DGF"
+        "frameDelta": {
+          "width": 16,
+          "height": 65
+        }
       },
       "workArea": {
         "x": 0,
@@ -57,8 +62,8 @@
     }
   },
   "summary": {
-    "total": 92,
-    "pass": 92,
+    "total": 93,
+    "pass": 93,
     "fail": 0,
     "blocked": 0,
     "byCat": {
@@ -105,8 +110,8 @@
         "blocked": 0
       },
       "TC-H": {
-        "n": 16,
-        "pass": 16,
+        "n": 17,
+        "pass": 17,
         "fail": 0,
         "blocked": 0
       }
@@ -305,7 +310,7 @@
       "target": "每次改输入后，结果区 DOM 在 100ms 内完成更新",
       "input": "连续 5 次改输入宽度",
       "expect": "5 次延迟全部 ≤100ms",
-      "actual": "各次延迟=[2.699999988079071, 3.4000000059604645, 3.7999999821186066, 4, 3.399999976158142] ms 最大=4ms",
+      "actual": "各次延迟=[2.9000000059604645, 3.199999988079071, 3.5999999940395355, 3.5999999940395355, 3.699999988079071] ms 最大=3.699999988079071ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -773,7 +778,7 @@
       "target": "超长含字母串 → ER-02 逐字；超长纯数字串 → 不崩溃、无 NaN/Infinity、后续操作 ≤500ms",
       "input": "宽 = \"9\".repeat(60) + \"abc\"；再 = \"9\".repeat(20)",
       "expect": "ER-02 逐字 + 纯数字串无 NaN 且可继续操作",
-      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=2.7999999821186066ms",
+      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=2.899999976158142ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1254,7 +1259,7 @@
       "target": "焦点在舞台内 → 切到第③档 → 焦点迁移到 EL-ST-16，出现 400ms 高亮，全程不落 body",
       "input": "焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600",
       "expect": "焦点=EL-ST-16 且有高亮类；无 body 焦点",
-      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793548174892}",
+      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793549019550}",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1307,6 +1312,19 @@
       "input": "判定表 (900,1392)(780,1392)(700,1392)(660,1392)(900,700)；视口 1440×900 / 1200×800 / 1024×680",
       "expect": "判定表 = [1,2,2,3,3]；布局档 = three / two / stacked；高度档逐档自洽；复位后视口回到真实值",
       "actual": "判定表=[1,2,2,3,3]（期望 [1,2,2,3,3]）✅｜1440×900→layout=three(期望 three) 视口=1440×900 高度档=standard/纯算=standard (clientH=900 workH=900) ｜ 1200×800→layout=two(期望 two) 视口=1200×800 高度档=standard/纯算=standard (clientH=800 workH=800) ｜ 1024×680→layout=stacked(期望 stacked) 视口=1024×680 高度档=tight/纯算=tight (clientH=680 workH=680)｜复原：前=1440×900 后=1440×900✅",
+      "evidence": "reports/desktop-suite.json",
+      "blocked": false,
+      "note": "",
+      "verdict": "PASS"
+    },
+    {
+      "id": "TC-H-17",
+      "cat": "TC-H",
+      "title": "模拟小屏 runner（视口 1024×720）：宽度档 stacked + 高度档自洽 + ②档仍可达",
+      "target": "视口 1024×720 → 宽度档 stacked + 高度档 == decide(当前 clientH, 当前 workH)；视口 1200×780 + screenHeight 900 → ②档 compact",
+      "input": "视口 1024×720（screenHeight 随视口）；再 视口 1200×780 + screenHeight=900",
+      "expect": "1024×720 → stacked + 高度档自洽（③档，工作区不足）；1200×780/900 → compact（②档可达）",
+      "actual": "①视口 1024×720：视口=1024×720✅ 宽度档=stacked（期望 stacked）✅ 高度档=tight/纯算=tight（clientH=720 workH=720）✅ ｜②视口 1200×780 + screenHeight 900：视口=1200×780 availH=900 高度档=compact/纯算=compact（期望 compact）✅ ｜复原=✅",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",

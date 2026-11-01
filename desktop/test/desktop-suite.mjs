@@ -2001,6 +2001,51 @@ T({
   },
 });
 
+T({
+  id: 'TC-H-17', cat: 'TC-H', title: '模拟小屏 runner（视口 1024×720）：宽度档 stacked + 高度档自洽 + ②档仍可达',
+  // 🔒 本用例是「**不再依赖物理屏幕**」这件事本身的证明：
+  //   ① 把渲染器视口设成 **1024×720**（= GitHub Windows runner 的工作区）→
+  //      宽度档必须仍按**视口宽度**判 stacked（1024 ≤ BREAKPOINT_STACKED）；
+  //      高度档必须**自洽**：落地的 data-height-tier == decideHeightTier(当前 clientH, 当前 workH)
+  //      —— 注意 workH=720 < 745 ⇒ 判③档是「工作区不足」的**正确**表现，不是缺陷；
+  //   ② 再验证 **②档（compact）在小屏 runner 上依然可达**：
+  //      screenWidth/screenHeight 与 width/height **可解耦**（CDP 两个字段独立），
+  //      视口 1200×780（clientH=780 ∈ [680,784)）+ screenHeight=900（workH=900 ≥ 745）
+  //      → 判定 ②档 compact。⇒ 小屏 runner 上「②档专用」用例不再是不可达分支。
+  target: '视口 1024×720 → 宽度档 stacked + 高度档 == decide(当前 clientH, 当前 workH)；视口 1200×780 + screenHeight 900 → ②档 compact',
+  input: '视口 1024×720（screenHeight 随视口）；再 视口 1200×780 + screenHeight=900',
+  expect: '1024×720 → stacked + 高度档自洽（③档，工作区不足）；1200×780/900 → compact（②档可达）',
+  fn: async (ctx) => {
+    // ① 模拟小屏 runner 的工作区尺寸
+    const r1 = await ctx.setViewport(1024, 720);
+    const st1 = await ctx.tierState();
+    const vpHit = r1.actual.clientW === 1024 && r1.actual.clientH === 720;
+    const layoutHit = st1.layoutAttr === 'stacked';
+    const selfHit = st1.heightAttrLayout === st1.decidedName && st1.heightAttrHtml === st1.decidedName;
+
+    // ② ②档可达性：视口与屏幕尺寸解耦
+    const r2 = await ctx.setViewport(1200, 780, { screenHeight: 900 });
+    const st2 = await ctx.tierState();
+    const vpHit2 = r2.actual.clientW === 1200 && r2.actual.clientH === 780 && r2.actual.availH === 900;
+    const compactHit = st2.heightAttrLayout === 'compact' && st2.decidedName === 'compact';
+
+    // ③ 复原真实窗口
+    const rv = await ctx.resetViewport();
+
+    const ok = vpHit && layoutHit && selfHit && vpHit2 && compactHit && rv.restored;
+    return {
+      actual: `①视口 1024×720：视口=${r1.actual.clientW}×${r1.actual.clientH}${vpHit ? '✅' : '❌'}`
+        + ` 宽度档=${st1.layoutAttr}（期望 stacked）${layoutHit ? '✅' : '❌'}`
+        + ` 高度档=${st1.heightAttrLayout}/纯算=${st1.decidedName}（clientH=${st1.clientH} workH=${st1.workH}）${selfHit ? '✅' : '❌'}`
+        + ` ｜②视口 1200×780 + screenHeight 900：视口=${r2.actual.clientW}×${r2.actual.clientH} availH=${r2.actual.availH}`
+        + ` 高度档=${st2.heightAttrLayout}/纯算=${st2.decidedName}（期望 compact）${compactHit ? '✅' : '❌'}`
+        + ` ｜复原=${rv.restored ? '✅' : '❌'}`,
+      pass: ok,
+      evidence: 'reports/desktop-suite.json',
+    };
+  },
+});
+
 /* ==========================================================================
    §3 上下文实现（驱动 Electron 桌面版）
    ========================================================================== */
@@ -2047,29 +2092,6 @@ function buildContext(app, win, opts) {
   }
 
   const ctx = {
-    /**
-     * 🔴 环境信息（Step 6 第 6 阶段 CI 实测补充）：
-     *    GitHub Windows runner 的工作区仅 1024×720 → 很多目标客户区装不下。
-     *    用例据此判定 **BLOCKED（环境阻塞，≠通过）**，而不是把环境缺陷报成产品失败。
-     * @returns {Promise<{display, frameDelta, maxClientArea}>}
-     */
-    async envInfo() {
-      if (ctx.__env) return ctx.__env;
-      ctx.__env = await app.evaluate(async ({ screen, BrowserWindow }) => {
-        const win = BrowserWindow.getAllWindows()[0];
-        const b = win.getBounds();
-        const c = win.getContentSize();
-        const d = screen.getDisplayNearestPoint(b);
-        const work = d.workArea;
-        return {
-          display: { id: d.id, label: d.label, scaleFactor: d.scaleFactor, workArea: { x: work.x, y: work.y, width: work.width, height: work.height } },
-          frameDelta: { width: b.width - c[0], height: b.height - c[1] },
-          // 最大可达客户区 = 工作区 − 非客户区增量（实测 16×65 @100%）
-          maxClientArea: { width: work.width - (b.width - c[0]), height: work.height - (b.height - c[1]) },
-        };
-      });
-      return ctx.__env;
-    },
     win,
     evaluate,
     async setAndRead(values) {
@@ -2395,21 +2417,37 @@ function buildContext(app, win, opts) {
 
     /**
      * 采集运行环境画像（工作区尺寸 / 最大可达客户区 / 当前档位 / DPR）。
-     * 🔒 供 JSON 报告 meta 与 CI 日志自证「哪些用例因屏幕小而无法执行」。
+     * 🔒 供 JSON 报告 meta 与 CI 日志自证「哪些用例因屏幕小而无法执行」，
+     *    也供「窗口管理层」用例（TC-DP-01/02/04）判定 **BLOCKED（≠通过）**。
+     *
+     * 🔒 **只采集一次并缓存**（ctx.__env）：采集过程会**实测**「最大可达客户区」
+     *    （请求工作区全尺寸后回读真实客户区），会**改变窗口尺寸**
+     *    → 重复调用会反复改窗口，故必须缓存。
      */
     async envInfo() {
-      const display = await app.evaluate(async ({ screen }) => {
-        const d = screen.getPrimaryDisplay();
-        const w = d.workArea; const b = d.bounds;
+      if (ctx.__env) return ctx.__env;
+      const display = await app.evaluate(async ({ screen, BrowserWindow }) => {
+        const w0 = BrowserWindow.getAllWindows()[0];
+        const b = w0.getBounds();
+        const c = w0.getContentSize();
+        // 🔒 用 getDisplayNearestPoint（而非 getPrimaryDisplay）——
+        //    多显示器场景下窗口可能不在主屏上，工作区约束应取**窗口所在屏**。
+        const d = screen.getDisplayNearestPoint(b);
+        const work = d.workArea;
         return {
-          workArea: { x: w.x, y: w.y, width: w.width, height: w.height },
-          bounds: { x: b.x, y: b.y, width: b.width, height: b.height },
-          scaleFactor: d.scaleFactor,
+          id: d.id,
           label: (d.label || (d.bounds.width + 'x' + d.bounds.height)),
+          scaleFactor: d.scaleFactor,
+          workArea: { x: work.x, y: work.y, width: work.width, height: work.height },
+          bounds: { x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height },
+          // 非客户区增量（原生标题栏 + 原生菜单）
+          frameDelta: { width: b.width - c[0], height: b.height - c[1] },
         };
       });
       // 🔒 「最大可达客户区」= **实测**（请求工作区全尺寸后回读真实客户区），
-      //    不是理论推导 —— Electron 的原生外框增量（标题栏）会吃掉一部分高度。
+      //    不是理论推导 —— 原生外框增量（标题栏 65 DIP）会吃掉一部分高度，
+      //    且不同显示器/缩放下增量不同。
+      //    （--clamp-window 生效时 setContentSize 已被钳制 → 实测值自动反映模拟约束）
       const maxReq = await ctx.setContentSize(display.workArea.width, display.workArea.height);
       const maxClientArea = { width: maxReq.width, height: maxReq.height };
       const real = await evaluate(() => ({
@@ -2422,16 +2460,19 @@ function buildContext(app, win, opts) {
         dpr: window.devicePixelRatio,
       }));
       const tier = await evaluate(() => (window.__desktopHeightTier ? window.__desktopHeightTier.info() : null));
-      return {
+      ctx.__env = {
         display,
         // 🔒 生效约束：--clamp-window 生效时以它为准（= 模拟的 CI runner 工作区）
         effectiveWorkArea: clampTo
           ? { x: display.workArea.x, y: display.workArea.y, width: clampTo.width, height: clampTo.height }
           : display.workArea,
         clamped: !!clampTo,
-        maxClientArea, real, tier,
+        maxClientArea,
+        frameDelta: display.frameDelta,
+        real, tier,
         viewportSim: 'CDP Emulation.setDeviceMetricsOverride',
       };
+      return ctx.__env;
     },
 
     async dprUsageAudit() {

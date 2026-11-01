@@ -735,23 +735,47 @@ label.textContent = button.getAttribute('data-orig-label');
 | 门禁 / 场景 | 命令 | 结果 |
 |---|---|---|
 | 改动前基线（本机 2560×1392） | `npm run test:desktop` | ✅ 91 例 / PASS 91 / FAIL 0 / BLOCKED 0 / exit 0 |
-| 改动后（本机 2560×1392） | `npm run test:desktop` | ✅ **92 例 / PASS 92 / FAIL 0 / BLOCKED 0** / exit 0；环境画像：工作区 2560×1392、最大可达客户区 2560×1392、DPR=1 |
-| 小屏 runner 等价复现 | `npm run test:desktop -- --clamp-window=1024x720` | ✅ **92 例 / PASS 90 / FAIL 0 / BLOCKED 2**（TC-DP-01、TC-DP-04）/ **exit 2** → 9 例假失败全部消除，且「阻塞≠通过」生效 |
+| 改动后（本机 2560×1392） | `npm run test:desktop` | ✅ **93 例 / PASS 93 / FAIL 0 / BLOCKED 0** / exit 0；环境画像：工作区 2560×1392、最大可达客户区 2560×1392、DPR=1 |
+| 小屏 runner 等价复现 | `npm run test:desktop -- --clamp-window=1024x720` | ✅ **93 例 / PASS 91 / FAIL 0 / BLOCKED 2**（TC-DP-01、TC-DP-04）/ **exit 2** → 9 例假失败全部消除，且「阻塞≠通过」生效 |
 | 变异测试（断言强度自证） | 改 `BREAKPOINT_THREE 1280→1100` / `STANDARD_CLIENT_H 784→700` | ✅ `TC-D-02` ❌、`TC-H-16` ❌、`TC-H-03` ❌、`TC-H-04` ❌；TC-H 9/16，exit 1；**测完已还原产品文件** |
 | 安全审计 | `npm run audit:security` | ✅ **47/47** / exit 0 |
 | 差分门禁 | `npm run test:differential` | ✅ **N=0 ｜ M=0 ｜ P=100.00% ｜ PASS 200** / exit 0 |
 | 资源漂移 | `npm run sync:check` | ✅ 无漂移 / exit 0 |
 | 新增用例 | `TC-H-16` | ✅ 判定表 `[1,2,2,3,3]`；1440×900→three / 1200×800→two / 1024×680→stacked；逐档自洽；复位后视口还原 |
+| 新增用例 | `TC-H-17` | ✅ 视口 1024×720 → stacked + 高度档自洽（tight）；视口 1200×780 + **screenHeight 900** → **②档 compact**（②档在小屏 runner 上可达）；复位还原 |
 
-### 11.4 本阶段新增待决项（TK-170 起）
+### 11.4 环境信息采集（`ctx.envInfo()`，异步 + 缓存）
+
+- 🔒 **唯一一份实现**：合并「取窗口所在屏工作区」与「实测最大可达客户区」两套口径：
+  - `screen.getDisplayNearestPoint(bounds)`（多显示器下取**窗口所在屏**，比 `getPrimaryDisplay` 更正确）；
+  - `maxClientArea` = **实测**（请求工作区全尺寸后回读真实客户区），
+    比「工作区 − 外框增量」的公式更准 —— 它反映的是**这台机器实际能做到**什么；
+  - 附记 `frameDelta`（原生标题栏 + 原生菜单增量，台账用）。
+- 🔒 **只采集一次并缓存**（`ctx.__env`）：采集过程会**改变窗口尺寸**（实测最大客户区），
+  重复调用会反复改窗口 → 必须缓存。
+- 🔒 「窗口管理层」用例（TC-DP-01/02/04）据此判定 **BLOCKED（≠通过）**：
+  判据是 `maxClientArea` 是否容得下目标尺寸；**容得下却做不到 → 判 FAIL（真实缺陷）**。
+
+### 11.5 ⚠️ 并发运行互杀（CI 编排硬约束 · TK-175）
+
+`desktop/main/main.js:43` `app.requestSingleInstanceLock()` ⇒ **同一台机器上两个桌面套件实例不能并存**：
+后启动者拿不到锁即 `app.quit()`；先启动者的窗口也可能被外部清理连带杀掉。
+实测：本轮曾出现「一次全量复跑在 TC-EX-05 处整个 Electron 实例被杀 → 后续 49 例报
+`Target page, context or browser has been closed`」的**大面积假失败**（复跑即 93/93 通过，证实是环境干扰）。
+⇒ 🔴 **CI 若要并行跑桌面套件（如「小屏代理回归」job），必须用**独立 runner / 独立 job**，
+   不得与主 E2E job 落在同一台机器上。
+
+### 11.6 本阶段新增待决项（TK-170 起）
 
 | 编号 | 类型 | 内容 |
 |---|---|---|
 | TK-170 | ❓待决 | 小屏 runner 上 3 条原生窗口用例判 BLOCKED → 退出码 2 → **CI 门禁仍红**。任务书要求「BLOCKED 规则保持不变」，故**未自行放行**；请团长三选一：(a) 接受 CI 常红但报告逐条列名；(b) 提供 ≥1440×900 的 runner；(c) 拆独立 job 在大屏 runner 跑这 3 条 |
-| TK-171 | 🔒规则约束 | 视口模拟把 `workH` 一并改写 → `clientH ∈ [680,745)` 时「模拟口径」与「大屏真实工作区口径」档位结论分歧。**本轮无用例落在该区间**（已逐例核对）；后续新增该区间用例**必须**显式传 `setViewport(w,h,{screenHeight})` |
+| TK-171 | 🔒规则约束 | 视口模拟把 `workH` 一并改写 → `clientH ∈ [680,745)` 时「模拟口径」与「大屏真实工作区口径」档位结论分歧。**本轮无用例落在该区间**；若需落在该区间，用例**必须**显式传 `setViewport(w,h,{screenHeight})`（TC-H-17 已演示该用法） |
 | TK-172 | 💡新建议 | 给 CI runner 固定更高虚拟显示分辨率，让原生窗口用例可真跑 |
-| TK-173 | 💡新建议 | 把 `--clamp-window=1024x720` 固化为 CI 的「小屏代理回归」job —— 把「CI 真实环境」变成每次都能跑的可复现代理 |
-| TK-174 | ❓待决 | 本轮编辑期间 `desktop/test/desktop-suite.mjs` 被**另一写者**并发改动并引入**无限递归**（新增 `setLayoutSize` 自调用 + `setContentSizeReal` 自调用），已按显式分流口径修正并删除递归实现；请确认该写者身份与是否还有并行产出待合并 |
+| TK-173 | 💡新建议 | 把 `--clamp-window=1024x720` 固化为 CI 的「小屏代理回归」job —— 把「CI 真实环境」变成每次都能跑的可复现代理（⚠️ 见 TK-175：必须独立 runner） |
+| TK-174 | ❓待决 | 本轮编辑期间 `desktop/test/desktop-suite.mjs` 被**另一写者**并发改动并引入**无限递归**（新增 `setLayoutSize` 自调用 + `setContentSizeReal` 自调用）；已按显式分流口径修正并删除递归实现；**该写者已确认为团长本人，冲突已闭合** |
+| TK-175 | 🔒规则约束 | **单实例锁 ⇒ 并发运行互杀**：CI 中任何并行执行桌面套件的编排都必须落到**独立 runner / 独立 job**；同机并行会产生大面积假失败（本轮已实测遭遇） |
+
 
 > 📄 完整报告（含失败清单逐条根因、视口模拟边界、BLOCKED 语义、两种环境断言严格度逐条论证）：
 > `_audit/out/Step6-CI环境适配报告.md`
