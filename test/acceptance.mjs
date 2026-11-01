@@ -402,6 +402,41 @@ await t('A6', '一键复制分辨率格式为 "宽×高"（× 连接符、无千
   return `剪贴板 "${clip}"，反馈 "${label.trim()}"`;
 });
 
+await t('A6-2', '复制按钮复原为**各自原始文案**（TK-101 回归）', async () => {
+  // 🔴 回归：TK-101 —— 原实现复原时硬编码 label='复制'，导致
+  //    「复制分辨率」「复制完整参数」两个按钮在复制一次后永久变成「复制」。
+  const cases = [
+    ['#btn-copy-resolution', '复制分辨率'],
+    ['#btn-copy-full', '复制完整参数'],
+  ];
+  const seen = [];
+  for (const [sel, expected] of cases) {
+    // 🔴 先等按钮回到**静止态**（前一条用例可能刚点过它，标签仍显示「已复制」）
+    await page.waitForFunction(
+      (s) => {
+        const b = document.querySelector(s);
+        const l = b && b.querySelector('.label');
+        return !!l && l.textContent.trim() !== '已复制' && l.textContent.trim() !== '复制失败';
+      },
+      sel,
+      { timeout: 5000 },
+    );
+    const before = (await page.locator(sel + ' .label').textContent()).trim();
+    assert(before === expected, `${sel} 初始文案应为「${expected}」，实际「${before}」`);
+    await page.click(sel);
+    await page.waitForTimeout(200);
+    const during = (await page.locator(sel + ' .label').textContent()).trim();
+    assert(/已复制/.test(during), `${sel} 未给出成功反馈：「${during}」`);
+    await page.waitForTimeout(1800);            // 超过 COPY_OK_MS(1600)
+    const after = (await page.locator(sel + ' .label').textContent()).trim();
+    assert(after === expected, `${sel} 复原文案应为「${expected}」，实际「${after}」`);
+    const icon = (await page.locator(sel + ' .icon').textContent()).trim();
+    assert(icon === '⧉', `${sel} 复原图标应为 ⧉，实际「${icon}」`);
+    seen.push(`${sel}→「${after}」`);
+  }
+  return seen.join('；');
+});
+
 group('B. 案例 B：21:9（俗称）目标比例');
 
 await t('B1', '21:9 在比例库中标为"俗称"并给出严格数学值（独立 gcd 推导）', async () => {

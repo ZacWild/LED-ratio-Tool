@@ -10,7 +10,9 @@
  * 🔒 本补丁只做**四处**适配，绝不改动业务逻辑：
  *   ① 持久化：localStorage 读写 → ledApi.settingsGet / settingsSet
  *   ② 剪贴板：navigator.clipboard / legacyCopy → ledApi.clipboardWriteText
- *   ③ 复制反馈：复原时恢复**各自原始标签**（D-02 §4.5 Q-02 既有缺陷）
+ *   ③ 复制反馈：**已上移到 src/app.js**（TK-101 · Step 6 第 2 阶段）——
+ *        原版 HTML 的 showCopyFeedback 已改为「复原时写回各自原始标签」，
+ *        桌面版直接继承该修复，**不再需要**适配器补丁（单一实现，避免两份逻辑漂移）
  *   ④ 能力暴露：把 app.js 的内部函数挂到 LedApp 上，供桌面交互层**复用**
  *      —— 复制载荷与 HTML 版逐字一致的唯一可靠做法（不重复实现任何计算）
  *
@@ -76,54 +78,6 @@ const CLIPBOARD_PATCH = `/* ---- desktop-adapter: clipboard → IPC ---- */
   }
 `;
 
-/**
- * 复制反馈适配：修复 HTML 版既有缺陷 Q-02（D-02 §4.5）。
- *
- * 🔒 HTML 版 showCopyFeedback 复原时统一写 `label.textContent = '复制'`。
- *    对 `#btn-copy-full`（原文案「复制完整参数」）而言，任何一次复制后该按钮
- *    文案**永久变成「复制」**，不会恢复。
- * 🔒 桌面版修法（纯展示层，不涉及业务规则）：首次反馈时记下**各自原始标签**
- *    与原始图标，复原时写回原值。
- */
-const FEEDBACK_PATCH = `/* ---- desktop-adapter: copy feedback — restore each button's own label ---- */
-  function showCopyFeedback(button, ok) {
-    var icon = button.querySelector('.icon');
-    var label = button.querySelector('.label');
-    if (!icon || !label) return;
-    // 🔒 记住各自原始文案与图标（首次使用时捕获）
-    if (!button.getAttribute('data-desktop-orig-label')) {
-      button.setAttribute('data-desktop-orig-label', label.textContent);
-    }
-    if (!button.getAttribute('data-desktop-orig-icon')) {
-      button.setAttribute('data-desktop-orig-icon', icon.textContent);
-    }
-    var origLabel = button.getAttribute('data-desktop-orig-label');
-    var origIcon = button.getAttribute('data-desktop-orig-icon');
-    if (ok) {
-      button.classList.add('is-success');
-      button.classList.remove('is-error');
-      icon.textContent = '✓';
-      label.textContent = '已复制';
-      setText(els.liveFeedback, '已复制到剪贴板');
-      window.setTimeout(function () {
-        button.classList.remove('is-success');
-        icon.textContent = origIcon;
-        label.textContent = origLabel;
-      }, COPY_OK_MS);
-    } else {
-      button.classList.add('is-error');
-      button.classList.remove('is-success');
-      icon.textContent = '!';
-      label.textContent = '复制失败';
-      setText(els.liveFeedback, '复制失败，请手动选取文本复制');
-      window.setTimeout(function () {
-        button.classList.remove('is-error');
-        icon.textContent = origIcon;
-        label.textContent = origLabel;
-      }, COPY_FAIL_MS);
-    }
-  }
-`;
 
 /**
  * 能力暴露适配：把 app.js 的内部函数挂到 LedApp 导出对象上。
@@ -257,15 +211,6 @@ function applyDesktopAdapter(filePath) {
     applied.push('persistence.save');
   } else {
     skipped.push('persistence.save');
-  }
-
-  // ---- ③ 复制反馈：恢复各自原始标签（修复 HTML 版既有缺陷 Q-02）---- */
-  const feedbackRe = /  function showCopyFeedback\(button, ok\) \{[\s\S]*?\n  \}\n/;
-  if (feedbackRe.test(src)) {
-    src = src.replace(feedbackRe, FEEDBACK_PATCH);
-    applied.push('copy-feedback');
-  } else {
-    skipped.push('copy-feedback');
   }
 
   // ---- ④ 能力暴露：把内部函数挂到 LedApp 导出对象上 ---- */

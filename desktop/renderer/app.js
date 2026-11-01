@@ -1543,20 +1543,29 @@
     }
   }
 
-/* ---- desktop-adapter: copy feedback — restore each button's own label ---- */
+  /**
+   * 复制反馈：显示「已复制 / 复制失败」，随后**复原按钮自身的原始文案与图标**。
+   *
+   * 🔴 缺陷修复（TK-101，Step 6 第 2 阶段）：原实现复原时硬编码
+   *    `label.textContent = '复制'`，而两个复制按钮的原始文案并不相同
+   *    （#btn-copy-resolution =「复制分辨率」、#btn-copy-full =「复制完整参数」）
+   *    → 任何一次复制后，按钮文案**永久变成「复制」**，界面语义丢失。
+   *    修复方式：首次反馈时记下该按钮**自己的**原始文案与图标，复原时写回原值。
+   *    —— 纯展示层改动，不触碰任何计算、格式、状态或业务规则。
+   */
   function showCopyFeedback(button, ok) {
     var icon = button.querySelector('.icon');
     var label = button.querySelector('.label');
     if (!icon || !label) return;
-    // 🔒 记住各自原始文案与图标（首次使用时捕获）
-    if (!button.getAttribute('data-desktop-orig-label')) {
-      button.setAttribute('data-desktop-orig-label', label.textContent);
+    // 记住本按钮自己的原始文案与图标（首次使用时捕获，之后复用）
+    if (!button.getAttribute('data-orig-label')) {
+      button.setAttribute('data-orig-label', label.textContent);
     }
-    if (!button.getAttribute('data-desktop-orig-icon')) {
-      button.setAttribute('data-desktop-orig-icon', icon.textContent);
+    if (!button.getAttribute('data-orig-icon')) {
+      button.setAttribute('data-orig-icon', icon.textContent);
     }
-    var origLabel = button.getAttribute('data-desktop-orig-label');
-    var origIcon = button.getAttribute('data-desktop-orig-icon');
+    var origLabel = button.getAttribute('data-orig-label');
+    var origIcon = button.getAttribute('data-orig-icon');
     if (ok) {
       button.classList.add('is-success');
       button.classList.remove('is-error');
