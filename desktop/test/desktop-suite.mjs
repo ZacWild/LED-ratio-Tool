@@ -1426,6 +1426,415 @@ T({
 });
 
 /* ==========================================================================
+   §2.x TC-H · 高度降级三档（DEC-16 第 ②③ 档 · TK-72 已闭合）
+   --------------------------------------------------------------------------
+   类别说明：
+     · 档位判定（渲染层自算 + resize 重算）
+     · 第②档收纳（S2-1~S2-4）
+     · 第③档收纳（S3-1~S3-6）
+     · 不可违反原则（输入/结果/警告/复制在任何档位都可达）
+     · TK-142 焦点迁移 + 400ms 高亮
+     · TK-143 锚点条 ｜ TK-141 滚动锚点恢复
+   ========================================================================== */
+
+T({
+  id: 'TC-H-01', cat: 'TC-H', title: '高度档位判定：784 / 680 / 低于 680 三档阈值',
+  // 🔒 DEC-16 + 任务书给定判定式：workH < 680+65 → ③；clientH ≥ 784 → ①；
+  //    680 ≤ clientH < 784 → ②；clientH < 680 → ③。
+  target: 'decideHeightTier() 的四组输入分别落 ①/②/③',
+  input: '(900,1392) (784,1392) (783,1392) (680,1392) (679,1392) (900,744)',
+  expect: '1 / 1 / 2 / 2 / 3 / 3',
+  fn: async (ctx) => {
+    const cases = [[900, 1392], [784, 1392], [783, 1392], [680, 1392], [679, 1392], [900, 744]];
+    const got = [];
+    for (const [c, w] of cases) got.push(await ctx.decideHeightTier(c, w));
+    const want = [1, 1, 2, 2, 3, 3];
+    const ok = JSON.stringify(got) === JSON.stringify(want);
+    return { actual: `判定序列=${JSON.stringify(got)}（期望 ${JSON.stringify(want)}）`, pass: ok, evidence: 'reports/desktop-suite.json' };
+  },
+});
+
+T({
+  id: 'TC-H-02', cat: 'TC-H', title: '工作区高度不足 → 直接落第③档（重量收纳）',
+  target: 'workH < 680+65=745 时，无论 clientH 多大都判 ③',
+  input: 'clientH=900 / workH=744（刚好不足）与 workH=745（刚好够）',
+  expect: '744 → ③；745 且 clientH=900 → ①',
+  fn: async (ctx) => {
+    const a = await ctx.decideHeightTier(900, 744);
+    const b = await ctx.decideHeightTier(900, 745);
+    const ok = a === 3 && b === 1;
+    return { actual: `workH=744 → ${a}；workH=745 → ${b}`, pass: ok, evidence: 'reports/desktop-suite.json' };
+  },
+});
+
+T({
+  id: 'TC-H-03', cat: 'TC-H', title: 'resize 动态重算：跨过阈值档位随之变化（不得只在启动时判一次）',
+  target: '1440×900 → ①；1440×750 → ②；1440×600 → ③；再回 1440×900 → ①',
+  input: '连续四次改变客户区高度',
+  expect: 'data-height-tier 依次 standard / compact / tight / standard',
+  fn: async (ctx) => {
+    const seq = [];
+    for (const [w, h] of [[1440, 900], [1440, 750], [1440, 600], [1440, 900]]) {
+      await ctx.setContentSize(w, h);
+      await ctx.wait(120);
+      const info = await ctx.heightTierInfo();
+      seq.push(info ? info.name : null);
+    }
+    const want = ['standard', 'compact', 'tight', 'standard'];
+    const ok = JSON.stringify(seq) === JSON.stringify(want);
+    return { actual: `档位序列=${JSON.stringify(seq)}（期望 ${JSON.stringify(want)}）`, pass: ok, evidence: 'reports/desktop-suite.json' };
+  },
+});
+
+T({
+  id: 'TC-H-04', cat: 'TC-H', title: '第②档：副标题单行省略（EL-HD-03）且标题 EL-HD-02 保留',
+  target: '第②档下副标题 text-overflow=ellipsis + 单行；标题可见',
+  input: '1440×750（第②档）',
+  expect: '副标题 ellipsis + nowrap + 单行高；标题仍可见',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1440, 750);
+    await ctx.wait(120);
+    const r = await ctx.evaluate(() => {
+      const sub = document.querySelector('.app-header__subtitle');
+      const title = document.querySelector('.app-header__title');
+      const cs = getComputedStyle(sub);
+      const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.5;
+      return {
+        tier: window.__desktopHeightTier.info().name,
+        overflow: cs.overflow, textOverflow: cs.textOverflow, whiteSpace: cs.whiteSpace,
+        display: cs.display,
+        subHeight: Math.round(sub.getBoundingClientRect().height),
+        lineHeight: Math.round(lh),
+        titleVisible: getComputedStyle(title).display !== 'none' && title.offsetWidth > 0,
+      };
+    });
+    const ok = r.tier === 'compact' && r.textOverflow === 'ellipsis' && r.whiteSpace === 'nowrap'
+      && r.subHeight <= r.lineHeight + 2 && r.titleVisible;
+    return { actual: `档位=${r.tier} ellipsis=${r.textOverflow} nowrap=${r.whiteSpace} 副标题高=${r.subHeight}(行高${r.lineHeight}) 标题可见=${r.titleVisible}`, pass: ok, evidence: 'reports/desktop-suite.json' };
+  },
+});
+
+T({
+  id: 'TC-H-05', cat: 'TC-H', title: '第②档：EL-RS-21~24 说明块默认折叠、可展开、条目完整',
+  // 🔒 TK-146 裁定：折叠 ≠ 删除 → 展开后条目一个都不少。
+  target: '第②档默认折叠 → 点击展开 → 四个说明块全部可见且条目数不变',
+  input: '1440×750（第②档）',
+  expect: '默认折叠 / 展开后 4 块可见 / 条目数前后一致 / 折叠头可 Tab 聚焦',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1440, 750);
+    await ctx.wait(150);
+    const before = await ctx.explainAudit();
+    // 折叠头可聚焦 + Enter 展开
+    await ctx.evaluate(() => {
+      const t = document.querySelector('.explain-fold__toggle');
+      t.focus();
+    });
+    const focused = await ctx.evaluate(() => document.activeElement === document.querySelector('.explain-fold__toggle'));
+    await ctx.win.keyboard.press('Enter');
+    await ctx.wait(150);
+    const after = await ctx.explainAudit();
+    const ok = before.exists && before.collapsed && before.blockCount === 3 && before.noticePresent
+      && focused && !after.collapsed && after.visibleBlocks === 3 && after.visibleNotice
+      && after.entries === before.entries && before.entries > 0;
+    return {
+      actual: `折叠态=${before.collapsed}→展开态=${after.collapsed}｜块 ${before.blockCount}→${after.blockCount}（可见 ${after.visibleBlocks}）｜notice 可见=${after.visibleNotice}｜条目数 ${before.entries}→${after.entries}｜折叠头可聚焦=${focused}｜标题=${JSON.stringify(after.titles)}`,
+      pass: ok, evidence: 'reports/desktop-suite.json',
+    };
+  },
+});
+
+T({
+  id: 'TC-H-06', cat: 'TC-H', title: '第②档：A 栏标准库列表 EL-IN-17 限高 min(30vh,200px) 且仍可滚动',
+  target: '第②档 #standard-list 的 max-height ≤ 200px 且 scrollHeight > clientHeight（可滚动）',
+  input: '1440×750（第②档）',
+  expect: '限高生效 + 仍可滚动访问',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1440, 750);
+    await ctx.wait(150);
+    const r = await ctx.evaluate(() => {
+      const el = document.getElementById('standard-list');
+      const cs = getComputedStyle(el);
+      const r2 = el.getBoundingClientRect();
+      return {
+        tier: window.__desktopHeightTier.info().name,
+        maxHeight: cs.maxHeight,
+        clientH: el.clientHeight,
+        scrollH: el.scrollHeight,
+        scrollable: el.scrollHeight > el.clientHeight + 1,
+        overflowY: cs.overflowY,
+        rectH: Math.round(r2.height),
+      };
+    });
+    const maxPx = parseFloat(r.maxHeight) || 9999;
+    const ok = r.tier === 'compact' && maxPx <= 200.5 && r.scrollable && r.overflowY === 'auto';
+    return { actual: `max-height=${r.maxHeight}(${maxPx}px) clientH=${r.clientH} scrollH=${r.scrollH} 可滚=${r.scrollable} overflowY=${r.overflowY}`, pass: ok, evidence: 'reports/desktop-suite.json' };
+  },
+});
+
+T({
+  id: 'TC-H-07', cat: 'TC-H', title: '第③档：舞台折叠为 EL-ST-15 摘要且 EL-ST-16「展开舞台」保留可用',
+  target: '第③档：舞台面板不可见 + 摘要可见 + 展开按钮可见，点击后舞台可见',
+  input: '1440×600（客户区 654 → 第③档，三栏宽度轴）',
+  expect: '舞台隐藏 / 摘要可见 / EL-ST-16 可见 / 点击后舞台展开',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1440, 900);
+    await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
+    await ctx.setContentSize(1440, 600);
+    await ctx.wait(200);
+    const folded = await ctx.stageFoldAudit();
+    await ctx.evaluate(() => { document.querySelector('.stage-summary__toggle').click(); });
+    await ctx.wait(200);
+    const expanded = await ctx.stageFoldAudit();
+    const ok = folded.summaryVisible && folded.toggleVisible && folded.stagePanelDisplay === 'none'
+      && !folded.stageInnerVisible && expanded.stageInnerVisible;
+    return {
+      actual: `折叠态：摘要可见=${folded.summaryVisible} 按钮="${folded.toggleText}" 可见=${folded.toggleVisible} 舞台display=${folded.stagePanelDisplay}｜展开态：舞台可见=${expanded.stageInnerVisible} 按钮="${expanded.toggleText}"`,
+      pass: ok, evidence: 'reports/desktop-suite.json',
+    };
+  },
+});
+
+T({
+  id: 'TC-H-08', cat: 'TC-H', title: '第③档：副标题隐藏 + 标题条 28px + 状态栏 24px',
+  target: '第③档：副标题 display:none；标题条高 28；状态栏高 24',
+  input: '1440×600（客户区 654 → 第③档）',
+  expect: '副标题隐藏 + 标题条 28 + 状态栏 24',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1440, 600);
+    await ctx.wait(200);
+    const r = await ctx.evaluate(() => {
+      const sub = document.querySelector('.app-header__subtitle');
+      const head = document.querySelector('.app-header');
+      const bar = document.querySelector('.status-bar');
+      const title = document.querySelector('.app-header__title');
+      return {
+        tier: window.__desktopHeightTier.info().name,
+        subDisplay: getComputedStyle(sub).display,
+        titleVisible: getComputedStyle(title).display !== 'none' && title.offsetWidth > 0,
+        headH: Math.round(head.getBoundingClientRect().height),
+        barH: Math.round(bar.getBoundingClientRect().height),
+      };
+    });
+    const ok = r.tier === 'tight' && r.subDisplay === 'none' && r.titleVisible && r.headH === 28 && r.barH === 24;
+    return { actual: `档位=${r.tier} 副标题display=${r.subDisplay} 标题可见=${r.titleVisible} 标题条=${r.headH}px 状态栏=${r.barH}px`, pass: ok, evidence: 'reports/desktop-suite.json' };
+  },
+});
+
+T({
+  id: 'TC-H-09', cat: 'TC-H', title: '第③档：EL-FT-05 错误出口与 EL-FT-08 设置入口必须保留',
+  // 🔒 三出口规则 + 「状态栏唯一可聚焦项 = EL-FT-08」
+  target: '第③档：#ft-error 与 #ft-settings 均可见且可聚焦；状态栏整体仍不进 Tab 序列',
+  input: '1440×600（第③档）',
+  expect: '错误出口 + 设置入口均在',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1440, 600);
+    // 🔒 EL-FT-05 是**错误出口**：无错误时按既有设计不显示（.status-bar__error:empty）
+    //    → 必须先制造一个错误，再断言出口在场。
+    await ctx.setAndRead({ 'input-width': 'abc', 'input-height': '4' });
+    await ctx.wait(250);
+    const r = await ctx.evaluate(() => {
+      const err = document.getElementById('ft-error');
+      const set = document.getElementById('ft-settings');
+      const vis = (el) => !!el && getComputedStyle(el).display !== 'none' && el.offsetWidth > 0;
+      return {
+        tier: window.__desktopHeightTier.info().name,
+        errVisible: vis(err),
+        errText: err ? err.textContent.trim() : '',
+        setVisible: vis(set),
+        errFocusable: !!err && err.tagName === 'BUTTON' && !err.disabled,
+        setFocusable: !!set && set.tagName === 'BUTTON' && !set.disabled,
+        barRole: document.querySelector('.status-bar').getAttribute('role'),
+      };
+    });
+    const ok = r.tier === 'tight' && r.errVisible && r.errText.length > 0 && r.setVisible && r.errFocusable && r.setFocusable && r.barRole === 'status';
+    return { actual: `档位=${r.tier} 错误出口可见=${r.errVisible}（文案="${r.errText}"）设置入口可见=${r.setVisible} 均可聚焦=${r.errFocusable && r.setFocusable} role=${r.barRole}`, pass: ok, evidence: 'reports/desktop-suite.json' };
+  },
+});
+
+T({
+  id: 'TC-H-10', cat: 'TC-H', title: '第③档：EL-RS-26 锚点条五项可见且点击后对应区块进入视口',
+  target: '[比例][候选][匹配][误差][复制] 五项；逐项点击后目标区块顶部进入可视区；Tab 序位于警示条关闭按钮之后、复制按钮之前',
+  input: '1440×600（第③档，输入 14/4）',
+  expect: '五项齐全 + 跳转到位 + Tab 序正确',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1440, 600);
+    await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
+    await ctx.wait(250);
+    const r = await ctx.anchorAudit();
+    const keys = Object.keys(r.results || {});
+    const allIn = keys.length === 5 && keys.every((k) => r.results[k].found && r.results[k].visible && r.results[k].inView);
+    const ok = r.exists && !r.hidden && r.count === 5
+      && JSON.stringify(r.labels) === JSON.stringify(['比例', '候选', '匹配', '误差', '复制'])
+      && allIn && r.order.warnCloseBeforeAnchors && r.order.anchorsBeforeCopy;
+    return {
+      actual: `隐藏=${r.hidden} 项=${JSON.stringify(r.labels)}｜跳转=${JSON.stringify(r.results)}｜Tab序 警示条→锚点=${r.order.warnCloseBeforeAnchors} 锚点→复制=${r.order.anchorsBeforeCopy}`,
+      pass: ok, evidence: 'reports/desktop-suite.json',
+    };
+  },
+});
+
+T({
+  id: 'TC-H-11', cat: 'TC-H', title: '不可违反原则：三档下输入/结果/警告/复制均可见可达',
+  // 🔒 DEC-16 第③档原文「确保输入、结果、警告、复制操作可用」
+  target: '①/②/③ 三档：#input-width / #res-value / #warn-bar / 两个复制按钮均 rendered 且在视口内',
+  input: '1440×900 / 1440×750 / 1440×600，输入 14/4',
+  expect: '三档全部满足',
+  fn: async (ctx) => {
+    const rows = [];
+    let ok = true;
+    for (const [w, h] of [[1440, 900], [1440, 750], [1440, 600]]) {
+      await ctx.setContentSize(w, h);
+      await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
+      await ctx.wait(200);
+      const r = await ctx.coreOpsAudit();
+      const bad = [];
+      for (const k of ['input', 'inputH', 'result', 'warn', 'copyRes', 'copyFull']) {
+        if (!r[k].exists || !r[k].rendered || !r[k].inViewport) bad.push(`${k}(${JSON.stringify(r[k])})`);
+      }
+      if (bad.length) ok = false;
+      rows.push(`${r.heightTier}:缺=${bad.join(' ') || '无'}`);
+    }
+    return { actual: rows.join(' ｜ '), pass: ok, evidence: 'reports/desktop-suite.json' };
+  },
+});
+
+T({
+  id: 'TC-H-12', cat: 'TC-H', title: 'TK-142：焦点迁移到 EL-ST-16 + 400ms 高亮 + 焦点不落 body',
+  target: '焦点在舞台内 → 切到第③档 → 焦点迁移到 EL-ST-16，出现 400ms 高亮，全程不落 body',
+  input: '焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600',
+  expect: '焦点=EL-ST-16 且有高亮类；无 body 焦点',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1440, 900);
+    await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
+    await ctx.focus('.stage-mode-segment[aria-checked="true"]');
+    const before = await ctx.focusId();
+    // 在页面内持续采样：捕捉 400ms 高亮窗口内的状态
+    const poll = ctx.win.evaluate(() => new Promise((resolve) => {
+      const t0 = performance.now();
+      const seen = { migrated: false, focusEl: null, bodyFocus: false };
+      const timer = setInterval(() => {
+        const el = document.activeElement;
+        if (!el) return;
+        if (el === document.body) seen.bodyFocus = true;
+        if (el.classList && el.classList.contains('is-just-migrated')) seen.migrated = true;
+        if (el.getAttribute && el.getAttribute('data-el') === 'EL-ST-16') seen.focusEl = 'EL-ST-16';
+        if (performance.now() - t0 > 900) { clearInterval(timer); resolve(seen); }
+      }, 8);
+    }));
+    await ctx.setContentSize(1440, 600);
+    const seen = await poll;
+    const info = await ctx.heightTierInfo();
+    const ok = seen.focusEl === 'EL-ST-16' && seen.migrated && !seen.bodyFocus
+      && info.lastMigration && info.lastMigration.kind === 'stage';
+    return {
+      actual: `迁移前焦点=${before}｜迁移后焦点=${seen.focusEl}｜400ms高亮=${seen.migrated}｜落body=${seen.bodyFocus}｜台账=${JSON.stringify(info.lastMigration)}`,
+      pass: ok, evidence: 'reports/desktop-suite.json',
+    };
+  },
+});
+
+T({
+  id: 'TC-H-13', cat: 'TC-H', title: 'TK-142：输入框内未提交文本 → 焦点与选区完整保留',
+  target: '在 #input-width 选中一段文本后切档 → 焦点仍在该框、选区不变、文本不变',
+  input: '1440×900 → 1440×600',
+  expect: '焦点/选区/文本三者均保留',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1440, 900);
+    await ctx.evaluate(() => {
+      const el = document.getElementById('input-width');
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      setter.call(el, '14');
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.focus();
+      el.setSelectionRange(0, 2);
+    });
+    await ctx.wait(150);
+    const before = await ctx.evaluate(() => {
+      const el = document.getElementById('input-width');
+      return { active: document.activeElement === el, start: el.selectionStart, end: el.selectionEnd, value: el.value };
+    });
+    await ctx.setContentSize(1440, 600);
+    await ctx.wait(200);
+    const after = await ctx.evaluate(() => {
+      const el = document.getElementById('input-width');
+      return { active: document.activeElement === el, start: el.selectionStart, end: el.selectionEnd, value: el.value };
+    });
+    const ok = before.active && after.active && before.start === after.start && before.end === after.end && before.value === after.value;
+    return { actual: `前=${JSON.stringify(before)}｜后=${JSON.stringify(after)}`, pass: ok, evidence: 'reports/desktop-suite.json' };
+  },
+});
+
+T({
+  id: 'TC-H-14', cat: 'TC-H', title: 'TK-141：跨断点后 C 栏按「第一个完全可见的 result-block 标题」恢复滚动位置',
+  target: '三栏→两栏（C 栏宽度变化）后，同一个块标题仍是第一个完全可见者',
+  input: '1440×900 滚到匹配表附近 → 1200×800 → 1440×900',
+  expect: '锚点块标题保持不变',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1440, 900);
+    await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
+    await ctx.wait(200);
+    await ctx.evaluate(() => { document.querySelector('.panel--result').scrollTop = 420; });
+    await ctx.wait(150);
+    const before = await ctx.cScrollAnchor();
+    await ctx.setContentSize(1200, 800);
+    await ctx.wait(200);
+    const mid = await ctx.cScrollAnchor();
+    await ctx.setContentSize(1440, 900);
+    await ctx.wait(200);
+    const after = await ctx.cScrollAnchor();
+    const ok = !!before.text && before.text === mid.text && before.text === after.text;
+    return {
+      actual: `前=${before.text}(offset ${before.offset}, scrollTop ${before.scrollTop})｜两栏=${mid.text}(offset ${mid.offset})｜回三栏=${after.text}(offset ${after.offset})`,
+      pass: ok, evidence: 'reports/desktop-suite.json',
+    };
+  },
+});
+
+T({
+  id: 'TC-H-15', cat: 'TC-H', title: 'TK-147：窄窗口纵向堆叠 + 第③档 → 三面板仍纵向排列，舞台折叠为行内摘要',
+  // 🔒 TK-147 裁定：第③档（高度轴）与 D5（宽度轴）正交 —— 纵向堆叠本身不变、不隐藏任何面板。
+  target: '1024×600（客户区 654 → 堆叠 + 第③档）：三个面板均可见、舞台折叠、EL-ST-16 可就地展开',
+  input: '1024×600',
+  expect: '三面板可见 + 舞台内容折叠 + 行内摘要可见 + 展开入口可用',
+  fn: async (ctx) => {
+    await ctx.setContentSize(1024, 600);
+    await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
+    await ctx.wait(250);
+    const r = await ctx.evaluate(() => {
+      const layout = document.querySelector('.layout');
+      const panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
+      const vis = (el) => getComputedStyle(el).display !== 'none' && el.offsetWidth > 0;
+      const summary = document.querySelector('.stage-summary');
+      const toggle = document.querySelector('.stage-summary__toggle');
+      return {
+        tier: window.__desktopHeightTier.info().name,
+        layoutTier: layout.getAttribute('data-layout'),
+        panelCount: panels.length,
+        visiblePanels: panels.filter(vis).length,
+        gridAreas: getComputedStyle(layout).gridTemplateAreas,
+        summaryInStagePanel: !!(summary && document.querySelector('.panel--stage').contains(summary)),
+        summaryVisible: vis(summary),
+        toggleVisible: vis(toggle),
+        stageInnerVisible: vis(document.getElementById('stage')),
+      };
+    });
+    // 点击 EL-ST-16 → 舞台就地展开
+    await ctx.evaluate(() => { document.querySelector('.stage-summary__toggle').click(); });
+    await ctx.wait(250);
+    const after = await ctx.evaluate(() => {
+      const vis = (el) => !!el && getComputedStyle(el).display !== 'none' && el.offsetWidth > 0;
+      return { stageInnerVisible: vis(document.getElementById('stage')), toggleText: document.querySelector('.stage-summary__toggle').textContent.trim() };
+    });
+    const ok = r.tier === 'tight' && r.layoutTier === 'stacked' && r.panelCount === 3 && r.visiblePanels === 3
+      && r.summaryInStagePanel && r.summaryVisible && r.toggleVisible && !r.stageInnerVisible && after.stageInnerVisible;
+    return {
+      actual: `档位=${r.tier}/${r.layoutTier}｜面板 ${r.visiblePanels}/${r.panelCount} 可见｜areas=${r.gridAreas}｜摘要在舞台面板内=${r.summaryInStagePanel} 可见=${r.summaryVisible}｜展开前舞台内容可见=${r.stageInnerVisible} → 展开后=${after.stageInnerVisible}（按钮="${after.toggleText}"）`,
+      pass: ok, evidence: 'reports/desktop-suite.json',
+    };
+  },
+});
+
+/* ==========================================================================
    §3 上下文实现（驱动 Electron 桌面版）
    ========================================================================== */
 
@@ -1435,6 +1844,8 @@ function buildContext(app, win) {
   const evaluate = (fn, arg) => win.evaluate(fn, arg);
 
   const ctx = {
+    win,
+    evaluate,
     async setAndRead(values) {
       await evaluate((v) => {
         for (const id of Object.keys(v)) {
@@ -1500,6 +1911,14 @@ function buildContext(app, win) {
         document.querySelectorAll('.ratio-source-segment[data-source="screen"]').forEach((b) => b.click());
         document.querySelectorAll('.canvas-mode-segment[data-mode="width"]').forEach((b) => b.click());
         document.querySelectorAll('.prefer-segment[data-prefer="bounds"]').forEach((b) => b.click());
+        // 🔒 栏宽复位：A/C 栏宽度是**会话态**（IX-08 拖拽结果不持久化，但同一进程内会残留）。
+        //    TC-RESIZE-03/04 会把栏宽拖到 360~560，若不复位，后面的用例会继承
+        //    「A=420 + C=560」的极值布局（1440 客户区下网格总宽 1540px > 视口 →
+        //    .layout overflow:hidden 裁掉 C 栏右侧），与被测目标无关却污染断言。
+        //    复位走既有菜单命令 menu:reset-columns（不新增任何测试专用通道），
+        //    🔒 且**并入同一批 evaluate** —— 不得额外增加等待，否则会挪动
+        //    TC-COPY-02 依赖的 1600ms 复制反馈复原时序（见 TK-164）。
+        if (window.__desktopMenu) window.__desktopMenu('menu:reset-columns');
         if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       });
       await win.waitForTimeout(120);
@@ -1649,6 +2068,179 @@ function buildContext(app, win) {
         const frameH = 900 + Math.round(39 * sf);
         const tier = work.height >= frameH ? 1 : work.height >= 900 + Math.round(39 * sf) ? 2 : 3;
         return { tier, workArea: `${work.width}×${work.height}`, scaleFactor: sf };
+      });
+    },
+    /* ---------- TC-H：高度降级三档（DEC-16 ②/③ 档）---------- */
+    /** 渲染层高度档位只读诊断（window.__desktopHeightTier.info()） */
+    async heightTierInfo() {
+      return evaluate(() => (window.__desktopHeightTier ? window.__desktopHeightTier.info() : null));
+    },
+    /** 高度档位纯函数判定（不依赖真实窗口尺寸） */
+    async decideHeightTier(clientH, workH) {
+      return evaluate(([c, w]) => (window.__desktopHeightTier ? window.__desktopHeightTier.decide(c, w) : null), [clientH, workH]);
+    },
+    /** 说明块折叠审计（S2-2 · EL-RS-21~24） */
+    async explainAudit() {
+      return evaluate(() => {
+        const fold = document.querySelector('.explain-fold');
+        const toggle = document.querySelector('.explain-fold__toggle');
+        if (!fold || !toggle) return { exists: false };
+        const blocks = Array.prototype.slice.call(fold.querySelectorAll('.result-block'));
+        const notice = fold.querySelector('.notice');
+        const visible = (el) => {
+          if (!el) return false;
+          const cs = getComputedStyle(el);
+          return cs.display !== 'none' && el.offsetWidth > 0;
+        };
+        let entries = 0;
+        if (notice) entries += notice.querySelectorAll('span:not(.icon)').length;
+        blocks.forEach((b) => { entries += b.querySelectorAll('p').length; });
+        return {
+          exists: true,
+          collapsed: fold.classList.contains('is-collapsed'),
+          ariaExpanded: toggle.getAttribute('aria-expanded'),
+          toggleText: toggle.textContent.trim(),
+          toggleFocusable: toggle.tabIndex >= 0 && !toggle.disabled && toggle.tagName === 'BUTTON',
+          blockCount: blocks.length,
+          noticePresent: !!notice,
+          entries,
+          visibleBlocks: blocks.filter(visible).length,
+          visibleNotice: visible(notice),
+          titles: blocks.map((b) => {
+            const t = b.querySelector('.result-block__title');
+            return t ? t.textContent.trim() : '';
+          }),
+        };
+      });
+    },
+    /** 结果分段锚点条审计（S3-5 · EL-RS-26） */
+    async anchorAudit() {
+      return evaluate(() => {
+        const bar = document.querySelector('.result-anchors');
+        if (!bar) return { exists: false };
+        const items = Array.prototype.slice.call(bar.querySelectorAll('.result-anchors__item'));
+        const panel = document.querySelector('.panel--result');
+        const pr = panel.getBoundingClientRect();
+        const sticky = panel.querySelector('.result-sticky-top');
+        const actions = panel.querySelector('.result-actions');
+        const visTop = sticky ? sticky.getBoundingClientRect().bottom : pr.top;
+        const visBottom = actions ? actions.getBoundingClientRect().top : pr.bottom;
+        const targetOf = (key) => {
+          if (key === 'ratio') return document.getElementById('ratio-value');
+          if (key === 'candidates') { const l = document.getElementById('candidate-list'); return l && l.closest('.result-block'); }
+          if (key === 'match') { const m = document.getElementById('match-body'); return m && m.closest('.result-block'); }
+          if (key === 'error') return document.getElementById('table-wrap');
+          if (key === 'copy') return panel.querySelector('.result-actions');
+          return null;
+        };
+        const results = {};
+        for (const it of items) {
+          const key = it.getAttribute('data-anchor');
+          it.click();
+          const t = targetOf(key);
+          if (!t) { results[key] = { found: false }; continue; }
+          const r = t.getBoundingClientRect();
+          const visible = getComputedStyle(t).display !== 'none';
+          let inView;
+          if (key === 'ratio' || key === 'copy') inView = r.top >= pr.top - 2 && r.bottom <= pr.bottom + 2;
+          else inView = r.top >= visTop - 2 && r.top <= visBottom + 2;
+          results[key] = { found: true, visible, inView, top: Math.round(r.top), bottom: Math.round(r.bottom) };
+        }
+        const warnClose = document.getElementById('btn-warn-close');
+        const copyBtn = document.getElementById('btn-copy-resolution');
+        return {
+          exists: true,
+          hidden: bar.hidden,
+          count: items.length,
+          labels: items.map((i) => i.textContent.trim()),
+          results,
+          order: {
+            warnCloseBeforeAnchors: !!(warnClose && (warnClose.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING)),
+            anchorsBeforeCopy: !!(copyBtn && (bar.compareDocumentPosition(copyBtn) & Node.DOCUMENT_POSITION_FOLLOWING)),
+          },
+        };
+      });
+    },
+    /** 四类核心操作（输入/结果/警告/复制）的可见性与可达性审计 */
+    async coreOpsAudit() {
+      return evaluate(() => {
+        const panel = document.querySelector('.panel--result');
+        const pr = panel.getBoundingClientRect();
+        const pick = (sel) => {
+          const el = document.querySelector(sel);
+          if (!el) return { sel, exists: false };
+          const cs = getComputedStyle(el);
+          const r = el.getBoundingClientRect();
+          const rendered = cs.display !== 'none' && cs.visibility !== 'hidden' && el.offsetWidth > 0;
+          return {
+            sel,
+            exists: true,
+            rendered,
+            inViewport: r.top >= -2 && r.bottom <= window.innerHeight + 2 && r.left >= -2 && r.right <= window.innerWidth + 2,
+            inPanel: r.top >= pr.top - 2 && r.bottom <= pr.bottom + 2,
+            rect: { top: Math.round(r.top), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) },
+          };
+        };
+        return {
+          heightTier: window.__desktopHeightTier ? window.__desktopHeightTier.info().name : null,
+          input: pick('#input-width'),
+          inputH: pick('#input-height'),
+          result: pick('#res-value'),
+          warn: pick('#warn-bar'),
+          copyRes: pick('#btn-copy-resolution'),
+          copyFull: pick('#btn-copy-full'),
+          errorExit: pick('#ft-error'),
+          settings: pick('#ft-settings'),
+          docScrollable: document.documentElement.scrollHeight > document.documentElement.clientHeight + 1,
+        };
+      });
+    },
+    /** C 栏滚动锚点（TK-141）：可视区第一个完全可见的 result-block 标题 */
+    async cScrollAnchor() {
+      return evaluate(() => {
+        const panel = document.querySelector('.panel--result');
+        if (!panel) return null;
+        const pr = panel.getBoundingClientRect();
+        const sticky = panel.querySelector('.result-sticky-top');
+        const actions = panel.querySelector('.result-actions');
+        const visTop = sticky ? sticky.getBoundingClientRect().bottom : pr.top;
+        const visBottom = actions ? actions.getBoundingClientRect().top : pr.bottom;
+        const titles = Array.prototype.slice.call(panel.querySelectorAll('.result-block__title'));
+        let fallback = null;
+        for (const t of titles) {
+          const r = t.getBoundingClientRect();
+          if (r.height <= 0) continue;
+          if (r.top >= visTop - 1 && r.bottom <= visBottom + 1) {
+            return { text: t.textContent.trim(), offset: Math.round(r.top - visTop), kind: 'full', scrollTop: Math.round(panel.scrollTop) };
+          }
+          if (!fallback && r.top >= visTop - 1) fallback = { text: t.textContent.trim(), offset: Math.round(r.top - visTop), kind: 'partial' };
+        }
+        if (fallback) { fallback.scrollTop = Math.round(panel.scrollTop); return fallback; }
+        return { text: null, scrollTop: Math.round(panel.scrollTop) };
+      });
+    },
+    /** 舞台折叠态审计（S3-1 · EL-ST-15 / EL-ST-16） */
+    async stageFoldAudit() {
+      return evaluate(() => {
+        const stage = document.querySelector('.panel--stage');
+        const summary = document.querySelector('.stage-summary');
+        const toggle = document.querySelector('.stage-summary__toggle');
+        const stageInner = document.getElementById('stage');
+        const visible = (el) => {
+          if (!el) return false;
+          const cs = getComputedStyle(el);
+          return cs.display !== 'none' && el.offsetWidth > 0;
+        };
+        return {
+          summaryExists: !!summary,
+          summaryVisible: visible(summary),
+          summaryInStagePanel: !!(summary && stage && stage.contains(summary)),
+          toggleExists: !!toggle,
+          toggleVisible: visible(toggle),
+          toggleText: toggle ? toggle.textContent.trim() : null,
+          stagePanelDisplay: stage ? getComputedStyle(stage).display : null,
+          stageInnerVisible: visible(stageInner),
+        };
       });
     },
     async stateFingerprint() {

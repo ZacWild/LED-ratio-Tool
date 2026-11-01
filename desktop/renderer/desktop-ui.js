@@ -7,7 +7,7 @@
  *   DEC-11 —— 零网络（不得使用 fetch）
  *   DEC-13 —— 三线版本，全部从 IPC `app:v1:app.version` 实读
  *   DEC-14 —— 客户区尺寸口径
- *   DEC-16 —— 高度降级三档；TK-72 未闭合前**只判定不收纳**
+ *   DEC-16 —— 高度降级三档；TK-72 已闭合 → **渲染层自算档位 + 按档收纳**（②/③ 档）
  *   SEC-04 —— 只用 preload 白名单的 8 个方法
  *   SEC-10 —— 剪贴板只写不读
  *   SEC-31 —— 渲染层 console 零 error/warning
@@ -51,6 +51,21 @@
 
   var IX13_CONTENT_MIN = 300;      // IX-13 触发基准（A 栏内容盒宽）
 
+  /* ---- 高度档位（DEC-16 · TK-72 已闭合）----
+     🔒 判定在**渲染层自算**（🔒 不新增 IPC 通道，SEC-07）；
+        阈值按 DEC-16 + P4-BASELINE E-3 / §4.2.1 的实测值，不写死 712（TK-79）。
+        · MIN_CLIENT_H  = 680  → DEC-07 最小标准客户区
+        · STANDARD_CLIENT_H = 784 → D8 面板区高口径（900 − 68 − 48）
+        · FRAME_DELTA = 65 DIP → 非客户区增量（39 原生外框 + 26 原生菜单，@100% 实测）
+  */
+  var HEIGHT_TIER_STANDARD = 1;     // ① 标准
+  var HEIGHT_TIER_COMPACT = 2;      // ② 紧凑高度（轻量收纳 S2-1~S2-4）
+  var HEIGHT_TIER_TIGHT = 3;        // ③ 极低高度（重量收纳 S3-1~S3-6）
+  var MIN_CLIENT_H = 680;
+  var STANDARD_CLIENT_H = 784;
+  var FRAME_DELTA = 65;
+  var HIGHLIGHT_MS = 400;           // TK-142 焦点迁移后的高亮时长
+
   /* ======================================================================
      1 · 工具
      ====================================================================== */
@@ -77,6 +92,21 @@
   var resultPanel = null;
   var tier = null;               // 首次 applyTier 时才落档（changed = true）
   var stageExpanded = false;
+
+  /* ---- 高度档位（DEC-16） ---- */
+  var heightTier = 0;            // 首次 applyHeightTier 时才落档
+  var lastMigration = null;      // TK-142 最近一次焦点迁移的台账（诊断用）
+
+  /* ---- 说明块折叠（S2-2 · EL-RS-21~24） ---- */
+  var explainFold = null;
+  var explainToggle = null;
+  var explainUserExpanded = false;
+
+  /* ---- 结果分段锚点条（S3-5 · EL-RS-26） ---- */
+  var resultAnchors = null;
+
+  /* ---- 舞台适配结论角标（S2-3 · EL-ST-17） ---- */
+  var stageFitBadge = null;
 
   /* ---- 栏宽 ---- */
   var colInput = COL_INPUT_DEFAULT;
@@ -116,6 +146,9 @@
     buildModalLayer();
     buildDragHandles();
     buildStageSummary();
+    buildExplainFold();      // S2-2：EL-RS-21~24 说明块折叠容器（桌面层，根文件零改动）
+    buildResultAnchors();    // S3-5：EL-RS-26 结果分段锚点条
+    buildStageFitBadge();    // S2-3：EL-ST-17 舞台角标
     return true;
   }
 
@@ -388,26 +421,36 @@
     return '三面板纵向堆叠（窄窗口）';
   }
 
+  /**
+   * EL-FT-06 文案 = 布局档位 + **高度档位**（DEC-16 · §4.4.4）。
+   * 🔒 高度档位以文案追加，**不新增 DOM 节点**。
+   * 🔒 第③档 + 三栏宽度轴时，舞台已折叠 → 网格等同两栏 → 文案随之改写（不得谎报「三栏」）。
+   */
+  function layoutTierLabel() {
+    var base;
+    if (tier === TIER_THREE) {
+      base = heightTier === HEIGHT_TIER_TIGHT ? '两栏（舞台折叠为摘要）' : '三栏';
+    } else if (tier === TIER_TWO) {
+      base = '两栏（舞台折叠为摘要）';
+    } else {
+      base = '三面板纵向堆叠（窄窗口）';
+    }
+    if (heightTier === HEIGHT_TIER_COMPACT) return base + ' · 紧凑高度';
+    if (heightTier === HEIGHT_TIER_TIGHT) return base + ' · 极低高度';
+    return base;
+  }
+
   function applyTier(next) {
     var changed = next !== tier;
     tier = next;
     layout.setAttribute('data-layout', next);
 
     if (changed) {
-      if (next === TIER_TWO) {
-        // 舞台整体折叠 → 摘要插入 C 栏顶部（EL-ST-15）
-        if (stageExpanded) collapseStage();
-        if (stagePanel.parentNode !== layout) layout.appendChild(stagePanel);
-        stagePanel.classList.remove('is-inline');
-        stagePanel.style.display = 'none';
-        showStageSummary(true);
-      } else {
-        showStageSummary(false);
-        if (stagePanel.parentNode !== layout) layout.appendChild(stagePanel);
-        stagePanel.classList.remove('is-inline');
-        stagePanel.style.display = '';
-        stageExpanded = false;
-      }
+      var anchor = captureCScrollAnchor();   // TK-141
+      var focus = captureFocusState();       // TK-142
+      syncStageVisibility();
+      restoreFocusAfterTierChange(focus);
+      restoreCScrollAnchor(anchor);
     }
 
     applyColumnWidths();
@@ -415,11 +458,220 @@
     applyIx13();
     syncStatusBar();
     updateStageSummary();
-    text(ft.layout, tierLabel(tier));
+    updateStageFitBadge();
+    text(ft.layout, layoutTierLabel());
 
     // 舞台几何依赖实测像素 → 档位切换后触发一次重绘（app.js 的 resize 路径）
     if (changed) window.dispatchEvent(new Event('resize'));
   }
+
+  /* ======================================================================
+     5.1 · 高度降级三档（DEC-16 · TK-72 已闭合 · ②/③ 档收纳）
+     --------------------------------------------------------------------------
+     🔒 档位**在渲染层自算**（不新增 IPC 通道，SEC-07）。
+     🔒 判定必须在 window 的 resize 事件上重算（不得只在启动时算一次）。
+     🔒 收纳只作用于「说明性内容 / 次要选择入口 / 舞台」，
+        **输入 / 结果 / 警告 / 复制四类核心操作在任何档位都不隐藏、不移出可达范围**。
+     ====================================================================== */
+
+  /**
+   * 高度档位判定（纯函数，便于单测）。
+   * @param {number} clientH 客户区高度（window.innerHeight，DEC-14 口径）
+   * @param {number} workH   工作区高度（window.screen.availHeight）
+   * @returns {number} 1 = 标准｜2 = 紧凑高度｜3 = 极低高度
+   */
+  function decideHeightTier(clientH, workH) {
+    // 工作区放不下最小标准客户区（680 + 65） → 直接重量收纳
+    if (workH > 0 && workH < MIN_CLIENT_H + FRAME_DELTA) return HEIGHT_TIER_TIGHT;
+    if (clientH >= STANDARD_CLIENT_H) return HEIGHT_TIER_STANDARD;
+    if (clientH >= MIN_CLIENT_H) return HEIGHT_TIER_COMPACT;
+    return HEIGHT_TIER_TIGHT;
+  }
+
+  function computeHeightTier() {
+    var clientH = window.innerHeight;
+    var workH = window.screen && window.screen.availHeight ? window.screen.availHeight : 0;
+    return decideHeightTier(clientH, workH);
+  }
+
+  function heightTierName(t) {
+    if (t === HEIGHT_TIER_STANDARD) return 'standard';
+    if (t === HEIGHT_TIER_COMPACT) return 'compact';
+    return 'tight';
+  }
+
+  /**
+   * 落高度档位。
+   * 🔒 属性写在 **main.layout**（任务书要求）；同时镜像到 <html> 作为**样式钩子**
+   *    —— 标题条 / 状态栏在 .layout 之外（body 的兄弟节点），无法被 .layout 的后代选择器命中。
+   */
+  function applyHeightTier(next) {
+    var changed = next !== heightTier;
+    heightTier = next;
+    var name = heightTierName(next);
+    layout.setAttribute('data-height-tier', name);
+    document.documentElement.setAttribute('data-height-tier', name);
+
+    if (!changed) return;
+
+    var anchor = captureCScrollAnchor();   // TK-141
+    var focus = captureFocusState();       // TK-142
+    applyHeightTierLayout();
+    restoreFocusAfterTierChange(focus);
+    restoreCScrollAnchor(anchor);
+
+    syncStatusBar();
+    updateStageSummary();
+    updateStageFitBadge();
+    text(ft.layout, layoutTierLabel());
+
+    // 舞台几何依赖实测像素 → 档位切换后触发一次重绘
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  /** 按当前高度档位应用收纳行为（②/③ 档才有收纳；① 档全部展开）。 */
+  function applyHeightTierLayout() {
+    applyExplainFold();      // S2-2
+    syncStageVisibility();   // S3-1
+    applyAnchorVisibility(); // S3-5
+    updateStageFitBadge();   // S2-3
+  }
+
+  /* ----------------------------------------------------------------------
+     TK-141 · C 栏滚动位置按「可视区第一个完全可见的 result-block 标题」恢复
+     ---------------------------------------------------------------------- */
+  function resultBlockTitles() {
+    if (!resultPanel) return [];
+    return Array.prototype.slice.call(resultPanel.querySelectorAll('.result-block__title'));
+  }
+
+  /** C 栏当前可视区（扣除吸顶层①与吸底层③）的上下边界 */
+  function resultVisibleBounds() {
+    var pr = resultPanel.getBoundingClientRect();
+    var sticky = resultPanel.querySelector('.result-sticky-top');
+    var actions = resultPanel.querySelector('.result-actions');
+    return {
+      top: sticky ? sticky.getBoundingClientRect().bottom : pr.top,
+      bottom: actions ? actions.getBoundingClientRect().top : pr.bottom,
+    };
+  }
+
+  function captureCScrollAnchor() {
+    if (!resultPanel) return null;
+    var b = resultVisibleBounds();
+    var titles = resultBlockTitles();
+    var i, r;
+    // ① 优先：第一个**完全可见**的 result-block 标题（D-01 §6.5 口径）
+    for (i = 0; i < titles.length; i++) {
+      r = titles[i].getBoundingClientRect();
+      if (r.height <= 0) continue;                       // 折叠中 / 不可见
+      if (r.top >= b.top - 1 && r.bottom <= b.bottom + 1) {
+        // 🔒 同时记下该标题在**可视区内的相对位置** → 恢复时保持同一相对位置，
+        //    而不是把它对齐到可视区顶部（后者会在初始化时把面板滚走）。
+        return { text: titles[i].textContent.trim(), offset: r.top - b.top, kind: 'full' };
+      }
+    }
+    // ② 兜底：可视区顶部之后遇到的第一个标题（用户正在读的那一块）
+    //    —— 没有完全可见的标题时，仍要保住「读到哪儿了」。
+    for (i = 0; i < titles.length; i++) {
+      r = titles[i].getBoundingClientRect();
+      if (r.height <= 0) continue;
+      if (r.top >= b.top - 1) {
+        return { text: titles[i].textContent.trim(), offset: r.top - b.top, kind: 'partial' };
+      }
+    }
+    return null;
+  }
+
+  function restoreCScrollAnchor(anchor) {
+    if (!anchor || !resultPanel) return false;
+    var titles = resultBlockTitles();
+    var target = null;
+    for (var i = 0; i < titles.length; i++) {
+      if (titles[i].textContent.trim() === anchor.text) { target = titles[i]; break; }
+    }
+    if (!target) return false;
+    var tr = target.getBoundingClientRect();
+    if (tr.height <= 0) return false;                    // 目标已被折叠 → 放弃恢复
+    var b = resultVisibleBounds();
+    var delta = (tr.top - b.top) - anchor.offset;
+    if (Math.abs(delta) < 1) return true;
+    resultPanel.scrollTop += delta;
+    return true;
+  }
+
+  /* ----------------------------------------------------------------------
+     TK-142 · 焦点迁移 + 400ms 高亮
+     ---------------------------------------------------------------------- */
+  function captureFocusState() {
+    var el = document.activeElement;
+    if (!el || el === document.body || el === document.documentElement) return null;
+    var st = null; var en = null;
+    try { st = el.selectionStart; en = el.selectionEnd; } catch (_) { /* 非文本控件 */ }
+    return {
+      el: el,
+      inStage: !!(stagePanel && stagePanel.contains(el)),
+      inExplain: !!(explainFold && explainFold.contains(el)),
+      isText: el.tagName === 'INPUT' || el.tagName === 'TEXTAREA',
+      selStart: st,
+      selEnd: en,
+    };
+  }
+
+  function restoreFocusAfterTierChange(f) {
+    if (!f) return;
+    var el = f.el;
+    var visible = document.contains(el) && el.offsetParent !== null && !el.disabled;
+    if (visible) {
+      // 输入框内且有选区 → 焦点与选区**完整保留**
+      if (f.isText && f.selStart !== null && f.selStart !== f.selEnd) {
+        try {
+          el.focus({ preventScroll: true });
+          el.setSelectionRange(f.selStart, f.selEnd);
+        } catch (_) { /* 忽略 */ }
+      }
+      return;
+    }
+    // 焦点所在元素被隐藏 → 迁移（🔒 绝不允许落到 document.body）
+    if (f.inStage && stageSummaryToggle) {
+      focusWithHighlight(stageSummaryToggle, 'stage', '舞台已折叠');
+      return;
+    }
+    if (f.inExplain && explainToggle) {
+      focusWithHighlight(explainToggle, 'explain', '说明已折叠');
+      return;
+    }
+    var fallback = $('input-width');
+    if (fallback) {
+      try { fallback.focus({ preventScroll: true }); } catch (_) { fallback.focus(); }
+    }
+  }
+
+  /**
+   * 焦点迁移 + 高亮 400ms。
+   * 🔒 不新增 @keyframes / transition —— 用既有 token 的 outline + setTimeout 移除。
+   */
+  function focusWithHighlight(el, kind, msg) {
+    if (!el) return;
+    try { el.focus({ preventScroll: true }); } catch (_) { el.focus(); }
+    el.classList.add('is-just-migrated');
+    setTimeout(function () {
+      el.classList.remove('is-just-migrated');
+    }, HIGHLIGHT_MS);
+    lastMigration = { kind: kind, target: el.id || el.className, at: Date.now() };
+    if (msg) flashStatusHint(msg, 1600);
+  }
+
+  /** 状态栏 EL-FT-07 短提示（不覆盖复制反馈：仅在文案仍是自己写的那句时才回退）。 */
+  function flashStatusHint(msg, ms) {
+    if (!ft.message) return;
+    var prev = ft.message.textContent;
+    text(ft.message, msg);
+    setTimeout(function () {
+      if (ft.message && ft.message.textContent === msg) text(ft.message, prev);
+    }, ms || 1500);
+  }
+
 
   function applyColumnWidths() {
     layout.style.setProperty('--col-input', colInput + 'px');
@@ -551,7 +803,13 @@
   }
 
   function toggleStage() {
-    if (tier !== TIER_TWO) return;
+    // TK-147：窄窗口纵向堆叠 + 第③档 → 舞台在 B 行内**就地**展开/收起
+    if (tier === TIER_STACKED && heightTier === HEIGHT_TIER_TIGHT) {
+      if (stageExpanded) collapseStageInline();
+      else expandStageInline();
+      return;
+    }
+    if (tier !== TIER_TWO && heightTier !== HEIGHT_TIER_TIGHT) return;
     if (stageExpanded) collapseStage();
     else expandStage();
   }
@@ -573,6 +831,277 @@
     stageSummaryToggle.textContent = '展开舞台';
     window.dispatchEvent(new Event('resize'));
   }
+
+  /* ----------------------------------------------------------------------
+     S3-1 · 第③档「舞台完全折叠」
+     ----------------------------------------------------------------------
+     🔒 三种形态：
+        ① 宽度轴两栏 / 三栏 + 第③档 → 舞台面板 display:none，摘要留在 C 栏顶部
+           （EL-ST-16 展开 → 舞台内联渲染到 C 栏，与两栏档同一套实现）
+        ② 窄窗口纵向堆叠 + 第③档 → **B 行保留**（TK-147：纵向堆叠不变、不隐藏面板），
+           舞台内容折叠为**行内摘要**（EL-ST-15 + EL-ST-16 留在 B 面板内）
+        ③ 其余 → 舞台完整显示
+     ====================================================================== */
+  function placeStageSummary(container) {
+    if (!stageSummary || !container) return;
+    if (container === resultPanel) {
+      if (stageSummary.parentNode !== resultPanel || stageSummary !== resultPanel.firstChild) {
+        resultPanel.insertBefore(stageSummary, resultPanel.firstChild);
+      }
+    } else if (stageSummary.parentNode !== container) {
+      container.appendChild(stageSummary);
+    }
+  }
+
+  function syncStageVisibility() {
+    if (!stagePanel || !stageSummary) return;
+    var tight = heightTier === HEIGHT_TIER_TIGHT;
+    var inlineSummary = tight && tier === TIER_STACKED;
+
+    if (inlineSummary) {
+      if (stagePanel.parentNode !== layout) layout.appendChild(stagePanel);
+      stagePanel.classList.remove('is-inline');
+      stagePanel.style.display = '';
+      stagePanel.classList.remove('is-stage-open');
+      stageExpanded = false;
+      placeStageSummary(stagePanel);
+      stageSummary.classList.add('stage-summary--inline');
+      stageSummary.classList.remove('is-minimal');
+      showStageSummary(true);
+      stageSummaryToggle.textContent = '展开舞台';
+    } else if (tier === TIER_TWO || tight) {
+      if (stageExpanded) collapseStage();
+      if (stagePanel.parentNode !== layout) layout.appendChild(stagePanel);
+      stagePanel.classList.remove('is-inline');
+      stagePanel.classList.remove('is-stage-open');
+      stagePanel.style.display = 'none';
+      placeStageSummary(resultPanel);
+      stageSummary.classList.remove('stage-summary--inline');
+      stageSummary.classList.remove('is-minimal');
+      showStageSummary(true);
+      stageSummaryToggle.textContent = '展开舞台';
+    } else {
+      if (stageExpanded) collapseStage();
+      if (stagePanel.parentNode !== layout) layout.appendChild(stagePanel);
+      stagePanel.classList.remove('is-inline');
+      stagePanel.classList.remove('is-stage-open');
+      stagePanel.style.display = '';
+      // 摘要一律回到 C 栏顶部（行内摘要只属于「堆叠 + 第③档」这一种形态）
+      placeStageSummary(resultPanel);
+      stageSummary.classList.remove('stage-summary--inline');
+      stageSummary.classList.remove('is-minimal');
+      showStageSummary(false);
+      stageSummaryToggle.textContent = '展开舞台';
+    }
+  }
+
+  /** 第③档 + 窄窗口堆叠：舞台在 B 行内就地展开（摘要收缩为仅剩折叠按钮）。 */
+  function expandStageInline() {
+    stageExpanded = true;
+    stagePanel.classList.add('is-stage-open');
+    stageSummary.classList.add('is-minimal');
+    stageSummaryToggle.textContent = '折叠舞台';
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  function collapseStageInline() {
+    stageExpanded = false;
+    stagePanel.classList.remove('is-stage-open');
+    stageSummary.classList.remove('is-minimal');
+    stageSummaryToggle.textContent = '展开舞台';
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  /* ======================================================================
+     6.1 · S2-2 说明块折叠（EL-RS-21~24）
+     --------------------------------------------------------------------------
+     🔒 根 index.html 是受保护对象 → 本折叠**只在桌面层**实现：
+        运行时把既有 DOM 节点搬进折叠容器，一个节点都不删除（TK-146 裁定：
+        折叠 ≠ 删除；展开后条目完整）。
+     🔒 折叠头是原生 <button> → 天然可 Tab 聚焦，Enter / Space 天然可展开。
+     ====================================================================== */
+  function buildExplainFold() {
+    if (explainFold) return explainFold;
+    var body = resultPanel.querySelector('.result-body');
+    if (!body) return null;
+
+    var notice = resultPanel.querySelector('.notice');
+    var wanted = ['计算规则说明', '常见问题', '现场参数注意事项'];
+    var blocks = [];
+    var all = resultPanel.querySelectorAll('.result-block');
+    for (var i = 0; i < all.length && wanted.length; i++) {
+      var titleEl = all[i].querySelector('.result-block__title');
+      var name = titleEl ? titleEl.textContent.trim() : '';
+      var idx = wanted.indexOf(name);
+      if (idx >= 0) {
+        blocks.push(all[i]);
+        wanted.splice(idx, 1);
+      }
+    }
+
+    var first = notice || blocks[0];
+    if (!first || !first.parentNode) return null;
+
+    explainFold = document.createElement('div');
+    explainFold.className = 'explain-fold';
+    explainFold.setAttribute('data-el', 'EL-RS-21~24');
+
+    explainToggle = document.createElement('button');
+    explainToggle.type = 'button';
+    explainToggle.className = 'explain-fold__toggle';
+    explainToggle.setAttribute('data-el', 'EL-RS-21~24-toggle');
+    explainToggle.setAttribute('aria-expanded', 'true');
+    explainToggle.addEventListener('click', function () {
+      // 点击 = 「把当前状态取反」：折叠 → 展开（explainUserExpanded = true）
+      explainUserExpanded = effectiveExplainCollapsed();
+      applyExplainFold();
+    });
+
+    // 🔒 必须**先把空容器插入原位**，再把既有节点搬进去 ——
+    //    否则 first.parentNode 会变成 explainFold 自身（insertBefore 自插 → HierarchyRequestError）。
+    var host = first.parentNode;
+    host.insertBefore(explainFold, first);
+    explainFold.appendChild(explainToggle);
+
+    var order = [];
+    if (notice) order.push(notice);
+    for (var k = 0; k < blocks.length; k++) order.push(blocks[k]);
+    for (var m = 0; m < order.length; m++) explainFold.appendChild(order[m]);
+
+    return explainFold;
+  }
+
+  function effectiveExplainCollapsed() {
+    // 第②/③档默认折叠；用户在当前会话显式展开过 → 尊重用户意图
+    return heightTier >= HEIGHT_TIER_COMPACT && !explainUserExpanded;
+  }
+
+  function applyExplainFold() {
+    if (!explainFold || !explainToggle) return;
+    var collapsed = effectiveExplainCollapsed();
+    var foldable = heightTier >= HEIGHT_TIER_COMPACT;
+    explainFold.classList.toggle('is-collapsed', collapsed);
+    // 🔒 第①档不提供折叠入口（说明块恒常展开）→ 折叠头不占 Tab 位
+    explainToggle.hidden = !foldable;
+    explainToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    explainToggle.textContent = collapsed ? '展开说明' : '收起说明';
+  }
+
+  /* ======================================================================
+     6.2 · S3-5 结果分段锚点条（EL-RS-26 · TK-143）
+     --------------------------------------------------------------------------
+     🔒 置于 C 栏**吸顶层①**内（警示条之后、复制组之前）→ Tab 顺序天然满足
+        「警示条关闭按钮之后、复制按钮之前」，且在第③档的极小可视区里始终可见。
+     ====================================================================== */
+  var ANCHOR_ITEMS = [
+    { key: 'ratio', label: '比例' },
+    { key: 'candidates', label: '候选' },
+    { key: 'match', label: '匹配' },
+    { key: 'error', label: '误差' },
+    { key: 'copy', label: '复制' },
+  ];
+
+  function buildResultAnchors() {
+    if (resultAnchors) return resultAnchors;
+    var sticky = resultPanel.querySelector('.result-sticky-top');
+    if (!sticky) return null;
+    resultAnchors = document.createElement('div');
+    resultAnchors.className = 'result-anchors';
+    resultAnchors.setAttribute('data-el', 'EL-RS-26');
+    resultAnchors.setAttribute('role', 'group');
+    resultAnchors.setAttribute('aria-label', '结果分段快速跳转');
+    resultAnchors.hidden = true;
+    for (var i = 0; i < ANCHOR_ITEMS.length; i++) {
+      (function (item) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'result-anchors__item';
+        btn.setAttribute('data-anchor', item.key);
+        btn.textContent = item.label;
+        btn.addEventListener('click', function () {
+          jumpToResultSection(item.key);
+        });
+        resultAnchors.appendChild(btn);
+      })(ANCHOR_ITEMS[i]);
+    }
+    sticky.appendChild(resultAnchors);
+    return resultAnchors;
+  }
+
+  function resultSectionTarget(key) {
+    if (key === 'ratio') return $('ratio-value');
+    if (key === 'candidates') {
+      var l = $('candidate-list');
+      return l && l.closest ? l.closest('.result-block') : null;
+    }
+    if (key === 'match') {
+      var b = $('match-body');
+      return b && b.closest ? b.closest('.result-block') : null;
+    }
+    if (key === 'error') return $('table-wrap');
+    if (key === 'copy') return resultPanel.querySelector('.result-actions');
+    return null;
+  }
+
+  function jumpToResultSection(key) {
+    var target = resultSectionTarget(key);
+    if (!target) return false;
+    // 「复制」组是吸底层（常驻可见）→ 只标记当前锚点，不做无意义的整栏滚动
+    if (key !== 'copy') scrollResultIntoView(target);
+    if (resultAnchors) {
+      var items = resultAnchors.querySelectorAll('.result-anchors__item');
+      for (var i = 0; i < items.length; i++) {
+        items[i].setAttribute('aria-current', items[i].getAttribute('data-anchor') === key ? 'true' : 'false');
+      }
+    }
+    return true;
+  }
+
+  /** 把目标区块的顶部滚到 C 栏可视区顶部（扣除吸顶层①的遮挡）。 */
+  function scrollResultIntoView(el) {
+    if (!resultPanel || !el) return;
+    var b = resultVisibleBounds();
+    var er = el.getBoundingClientRect();
+    var delta = er.top - b.top;
+    if (Math.abs(delta) < 1) return;
+    resultPanel.scrollTop += delta;
+  }
+
+  function applyAnchorVisibility() {
+    if (!resultAnchors) return;
+    var hasResult = false;
+    var ratioEl = $('ratio-value');
+    if (ratioEl && !ratioEl.classList.contains('is-empty')) hasResult = true;
+    resultAnchors.hidden = !(heightTier === HEIGHT_TIER_TIGHT && hasResult);
+  }
+
+  /* ======================================================================
+     6.3 · S2-3 适配结论角标（EL-ST-17 移入舞台角标）
+     --------------------------------------------------------------------------
+     🔒 文案取既有结果转述（currentFitAdvice），**不新增计算**。
+     🔒 只在「第②档 + 三栏宽度轴」出现 —— 该档舞台已占满，横向让位给角标；
+        窄窗口堆叠档舞台行高仅 110px，不设角标（该档信息由 EL-ST-15 摘要与
+        候选卡内的适配方案承载，不丢失）。
+     ====================================================================== */
+  function buildStageFitBadge() {
+    if (stageFitBadge) return stageFitBadge;
+    var stage = $('stage');
+    if (!stage) return null;
+    stageFitBadge = document.createElement('span');
+    stageFitBadge.className = 'stage-fit';
+    stageFitBadge.setAttribute('data-el', 'EL-ST-17');
+    stageFitBadge.hidden = true;
+    stage.appendChild(stageFitBadge);
+    return stageFitBadge;
+  }
+
+  function updateStageFitBadge() {
+    if (!stageFitBadge) return;
+    var show = heightTier === HEIGHT_TIER_COMPACT && tier === TIER_THREE;
+    stageFitBadge.hidden = !show;
+    if (show) stageFitBadge.textContent = currentFitAdvice();
+  }
+
 
   /* ======================================================================
      7 · 分栏拖拽手柄（EL-HD-07 / EL-HD-08 · F-14 · IX-08）
@@ -1466,10 +1995,36 @@
     return {
       canCopyResolution: canCopyResolution,
       canCopyFull: canCopyFull,
-      canToggleStage: tier === TIER_TWO,
-      layoutLabel: tierLabel(tier),
+      // 🔒 第③档（极低高度）下舞台也可展开/收起 → 不得置灰
+      canToggleStage: tier === TIER_TWO || heightTier === HEIGHT_TIER_TIGHT,
+      layoutLabel: layoutTierLabel(),
       tier: tier,
+      heightTier: heightTier,
     };
+  };
+
+  /**
+   * 高度档位只读诊断（DEC-16 · 供测试与台账取证）。
+   * 🔒 只读，不新增 IPC 通道（SEC-07）；不含任何业务计算。
+   */
+  window.__desktopHeightTier = {
+    decide: decideHeightTier,
+    current: computeHeightTier,
+    info: function () {
+      return {
+        tier: heightTier,
+        name: heightTierName(heightTier),
+        clientH: window.innerHeight,
+        workH: window.screen && window.screen.availHeight ? window.screen.availHeight : 0,
+        layoutTier: tier,
+        layoutAttr: layout ? layout.getAttribute('data-layout') : null,
+        heightAttr: layout ? layout.getAttribute('data-height-tier') : null,
+        label: layoutTierLabel(),
+        explainCollapsed: explainFold ? explainFold.classList.contains('is-collapsed') : null,
+        anchorsVisible: resultAnchors ? !resultAnchors.hidden : false,
+        lastMigration: lastMigration,
+      };
+    },
   };
 
   /* ======================================================================
@@ -1508,6 +2063,8 @@
     var obs = new MutationObserver(function () {
       syncStatusBar();
       updateStageSummary();
+      updateStageFitBadge();
+      applyAnchorVisibility();
     });
     for (var i = 0; i < watched.length; i++) {
       if (watched[i]) {
@@ -1563,12 +2120,14 @@
     on(document, 'keydown', onKeyDown, true);
 
     // 尺寸变更 → 档位判定（rAF 节流，同帧合并）
+    // 🔒 **宽度档与高度档都在 resize 上重算**（DEC-16 要求不得只在启动时判一次）
     var resizeFrame = 0;
     on(window, 'resize', function () {
       if (resizeFrame) cancelAnimationFrame(resizeFrame);
       resizeFrame = requestAnimationFrame(function () {
         resizeFrame = 0;
         applyTier(detectTier());
+        applyHeightTier(computeHeightTier());
       });
     });
 
@@ -1577,8 +2136,11 @@
 
     // 首次落档（changed = true → 执行进入档位的过渡）
     applyTier(detectTier());
+    applyHeightTier(computeHeightTier());
     syncStatusBar();
     updateStageSummary();
+    updateStageFitBadge();
+    applyAnchorVisibility();
     positionHandles();
     applyIx13();
 

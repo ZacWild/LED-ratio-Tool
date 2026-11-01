@@ -10,12 +10,13 @@
  *   D-03 §9.2 —— D-1~D-22 的 22 项桌面差异落地
  *   DEC-08    —— 1280px 是三栏切换阈值，不是最小窗口宽度
  *   DEC-14    —— 客户区尺寸口径（全部尺寸 = CSS px = Windows DIP）
- *   DEC-16    —— 高度降级三档；TK-72 未闭合前**只判定不收纳**
+ *   DEC-16    —— 高度降级三档；TK-72 已闭合 → **②/③ 档收纳已实施**
  *   IX-01~IX-08 / IX-12 / IX-13 —— 滚动模型、sticky、拖拽、折叠、窄化
  *
  * 🔒 本文件不得出现新的十六进制色值（除 6 个新增 token 外）——
  *    其余一律走 styles.css 的 :root 变量（V-01）。
  * 🔒 本文件**不新增**字号级、间距级、圆角档位（沿用 7 级 / 6 档 / 3 档）。
+ * 🔒 本文件**不新增** @keyframes、**不新增** transition（动效白名单仍为 2 处）。
  */
 
 /* ==========================================================================
@@ -638,6 +639,205 @@ body.is-modal-open .panel {
 .status-bar__btn:hover {
   color: var(--text-primary);
   border-color: var(--accent);
+}
+
+/* ==========================================================================
+   高度降级三档 · DEC-16 · TK-72 已闭合（②/③ 档收纳）
+   --------------------------------------------------------------------------
+   高度档位由**渲染层自算**（desktop-ui.js → decideHeightTier / computeHeightTier），
+   写在 .layout 的 data-height-tier 上：standard / compact / tight。
+
+   🔒 样式钩子说明：.app-header 与 .status-bar 是 .layout 的**兄弟节点**
+      （在 body 之下），无法被 `.layout[data-height-tier=…] .app-header` 命中
+      → 同一属性值同时镜像到 <html data-height-tier>，作为标题条/状态栏的钩子。
+      两处属性由同一个函数 applyHeightTier() 写入 → 不可能漂移。
+
+   🔒 收纳只作用于「说明性内容 / 次要选择入口 / 舞台」；
+      **输入 / 结果 / 警告 / 复制四类核心操作在任何档位都不隐藏、不移出可达范围**。
+   ========================================================================== */
+
+/* ---------- 第②档（compact · 轻量收纳）：客户区 680 ~ 783 ---------- */
+
+/* S2-1 标题条副标题 EL-HD-03 单行省略（标题 EL-HD-02 保留） */
+html[data-height-tier='compact'] .app-header__subtitle {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 面板间距 16 → 12（窄窗口堆叠档本就是 12，不受影响） */
+.layout[data-height-tier='compact'] {
+  gap: var(--space-3);
+}
+
+/* S2-4 A 栏标准库列表 EL-IN-17 限高（仍可滚动访问） */
+.layout[data-height-tier='compact'] #standard-list {
+  max-height: min(30vh, 200px);
+}
+
+/* ---------- 第③档（tight · 重量收纳）：客户区 < 680 或工作区不足 ---------- */
+
+/* S3-2 副标题隐藏（EL-HD-02 标题保留） */
+html[data-height-tier='tight'] .app-header__subtitle {
+  display: none;
+}
+
+/* S3-3 标题条 40 → 28 */
+html[data-height-tier='tight'] .app-header {
+  flex: 0 0 28px;
+  height: 28px;
+}
+
+/* S3-4 状态栏 28 → 24（EL-FT-05 错误出口与 EL-FT-08 设置入口均保留） */
+html[data-height-tier='tight'] .status-bar {
+  flex: 0 0 24px;
+  height: 24px;
+}
+
+/* S3-1 三栏宽度轴 + 第③档 → 舞台折叠 → 网格等同两栏（与两栏档同一套实现） */
+.layout[data-layout='three'][data-height-tier='tight'] {
+  grid-template-columns: var(--col-input) minmax(0, 1fr);
+  grid-template-areas: 'a c';
+}
+.layout[data-layout='three'][data-height-tier='tight'] > .panel--stage {
+  display: none;
+}
+
+/* TK-147：窄窗口纵向堆叠 + 第③档 → **B 行保留**，舞台内容折叠为行内摘要 */
+.layout[data-layout='stacked'][data-height-tier='tight'] .panel--stage > .stage {
+  display: none;
+}
+.layout[data-layout='stacked'][data-height-tier='tight'] .panel--stage.is-stage-open > .stage {
+  display: flex;
+}
+/* 行内展开时舞台可滚动（行高受限，避免内容被裁掉） */
+.layout[data-layout='stacked'][data-height-tier='tight'] .panel--stage {
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   S2-2 说明块折叠（EL-RS-21~24 · 免责 notice / 计算规则 / 常见问题 / 现场参数注意）
+   --------------------------------------------------------------------------
+   🔒 折叠 = display:none，**一个条目都不删除**（TK-146 裁定：折叠 ≠ 删除）。
+   🔒 折叠头是原生 <button> → 天然可 Tab 聚焦，Enter / Space 天然可展开。
+   ========================================================================== */
+.explain-fold__toggle {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 var(--space-3);
+  margin-top: var(--space-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.explain-fold__toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+.explain-fold__toggle:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+.explain-fold__toggle[hidden] {
+  display: none;
+}
+.explain-fold.is-collapsed > .notice,
+.explain-fold.is-collapsed > .result-block {
+  display: none;
+}
+
+/* ==========================================================================
+   S3-5 结果分段锚点条（EL-RS-26 · 比例 / 候选 / 匹配 / 误差 / 复制）
+   --------------------------------------------------------------------------
+   🔒 置于 C 栏吸顶层①内（警示条之后、复制组之前）→ Tab 顺序天然满足
+      「警示条关闭按钮之后、复制按钮之前」。
+   ========================================================================== */
+.result-anchors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.result-anchors[hidden] {
+  display: none;
+}
+.result-anchors__item {
+  height: 32px;
+  padding: 0 var(--space-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.result-anchors__item:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+.result-anchors__item:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+.result-anchors__item[aria-current='true'] {
+  color: var(--text-accent);
+  border-color: var(--accent);
+}
+
+/* ==========================================================================
+   S2-3 适配结论角标（EL-ST-17 移入舞台角标）
+   --------------------------------------------------------------------------
+   🔒 文案取既有结果转述（currentFitAdvice），**不新增计算**。
+   ========================================================================== */
+.stage-fit {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  max-width: calc(100% - var(--space-6));
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-lh);
+  color: var(--text-secondary);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+.stage-fit[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   TK-142 焦点迁移后的 400ms 高亮
+   --------------------------------------------------------------------------
+   🔒 不新增 @keyframes / transition —— 用既有 token 的 outline + JS 定时移除。
+   ========================================================================== */
+.is-just-migrated {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   第③档 · 舞台折叠为行内摘要时的摘要条样式
+   ========================================================================== */
+.stage-summary--inline {
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: 0;
+}
+.stage-summary.is-minimal > :not(.stage-summary__toggle) {
+  display: none;
+}
+.stage-summary.is-minimal {
+  justify-content: flex-end;
 }
 
 /* ==========================================================================
