@@ -695,4 +695,68 @@ label.textContent = button.getAttribute('data-orig-label');
 
 ---
 
+## 11. Step 6 第 6 阶段 · CI 小屏 runner 环境适配（2026-11-01 · qa-tester-1）
+
+### 11.1 本阶段改了什么（**只改 `desktop/` 目录 + 根 `.github/workflows/windows.yml`**）
+
+| 文件 | 变更 | 性质 |
+|---|---|---|
+| `desktop/test/desktop-suite.mjs` | 新增 CDP 视口模拟（`setViewport` / `resetViewport` / `tierState` / `envInfo` / `setContentSizeReal`）；环境画像采集与打印；JSON 报告 `meta.env` + `summary.blockedList`；汇总行单列 BLOCKED；新增 `TC-H-16`；19 条用例改走视口模拟；3 条原生窗口用例加 BLOCKED 判定；`--env-only` / `--clamp-window=WxH` 两个测试台架参数 | **测试台架**，产品代码零改动 |
+| `.github/workflows/windows.yml` | 桌面 E2E **前后**各加一步环境取证（`--env-only`）；门禁顺序与「小屏 runner」约束说明段 | 🔴 **「BLOCKED（阻塞≠通过）」判失败规则未放宽** |
+| `desktop/test/reports/desktop-suite.json`、`differential-200-report.json` | 重新生成的报告 | 证据 |
+
+> 🔒 **产品代码零改动**：`desktop/renderer/**`、`desktop/main/**`、`desktop/preload/**`、
+> `desktop/build/**`、`desktop/resources/**` 均未动；变异测试对 `renderer/desktop-ui.js`
+> 的临时改动已 `git checkout` 还原（`git status` 无该文件）。
+> 🔒 **受保护对象零改动**：`src/**`、根 `index.html`、`dist/**`、`LICENSE`、根 `test/**`。
+
+### 11.2 根因与处置
+
+- **根因**：runner 工作区仅 **1024×720** → Electron 把客户区钳到约 **1024×654**
+  → 1440×900 / 1200×800 装不下（宽），1024×680 装不下（高，工作区需 ≥745）
+  → 桌面 E2E 91 例中 **9 例失败**（TC-D-01/02、TC-DP-03/10、TC-RESIZE-03、TC-H-03/04/06/12）。
+- **定性**：🔴 **不是产品缺陷** —— 桌面版的档位判定读的是**渲染器视口**
+  （`renderer/desktop-ui.js:412` `detectTier()` → `documentElement.clientWidth`；
+  `:492` `computeHeightTier()` → `window.innerHeight` + `window.screen.availHeight`），
+  与原生窗口尺寸无关；同一二进制在 2560×1392 屏上 91/91 全过。
+- **处置（显式分流，不做「自动回退」）**：
+  - 视口依赖的布局用例 → `ctx.setViewport(w,h)`（CDP `Emulation.setDeviceMetricsOverride`，
+    **必须同时设 screenWidth/screenHeight**，否则 `screen.availHeight` 不跟随 → ②档永远进不去）；
+  - 原生窗口依赖的 3 条（TC-DP-01/02/04）→ 保留真实窗口路径，**环境装不下判 BLOCKED（≠通过）**；
+  - TC-H 档位用例追加**自洽性断言**（落地 `data-height-tier` == 按当前 clientH/workH 纯算的档位）；
+  - 顺带修掉 6 类**隐性失真**用例（CI 上「绿」但根本没进目标布局，如 TC-DP-09 从未跨过 1280 断点）；
+  - TC-DP-04 原断言 `out.every(... || true)` 是**恒真空断言** → 收紧为「客户区必须真的达成 +
+    PNG 栅格尺寸必须与客户区一致（k=1 或 DPR）」。
+- 🔒 **纯函数入口已存在**：`renderer/desktop-ui.js:2010` `window.__desktopHeightTier = { decide, current, info }`
+  —— `decideHeightTier(clientH, workH)` 已是只读测试入口，**无需**新增 `__ledTestDecideHeightTier`。
+
+### 11.3 实测结果总表（本轮实跑）
+
+| 门禁 / 场景 | 命令 | 结果 |
+|---|---|---|
+| 改动前基线（本机 2560×1392） | `npm run test:desktop` | ✅ 91 例 / PASS 91 / FAIL 0 / BLOCKED 0 / exit 0 |
+| 改动后（本机 2560×1392） | `npm run test:desktop` | ✅ **92 例 / PASS 92 / FAIL 0 / BLOCKED 0** / exit 0；环境画像：工作区 2560×1392、最大可达客户区 2560×1392、DPR=1 |
+| 小屏 runner 等价复现 | `npm run test:desktop -- --clamp-window=1024x720` | ✅ **92 例 / PASS 90 / FAIL 0 / BLOCKED 2**（TC-DP-01、TC-DP-04）/ **exit 2** → 9 例假失败全部消除，且「阻塞≠通过」生效 |
+| 变异测试（断言强度自证） | 改 `BREAKPOINT_THREE 1280→1100` / `STANDARD_CLIENT_H 784→700` | ✅ `TC-D-02` ❌、`TC-H-16` ❌、`TC-H-03` ❌、`TC-H-04` ❌；TC-H 9/16，exit 1；**测完已还原产品文件** |
+| 安全审计 | `npm run audit:security` | ✅ **47/47** / exit 0 |
+| 差分门禁 | `npm run test:differential` | ✅ **N=0 ｜ M=0 ｜ P=100.00% ｜ PASS 200** / exit 0 |
+| 资源漂移 | `npm run sync:check` | ✅ 无漂移 / exit 0 |
+| 新增用例 | `TC-H-16` | ✅ 判定表 `[1,2,2,3,3]`；1440×900→three / 1200×800→two / 1024×680→stacked；逐档自洽；复位后视口还原 |
+
+### 11.4 本阶段新增待决项（TK-170 起）
+
+| 编号 | 类型 | 内容 |
+|---|---|---|
+| TK-170 | ❓待决 | 小屏 runner 上 3 条原生窗口用例判 BLOCKED → 退出码 2 → **CI 门禁仍红**。任务书要求「BLOCKED 规则保持不变」，故**未自行放行**；请团长三选一：(a) 接受 CI 常红但报告逐条列名；(b) 提供 ≥1440×900 的 runner；(c) 拆独立 job 在大屏 runner 跑这 3 条 |
+| TK-171 | 🔒规则约束 | 视口模拟把 `workH` 一并改写 → `clientH ∈ [680,745)` 时「模拟口径」与「大屏真实工作区口径」档位结论分歧。**本轮无用例落在该区间**（已逐例核对）；后续新增该区间用例**必须**显式传 `setViewport(w,h,{screenHeight})` |
+| TK-172 | 💡新建议 | 给 CI runner 固定更高虚拟显示分辨率，让原生窗口用例可真跑 |
+| TK-173 | 💡新建议 | 把 `--clamp-window=1024x720` 固化为 CI 的「小屏代理回归」job —— 把「CI 真实环境」变成每次都能跑的可复现代理 |
+| TK-174 | ❓待决 | 本轮编辑期间 `desktop/test/desktop-suite.mjs` 被**另一写者**并发改动并引入**无限递归**（新增 `setLayoutSize` 自调用 + `setContentSizeReal` 自调用），已按显式分流口径修正并删除递归实现；请确认该写者身份与是否还有并行产出待合并 |
+
+> 📄 完整报告（含失败清单逐条根因、视口模拟边界、BLOCKED 语义、两种环境断言严格度逐条论证）：
+> `_audit/out/Step6-CI环境适配报告.md`
+> 🔴 **本阶段未推 main、未创建 PR、未合并**；提交 `267c72a`（分支 `feature/desktop-windows`）。
+
+---
+
 [技术研发方案]
