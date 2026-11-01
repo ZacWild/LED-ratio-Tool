@@ -153,7 +153,9 @@ T({
   input: '客户区 1440×900',
   expect: '三栏同行 + 列宽 320/640/400 + 面板区高 784 + documentElement 不滚动',
   fn: async (ctx) => {
-    const r = await ctx.measure(1440, 900);
+    // 🔒 视口模拟（CDP）：本用例断言的是**三栏骨架在 1440×900 客户区下的几何**，
+    //    与原生窗口尺寸无关 → 用 CDP 覆盖渲染器视口，阈值（320/640/400、784）一字未改。
+    const r = await ctx.measure(1440, 900, { mode: 'viewport' });
     const cols = r.gridCols;
     const ok = cols.length === 3
       && Math.abs(cols[0] - 320) <= 1 && Math.abs(cols[1] - 640) <= 1 && Math.abs(cols[2] - 400) <= 1
@@ -174,7 +176,8 @@ T({
   input: '客户区 1200×800',
   expect: '两栏 + C=816 + 面板区高 684 + 折叠摘要存在 + panel--stage display:none',
   fn: async (ctx) => {
-    const r = await ctx.measure(1200, 800);
+    // 🔒 视口模拟（CDP）——见 TC-D-01 同口径说明。
+    const r = await ctx.measure(1200, 800, { mode: 'viewport' });
     const cols = r.gridCols;
     const ok = cols.length === 2
       && Math.abs(cols[1] - 816) <= 1
@@ -199,7 +202,8 @@ T({
   input: '客户区 1024×680，输入 14/4',
   expect: 'stacked 单列 + 无横向滚动 + 核心结果可见 + 复制按钮可见',
   fn: async (ctx) => {
-    const r = await ctx.measure(1024, 680);
+    // 🔒 视口模拟（CDP）——见 TC-D-01 同口径说明。
+    const r = await ctx.measure(1024, 680, { mode: 'viewport' });
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
     const resVisible = await ctx.visible('#res-value');
     const copyVisible = await ctx.visible('#btn-copy-resolution');
@@ -557,9 +561,32 @@ T({
   input: 'setContentSize(1440,900)',
   expect: '客户区 = 1440×900 ±1px',
   fn: async (ctx) => {
-    const r = await ctx.setContentSize(1440, 900);
+    const r = await ctx.setContentSizeReal(1440, 900);
     const ok = Math.abs(r.width - 1440) <= 1 && Math.abs(r.height - 900) <= 1;
-    return { actual: `回读=${r.width}×${r.height}`, pass: ok, evidence: 'reports/desktop-suite.json' };
+    if (ok) {
+      return { actual: `回读=${r.width}×${r.height}`, pass: ok, evidence: 'reports/desktop-suite.json' };
+    }
+    // 🔒 本用例断言的是**原生窗口**的 setContentSize → getContentSize 回路，
+    //    **不能**用 CDP 视口模拟替代（视口模拟不改变原生客户区尺寸）。
+    //    → 工作区装不下时判 BLOCKED（**≠ 通过**），并写明环境限制；
+    //      工作区装得下却回读不到 → 是真实缺陷，判 FAIL。
+    const env = await ctx.envInfo();
+    const max = env.maxClientArea || { width: 0, height: 0 };
+    const work = env.effectiveWorkArea || (env.display && env.display.workArea);
+    const envLimited = max.width < 1440 || max.height < 900;
+    const actual = `回读=${r.width}×${r.height}`
+      + `｜环境工作区=${work ? work.width + '×' + work.height : '未知'}`
+      + `｜最大可达客户区=${max.width}×${max.height}`;
+    if (envLimited) {
+      return {
+        actual: `${actual} → 环境装不下 1440×900 客户区（原生窗口路径无法执行）`,
+        pass: false,
+        blocked: true,
+        note: '环境阻塞：工作区装不下 1440×900 客户区（视口模拟不适用于原生客户区断言）',
+        evidence: 'reports/desktop-suite.json',
+      };
+    }
+    return { actual, pass: false, evidence: 'reports/desktop-suite.json' };
   },
 });
 
@@ -574,13 +601,28 @@ T({
   input: '先 setContentSize(800,500) 记录，再 setSize(900,600) 验证',
   expect: 'setSize 路径下客户区 ≥1024×680（E-13 口径）',
   fn: async (ctx) => {
-    const viaContent = await ctx.setContentSize(800, 500);
+    const viaContent = await ctx.setContentSizeReal(800, 500);
     const viaSize = await ctx.setSize(900, 600);
     const ok = viaSize.width >= 1024 && viaSize.height >= 680;
-    return {
-      actual: `setContentSize(800,500)→${viaContent.width}×${viaContent.height}（E-13：高未钳到 680）｜setSize(900,600)→${viaSize.width}×${viaSize.height}`,
-      pass: ok, evidence: 'reports/desktop-suite.json',
-    };
+    const actual = `setContentSize(800,500)→${viaContent.width}×${viaContent.height}（E-13：高未钳到 680）｜setSize(900,600)→${viaSize.width}×${viaSize.height}`;
+    if (ok) return { actual, pass: ok, evidence: 'reports/desktop-suite.json' };
+    // 🔒 同 TC-DP-01：原生窗口路径的用例不能用视口模拟替代 →
+    //    工作区装不下 1024×680 客户区时判 BLOCKED（≠通过）。
+    const env = await ctx.envInfo();
+    const max = env.maxClientArea || { width: 0, height: 0 };
+    const work = env.effectiveWorkArea || (env.display && env.display.workArea);
+    const envLimited = max.width < 1024 || max.height < 680;
+    if (envLimited) {
+      return {
+        actual: `${actual}｜环境工作区=${work ? work.width + '×' + work.height : '未知'}`
+          + `｜最大可达客户区=${max.width}×${max.height} → 环境装不下 1024×680 客户区`,
+        pass: false,
+        blocked: true,
+        note: '环境阻塞：工作区装不下 1024×680 客户区',
+        evidence: 'reports/desktop-suite.json',
+      };
+    }
+    return { actual, pass: false, evidence: 'reports/desktop-suite.json' };
   },
 });
 
@@ -591,7 +633,10 @@ T({
   expect: '记录 DPR 实测值 + 栏宽不随 DPR 放大',
   fn: async (ctx) => {
     const dpr = await ctx.dpr();
-    const r = await ctx.measure(1440, 900);
+    // 🔒 视口模拟（CDP）：断言的是「1440 档列宽不随 DPR 放大」，
+    //    需要**真的**进入 1440 三栏布局 → 小屏 runner 上用视口模拟达成，
+    //    栏宽阈值 320±1 一字未改。
+    const r = await ctx.measure(1440, 900, { mode: 'viewport' });
     const cols = r.gridCols;
     const ok = cols.length === 3 && Math.abs(cols[0] - 320) <= 1;
     return { actual: `DPR=${dpr} 1440 档列宽=[${cols.join(', ')}]`, pass: ok, evidence: 'reports/desktop-suite.json' };
@@ -600,28 +645,64 @@ T({
 
 T({
   id: 'TC-DP-04', cat: 'TC-DP', title: '三尺寸截图产出',
-  target: '1440×900 / 1200×800 / 1024×680 各一张 PNG 且尺寸正确',
+  // 🔒 原生截图捕获的是**窗口表面**，不是被 CDP 覆盖的渲染器视口 →
+  //    本用例**必须**走真实原生窗口路径（不能用视口模拟替代）。
+  // 🔒 断言强度说明：原断言 `out.every(... || true)` 是**恒真**的（空断言），
+  //    本轮**收紧**为：① 目标客户区必须**真的达成**（未达成 → 环境阻塞 BLOCKED，
+  //    **≠通过**）；② PNG 的栅格尺寸必须与该客户区一致（缩放系数 k = 1 或 DPR）。
+  target: '1440×900 / 1200×800 / 1024×680 各一张 PNG；客户区必须真的达成；PNG 栅格尺寸与客户区一致',
   input: '三个客户区尺寸',
-  expect: '3 张 PNG，尺寸与设定一致',
+  expect: '3 张 PNG，客户区达成 + 栅格尺寸一致（环境装不下时判 BLOCKED）',
   fn: async (ctx) => {
     const out = [];
+    const rows = [];
+    let blocked = false;
+    let hardFail = null;
     for (const s of [[1440, 900], [1200, 800], [1024, 680]]) {
-      await ctx.setContentSize(s[0], s[1]);
+      const got = await ctx.setContentSizeReal(s[0], s[1]);
+      const achieved = Math.abs(got.width - s[0]) <= 1 && Math.abs(got.height - s[1]) <= 1;
+      if (!achieved) {
+        blocked = true;
+        out.push(`${s[0]}×${s[1]}→未达成（实测客户区 ${got.width}×${got.height}，未截图）`);
+        continue;
+      }
       const f = await ctx.screenshot(`desktop-suite-${s[0]}x${s[1]}.png`);
-      out.push(`${s[0]}×${s[1]}→${f.width}×${f.height}`);
+      const dpr = await ctx.dpr();
+      const kx = f.width / got.width;
+      const ky = f.height / got.height;
+      // 🔒 栅格缩放系数必须是 1（1× 截图）或 DPR（DPR 缩放截图），
+      //    且横纵必须同系数 → 否则截图与客户区不对应（真实缺陷）。
+      const kOK = (kx === 1 || Math.abs(kx - dpr) < 0.01) && Math.abs(kx - ky) < 0.01;
+      rows.push(`${s[0]}×${s[1]}：客户区 ${got.width}×${got.height} → PNG ${f.width}×${f.height}（k=${kx}，DPR=${dpr}）${kOK ? '' : ' ❌栅格不对应'}`);
+      out.push(`${s[0]}×${s[1]}→PNG ${f.width}×${f.height}`);
+      if (!kOK && !hardFail) hardFail = rows.join(' ｜ ');
     }
-    const ok = out.every((o) => !/→(\d+)×(\d+)/.test(o) || true) && out.length === 3;
-    return { actual: out.join(' ｜ '), pass: ok, evidence: 'shots/' };
+    const env = await ctx.envInfo();
+    const work = env.effectiveWorkArea || (env.display && env.display.workArea);
+    const max = env.maxClientArea || { width: 0, height: 0 };
+    if (hardFail) {
+      return { actual: `${hardFail}｜环境工作区=${work ? work.width + '×' + work.height : '未知'}`, pass: false, evidence: 'shots/' };
+    }
+    if (blocked) {
+      return {
+        actual: `${out.join(' ｜ ')}｜环境工作区=${work ? work.width + '×' + work.height : '未知'}`
+          + `｜最大可达客户区=${max.width}×${max.height} → 环境装不下全部三档客户区，截图未按目标尺寸产出`,
+        pass: false,
+        blocked: true,
+        note: '环境阻塞：工作区装不下 1440×900 / 1200×800 客户区',
+        evidence: 'shots/',
+      };
+    }
+    return { actual: `${rows.join(' ｜ ')}`, pass: rows.length === 3, evidence: 'shots/' };
   },
 });
-
 T({
   id: 'TC-DP-05', cat: 'TC-DP', title: '窗口不滚动（面板各自滚动）',
   target: 'documentElement.scrollHeight ≤ clientHeight+1',
   input: '1440×900，输入 14/4',
   expect: '窗口无纵向滚动条',
   fn: async (ctx) => {
-    const r = await ctx.measure(1440, 900);
+    const r = await ctx.measure(1440, 900, { mode: 'viewport' });
     const ok = r.docScrollH <= r.docClientH + 1;
     return { actual: `doc scrollH=${r.docScrollH} clientH=${r.docClientH}`, pass: ok, evidence: 'reports/desktop-suite.json' };
   },
@@ -668,10 +749,13 @@ T({
   expect: '状态项前后一致 + 无重叠',
   fn: async (ctx) => {
     const before = await ctx.stateFingerprint();
+    // 🔒 视口模拟（CDP）：本用例的要点是「**跨过 1280 断点**时状态不重置」。
+    //    小屏 runner 的原生窗口永远跨不过 1280 → 用视口模拟真正跨过去，
+    //    断言（状态逐项一致 + 重叠面积为 0）一字未改。
     for (let i = 0; i < 20; i++) {
-      await ctx.setContentSize(i % 2 === 0 ? 1400 : 1200, 900);
+      await ctx.setViewport(i % 2 === 0 ? 1400 : 1200, 900);
     }
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     const after = await ctx.stateFingerprint();
     const overlap = await ctx.overlapAudit();
     const same = JSON.stringify(before) === JSON.stringify(after);
@@ -692,6 +776,11 @@ T({
   input: '遍历步进/复制/开关/设置等可点击元素',
   expect: '无元素有效命中区 <32×32',
   fn: async (ctx) => {
+    // 🔒 视口模拟（CDP）：命中区是「有效命中区」逐像素扫描，
+    //    依赖**元素在视口内的真实位置** → 必须在目标布局（1440 三栏）下扫描，
+    //    否则小屏 runner 的窄窗口会把元素挤出视口 → 扫描结果失真（假失败）。
+    //    阈值 32×32 一字未改。
+    await ctx.setViewport(1440, 900);
     const r = await ctx.hitAreaAudit();
     const ok = r.tooSmall.length === 0;
     return { actual: `过小元素=${r.tooSmall.length} 个 ${JSON.stringify(r.tooSmall.slice(0, 6))}｜已测 ${r.checked} 个`, pass: ok, evidence: 'reports/desktop-suite.json' };
@@ -1316,7 +1405,7 @@ T({
   input: '1440×900，输入 14/4',
   expect: '窗口不滚 + C 栏可滚',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
     const r = await ctx.scrollAudit();
     const ok = r.docScrollH <= r.docClientH + 1 && r.cScrollable;
@@ -1330,7 +1419,7 @@ T({
   input: '1440×900',
   expect: '独立滚动',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
     const r = await ctx.independentScrollAudit();
     return { actual: `C 栏 scrollTop=${r.cTop}｜A 栏 scrollTop=${r.aTop}（滚动前归零=${r.aBefore}）`, pass: r.aTop === 0 && r.cTop > 0, evidence: 'reports/desktop-suite.json' };
@@ -1343,7 +1432,9 @@ T({
   input: '1440×900，拖 #drag-handle-c',
   expect: '钳制生效',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 900);
+    // 🔒 视口模拟（CDP）：C 栏拖拽手柄只在**三栏布局**下存在 →
+    //    小屏 runner 的 1024 窄窗口是纵向堆叠档 → 手柄不存在 → 必须模拟 1440 视口。
+    await ctx.setViewport(1440, 900);
     const r = await ctx.dragColumnAudit('#drag-handle-c', '.panel--result');
     const ok = r.ok && r.min >= 360 && r.max <= 560;
     return { actual: `拖拽结果=${JSON.stringify(r)}`, pass: ok, evidence: 'reports/desktop-suite.json' };
@@ -1356,7 +1447,7 @@ T({
   input: '1440×900，拖 #drag-handle-a',
   expect: '钳制生效 + 中栏不破',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     const r = await ctx.dragColumnAudit('#drag-handle-a', '.panel--input');
     const ok = r.ok && r.min >= 280 && r.max <= 420;
     return { actual: `拖拽结果=${JSON.stringify(r)}`, pass: ok, evidence: 'reports/desktop-suite.json' };
@@ -1369,7 +1460,7 @@ T({
   input: '1440×900 拖拽 A 栏',
   expect: '无重排',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     const r = await ctx.dragNoRelayoutAudit();
     return { actual: `areas 变化次数=${r.areasChanged}｜节点重建=${r.nodeRebuilt}`, pass: r.areasChanged === 0 && !r.nodeRebuilt, evidence: 'reports/desktop-suite.json' };
   },
@@ -1381,12 +1472,12 @@ T({
   input: '设置若干状态后跨 1280 断点',
   expect: '状态保持',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4', 'input-tolerance': '2' });
     await ctx.click('.canvas-mode-segment[data-mode="height"]');
     const before = await ctx.stateFingerprint();
-    await ctx.setContentSize(1200, 800);
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1200, 800);
+    await ctx.setViewport(1440, 900);
     const after = await ctx.stateFingerprint();
     const same = JSON.stringify(before) === JSON.stringify(after);
     return { actual: `前=${JSON.stringify(before)}｜后=${JSON.stringify(after)}`, pass: same, evidence: 'reports/desktop-suite.json' };
@@ -1399,9 +1490,9 @@ T({
   input: '1024×680',
   expect: '无横向滚动',
   fn: async (ctx) => {
-    await ctx.setContentSize(1024, 680);
+    await ctx.setViewport(1024, 680);
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
-    const r = await ctx.measure(1024, 680);
+    const r = await ctx.measure(1024, 680, { mode: 'viewport' });
     const ok = r.docScrollW <= r.docClientW + 1;
     return { actual: `scrollW=${r.docScrollW} clientW=${r.docClientW}`, pass: ok, evidence: 'reports/desktop-suite.json' };
   },
@@ -1417,7 +1508,7 @@ T({
   input: '1200×800，输入 14/4',
   expect: '折叠摘要 ratio/badge/fit 与 C 栏逐字符一致',
   fn: async (ctx) => {
-    await ctx.setContentSize(1200, 800);
+    await ctx.setViewport(1200, 800);
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
     await ctx.wait(200);
     const r = await ctx.stageCollapseParityAudit();
@@ -1474,15 +1565,23 @@ T({
   expect: 'data-height-tier 依次 standard / compact / tight / standard',
   fn: async (ctx) => {
     const seq = [];
+    const selfConsistent = [];
+    // 🔒 视口模拟（CDP）：高度档位判定用 window.innerHeight + window.screen.availHeight，
+    //    两者都由**渲染器视口**决定（availHeight 随 screenHeight 覆盖而跟随）→
+    //    因此本用例在任何屏幕尺寸的机器上都能得到**同一序列**（含小屏 CI runner）。
+    // 🔒 额外加一道「自洽性」断言：每一步落地的 data-height-tier 必须等于
+    //    按**当前** clientH/workH 纯算的档位 —— 应用若只在启动时判一次，这里必挂。
     for (const [w, h] of [[1440, 900], [1440, 750], [1440, 600], [1440, 900]]) {
-      await ctx.setContentSize(w, h);
+      await ctx.setViewport(w, h);
       await ctx.wait(120);
       const info = await ctx.heightTierInfo();
+      const st = await ctx.tierState();
       seq.push(info ? info.name : null);
+      selfConsistent.push(!!st && st.heightAttrLayout === st.decidedName && st.heightAttrHtml === st.decidedName);
     }
     const want = ['standard', 'compact', 'tight', 'standard'];
-    const ok = JSON.stringify(seq) === JSON.stringify(want);
-    return { actual: `档位序列=${JSON.stringify(seq)}（期望 ${JSON.stringify(want)}）`, pass: ok, evidence: 'reports/desktop-suite.json' };
+    const ok = JSON.stringify(seq) === JSON.stringify(want) && selfConsistent.every(Boolean);
+    return { actual: `档位序列=${JSON.stringify(seq)}（期望 ${JSON.stringify(want)}）｜逐档自洽=${JSON.stringify(selfConsistent)}`, pass: ok, evidence: 'reports/desktop-suite.json' };
   },
 });
 
@@ -1492,13 +1591,16 @@ T({
   input: '1440×750（第②档）',
   expect: '副标题 ellipsis + nowrap + 单行高；标题仍可见',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 750);
+    // 🔒 视口模拟（CDP）：第②档（compact）要求工作区 ≥ 680+65=745 且 clientH ∈ [680,784)；
+    //    小屏 runner（工作区 720）**永远进不了②档** → 必须同时模拟工作区。
+    await ctx.setViewport(1440, 750);
     await ctx.wait(120);
     const r = await ctx.evaluate(() => {
       const sub = document.querySelector('.app-header__subtitle');
       const title = document.querySelector('.app-header__title');
       const cs = getComputedStyle(sub);
       const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.5;
+      const st = window.__desktopHeightTier.info();
       return {
         tier: window.__desktopHeightTier.info().name,
         overflow: cs.overflow, textOverflow: cs.textOverflow, whiteSpace: cs.whiteSpace,
@@ -1506,11 +1608,16 @@ T({
         subHeight: Math.round(sub.getBoundingClientRect().height),
         lineHeight: Math.round(lh),
         titleVisible: getComputedStyle(title).display !== 'none' && title.offsetWidth > 0,
+        clientH: st.clientH, workH: st.workH,
+        decided: window.__desktopHeightTier.decide(st.clientH, st.workH),
+        heightAttrHtml: document.documentElement.getAttribute('data-height-tier'),
       };
     });
     const ok = r.tier === 'compact' && r.textOverflow === 'ellipsis' && r.whiteSpace === 'nowrap'
-      && r.subHeight <= r.lineHeight + 2 && r.titleVisible;
-    return { actual: `档位=${r.tier} ellipsis=${r.textOverflow} nowrap=${r.whiteSpace} 副标题高=${r.subHeight}(行高${r.lineHeight}) 标题可见=${r.titleVisible}`, pass: ok, evidence: 'reports/desktop-suite.json' };
+      && r.subHeight <= r.lineHeight + 2 && r.titleVisible
+      // 🔒 自洽性：落地档位必须等于按当前 clientH/workH 纯算的档位
+      && r.decided === 2 && r.heightAttrHtml === 'compact';
+    return { actual: `档位=${r.tier} ellipsis=${r.textOverflow} nowrap=${r.whiteSpace} 副标题高=${r.subHeight}(行高${r.lineHeight}) 标题可见=${r.titleVisible}｜clientH=${r.clientH} workH=${r.workH} 纯算档位=${r.decided}`, pass: ok, evidence: 'reports/desktop-suite.json' };
   },
 });
 
@@ -1521,7 +1628,7 @@ T({
   input: '1440×750（第②档）',
   expect: '默认折叠 / 展开后 4 块可见 / 条目数前后一致 / 折叠头可 Tab 聚焦',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 750);
+    await ctx.setViewport(1440, 750);
     await ctx.wait(150);
     const before = await ctx.explainAudit();
     // 折叠头可聚焦 + Enter 展开
@@ -1549,7 +1656,7 @@ T({
   input: '1440×750（第②档）',
   expect: '限高生效 + 仍可滚动访问',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 750);
+    await ctx.setViewport(1440, 750);
     await ctx.wait(150);
     const r = await ctx.evaluate(() => {
       const el = document.getElementById('standard-list');
@@ -1577,9 +1684,9 @@ T({
   input: '1440×600（客户区 654 → 第③档，三栏宽度轴）',
   expect: '舞台隐藏 / 摘要可见 / EL-ST-16 可见 / 点击后舞台展开',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
-    await ctx.setContentSize(1440, 600);
+    await ctx.setViewport(1440, 600);
     await ctx.wait(200);
     const folded = await ctx.stageFoldAudit();
     await ctx.evaluate(() => { document.querySelector('.stage-summary__toggle').click(); });
@@ -1600,7 +1707,7 @@ T({
   input: '1440×600（客户区 654 → 第③档）',
   expect: '副标题隐藏 + 标题条 28 + 状态栏 24',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 600);
+    await ctx.setViewport(1440, 600);
     await ctx.wait(200);
     const r = await ctx.evaluate(() => {
       const sub = document.querySelector('.app-header__subtitle');
@@ -1627,7 +1734,7 @@ T({
   input: '1440×600（第③档）',
   expect: '错误出口 + 设置入口均在',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 600);
+    await ctx.setViewport(1440, 600);
     // 🔒 EL-FT-05 是**错误出口**：无错误时按既有设计不显示（.status-bar__error:empty）
     //    → 必须先制造一个错误，再断言出口在场。
     await ctx.setAndRead({ 'input-width': 'abc', 'input-height': '4' });
@@ -1657,7 +1764,7 @@ T({
   input: '1440×600（第③档，输入 14/4）',
   expect: '五项齐全 + 跳转到位 + Tab 序正确',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 600);
+    await ctx.setViewport(1440, 600);
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
     await ctx.wait(250);
     const r = await ctx.anchorAudit();
@@ -1683,7 +1790,7 @@ T({
     const rows = [];
     let ok = true;
     for (const [w, h] of [[1440, 900], [1440, 750], [1440, 600]]) {
-      await ctx.setContentSize(w, h);
+      await ctx.setViewport(w, h);
       await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
       await ctx.wait(200);
       const r = await ctx.coreOpsAudit();
@@ -1704,7 +1811,7 @@ T({
   input: '焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600',
   expect: '焦点=EL-ST-16 且有高亮类；无 body 焦点',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
     await ctx.focus('.stage-mode-segment[aria-checked="true"]');
     const before = await ctx.focusId();
@@ -1721,7 +1828,7 @@ T({
         if (performance.now() - t0 > 900) { clearInterval(timer); resolve(seen); }
       }, 8);
     }));
-    await ctx.setContentSize(1440, 600);
+    await ctx.setViewport(1440, 600);
     const seen = await poll;
     const info = await ctx.heightTierInfo();
     const ok = seen.focusEl === 'EL-ST-16' && seen.migrated && !seen.bodyFocus
@@ -1739,7 +1846,7 @@ T({
   input: '1440×900 → 1440×600',
   expect: '焦点/选区/文本三者均保留',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     await ctx.evaluate(() => {
       const el = document.getElementById('input-width');
       const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
@@ -1753,7 +1860,7 @@ T({
       const el = document.getElementById('input-width');
       return { active: document.activeElement === el, start: el.selectionStart, end: el.selectionEnd, value: el.value };
     });
-    await ctx.setContentSize(1440, 600);
+    await ctx.setViewport(1440, 600);
     await ctx.wait(200);
     const after = await ctx.evaluate(() => {
       const el = document.getElementById('input-width');
@@ -1770,16 +1877,16 @@ T({
   input: '1440×900 滚到匹配表附近 → 1200×800 → 1440×900',
   expect: '锚点块标题保持不变',
   fn: async (ctx) => {
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
     await ctx.wait(200);
     await ctx.evaluate(() => { document.querySelector('.panel--result').scrollTop = 420; });
     await ctx.wait(150);
     const before = await ctx.cScrollAnchor();
-    await ctx.setContentSize(1200, 800);
+    await ctx.setViewport(1200, 800);
     await ctx.wait(200);
     const mid = await ctx.cScrollAnchor();
-    await ctx.setContentSize(1440, 900);
+    await ctx.setViewport(1440, 900);
     await ctx.wait(200);
     const after = await ctx.cScrollAnchor();
     const ok = !!before.text && before.text === mid.text && before.text === after.text;
@@ -1797,7 +1904,7 @@ T({
   input: '1024×600',
   expect: '三面板可见 + 舞台内容折叠 + 行内摘要可见 + 展开入口可用',
   fn: async (ctx) => {
-    await ctx.setContentSize(1024, 600);
+    await ctx.setViewport(1024, 600);
     await ctx.setAndRead({ 'input-width': '14', 'input-height': '4' });
     await ctx.wait(250);
     const r = await ctx.evaluate(() => {
@@ -1834,16 +1941,135 @@ T({
   },
 });
 
+T({
+  id: 'TC-H-16', cat: 'TC-H', title: '小屏 CI 适配自证：CDP 视口模拟与档位判定自洽（宽度档 + 高度档）',
+  // 🔒 本用例**自证**「小屏 runner 也能真实验证宽度档位」这件事本身：
+  //   ① 纯逻辑判定表：decideHeightTier(clientH, workH) —— 不依赖任何窗口尺寸；
+  //   ② 视口模拟：1440×900 → three / 1200×800 → two / 1024×680 → stacked
+  //      —— 即使真实屏幕只有 1024×720（CI runner 工作区）；
+  //   ③ 自洽性：每一步落地的 data-height-tier == 按**当前** clientH/workH 纯算的档位
+  //      （应用若只在启动时判一次、或档位判定与视口脱节，这里必挂）；
+  //   ④ 复原：resetViewport() 后渲染器视口回到真实窗口尺寸。
+  // 🔒 判据来源：desktop-ui.js detectTier()（clientWidth）/ computeHeightTier()
+  //    （innerHeight + screen.availHeight）—— 判定读的是**视口**，故视口模拟即真实验证。
+  target: '视口模拟三档宽度判定正确 + 高度档自洽 + 纯逻辑判定表正确 + 复位后视口还原',
+  input: '判定表 (900,1392)(780,1392)(700,1392)(660,1392)(900,700)；视口 1440×900 / 1200×800 / 1024×680',
+  expect: '判定表 = [1,2,2,3,3]；布局档 = three / two / stacked；高度档逐档自洽；复位后视口回到真实值',
+  fn: async (ctx) => {
+    // ① 纯逻辑判定表（DEC-16：workH < 680+65 → ③；clientH ≥ 784 → ①；≥680 → ②；否则 ③）
+    const table = [[900, 1392], [780, 1392], [700, 1392], [660, 1392], [900, 700]];
+    const got = [];
+    for (const [c, w] of table) got.push(await ctx.decideHeightTier(c, w));
+    const wantTable = [1, 2, 2, 3, 3];
+    const tableOK = JSON.stringify(got) === JSON.stringify(wantTable);
+
+    const before = await ctx.evaluate(() => ({
+      clientW: document.documentElement.clientWidth,
+      clientH: document.documentElement.clientHeight,
+    }));
+
+    // ② + ③ 视口模拟 → 宽度档正确 + 高度档自洽
+    const steps = [];
+    let layoutOK = true;
+    let selfOK = true;
+    const plan = [['three', 1440, 900], ['two', 1200, 800], ['stacked', 1024, 680]];
+    for (const [want, w, h] of plan) {
+      const r = await ctx.setViewport(w, h);
+      const st = await ctx.tierState();
+      const layoutHit = st.layoutAttr === want;
+      const selfHit = st.heightAttrLayout === st.decidedName && st.heightAttrHtml === st.decidedName;
+      const vpHit = r.actual.clientW === w && r.actual.clientH === h;
+      if (!layoutHit) layoutOK = false;
+      if (!selfHit || !vpHit) selfOK = false;
+      steps.push(`${w}×${h}→layout=${st.layoutAttr}(期望 ${want})${layoutHit ? '' : '❌'}`
+        + ` 视口=${r.actual.clientW}×${r.actual.clientH}${vpHit ? '' : '❌'}`
+        + ` 高度档=${st.heightAttrLayout}/纯算=${st.decidedName}${selfHit ? '' : '❌'}`
+        + ` (clientH=${st.clientH} workH=${st.workH})`);
+    }
+
+    // ④ 复原真实窗口
+    const rv = await ctx.resetViewport();
+    const restored = rv.restored && rv.actual.clientW === before.clientW && rv.actual.clientH === before.clientH;
+
+    const ok = tableOK && layoutOK && selfOK && restored;
+    return {
+      actual: `判定表=${JSON.stringify(got)}（期望 ${JSON.stringify(wantTable)}）${tableOK ? '✅' : '❌'}｜${steps.join(' ｜ ')}`
+        + `｜复原：前=${before.clientW}×${before.clientH} 后=${rv.actual.clientW}×${rv.actual.clientH}${restored ? '✅' : '❌'}`,
+      pass: ok,
+      evidence: 'reports/desktop-suite.json',
+    };
+  },
+});
+
 /* ==========================================================================
    §3 上下文实现（驱动 Electron 桌面版）
    ========================================================================== */
 
-function buildContext(app, win) {
+function buildContext(app, win, opts) {
   const consoleErrors = [];
+  const o = opts || {};
+  // 🔒 --clamp-window=WxH：**测试台架**能力 —— 把原生窗口请求钳到 WxH，
+  //    用于在**大屏机器上本地复现**「CI runner 工作区只有 1024×720」的约束，
+  //    从而验证「布局类用例走视口模拟仍 PASS / 原生窗口类用例判 BLOCKED」。
+  // 🔒 这是**测试台架**参数，不改产品代码、不改任何断言阈值。
+  const clampTo = o.clampTo || null;
+  const clamp = (v, max) => (clampTo && max != null ? Math.min(v, max) : v);
 
   const evaluate = (fn, arg) => win.evaluate(fn, arg);
 
+  /* ==========================================================================
+     视口模拟（CDP · Emulation.setDeviceMetricsOverride）
+     --------------------------------------------------------------------------
+     🔒 **为什么这是「环境适配」而不是「放宽标准」**：
+     桌面版的档位判定用的是**渲染器视口**，不是原生窗口尺寸：
+       · detectTier()        → document.documentElement.clientWidth（宽度轴）
+       · computeHeightTier() → window.innerHeight + window.screen.availHeight（高度轴）
+     而原生窗口受**屏幕工作区**硬约束（Electron 的 maxWidth/maxHeight 默认 = 工作区），
+     1024×720 的 CI runner 上根本装不下 1440×900 / 1200×800。
+     → 用 CDP 覆盖**渲染器视口**后，CSS 断点、grid 列宽、档位收纳全部按
+        **目标尺寸真实发生**，断言阈值一字未改 → 断言强度与在 1440×900 真机上一致。
+
+     🔒 **边界（不可越界）**：依赖**原生窗口/工作区**的用例**不得**走本通道：
+       · TC-DP-01 客户区尺寸回读（setContentSize → getContentSize）
+       · TC-DP-02 最小客户区保证（setSize 外框路径）
+       · TC-DP-04 原生截图尺寸（截图捕获的是**窗口表面**，不是被覆盖的视口）
+       这三条保留真实窗口路径；**环境装不下目标尺寸时判 BLOCKED（≠通过）**。
+     ========================================================================== */
+  let cdp = null;
+  let viewportOverride = null;
+
+  async function ensureCdp() {
+    if (!cdp) {
+      // 🔒 Playwright 的 page 没有直接的 device metrics API —— CDP session 是标准做法。
+      cdp = await win.context().newCDPSession(win);
+    }
+    return cdp;
+  }
+
   const ctx = {
+    /**
+     * 🔴 环境信息（Step 6 第 6 阶段 CI 实测补充）：
+     *    GitHub Windows runner 的工作区仅 1024×720 → 很多目标客户区装不下。
+     *    用例据此判定 **BLOCKED（环境阻塞，≠通过）**，而不是把环境缺陷报成产品失败。
+     * @returns {Promise<{display, frameDelta, maxClientArea}>}
+     */
+    async envInfo() {
+      if (ctx.__env) return ctx.__env;
+      ctx.__env = await app.evaluate(async ({ screen, BrowserWindow }) => {
+        const win = BrowserWindow.getAllWindows()[0];
+        const b = win.getBounds();
+        const c = win.getContentSize();
+        const d = screen.getDisplayNearestPoint(b);
+        const work = d.workArea;
+        return {
+          display: { id: d.id, label: d.label, scaleFactor: d.scaleFactor, workArea: { x: work.x, y: work.y, width: work.width, height: work.height } },
+          frameDelta: { width: b.width - c[0], height: b.height - c[1] },
+          // 最大可达客户区 = 工作区 − 非客户区增量（实测 16×65 @100%）
+          maxClientArea: { width: work.width - (b.width - c[0]), height: work.height - (b.height - c[1]) },
+        };
+      });
+      return ctx.__env;
+    },
     win,
     evaluate,
     async setAndRead(values) {
@@ -1885,6 +2111,10 @@ function buildContext(app, win) {
      *    复原容差为 0.5 → 复原窗口到 1440×900。
      */
     async reset() {
+      // 🔒 **先撤销上一条用例可能留下的视口覆盖**（CDP 视口模拟 · CI 小屏适配）：
+      //    覆盖态下原生 setContentSize 对渲染器无效 → 必须先 clear 再复位窗口，
+      //    否则后续用例会继承上一条用例的模拟视口 → 产生跨用例污染。
+      if (viewportOverride) await ctx.resetViewport();
       await evaluate(() => {
         const r = document.getElementById('btn-reset');
         if (r) r.click();
@@ -1980,15 +2210,27 @@ function buildContext(app, win) {
       return lat;
     },
     async setContentSize(w, h) {
+      const cw = clamp(w, clampTo ? clampTo.width : null);
+      const ch = clamp(h, clampTo ? clampTo.height : null);
       await app.evaluate(async ({ BrowserWindow }, s) => {
         const win = BrowserWindow.getAllWindows()[0];
         win.setContentSize(s.w, s.h);
-      }, { w, h });
+      }, { w: cw, h: ch });
       await win.waitForTimeout(350);
       return app.evaluate(async ({ BrowserWindow }) => {
         const c = BrowserWindow.getAllWindows()[0].getContentSize();
         return { width: c[0], height: c[1] };
       });
+    },
+    /**
+     * 🔒 **仅**调整真实原生窗口尺寸 —— 供「窗口管理层」用例使用
+     *    （TC-DP-01 客户区回读 / TC-DP-02 最小客户区 / TC-DP-04 三尺寸截图）。
+     *    这些用例断言的是**真实窗口**口径，**绝不能用视口模拟冒充**
+     *    （视口模拟只改渲染器视口，不改原生客户区尺寸）。
+     *    环境装不下目标尺寸时 → 由用例判 BLOCKED（≠通过）。
+     */
+    async setContentSizeReal(w, h) {
+      return ctx.setContentSize(w, h);
     },
     async setSize(w, h) {
       await app.evaluate(async ({ BrowserWindow }, s) => {
@@ -2008,8 +2250,16 @@ function buildContext(app, win) {
       const buf = fs.readFileSync(file);
       return { file: path.relative(DESKTOP, file).replace(/\\/g, '/'), width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
     },
-    async measure(w, h) {
-      await ctx.setContentSize(w, h);
+    /**
+     * 测量当前布局几何。
+     * @param {number} w 目标宽（CSS px）
+     * @param {number} h 目标高（CSS px）
+     * @param {object} [opts] { mode: 'window'（默认 · 真实原生窗口） | 'viewport'（CDP 视口模拟） }
+     */
+    async measure(w, h, opts) {
+      const mode = (opts && opts.mode) || 'window';
+      if (mode === 'viewport') await ctx.setViewport(w, h);
+      else await ctx.setContentSize(w, h);
       return evaluate(() => {
         const layout = document.querySelector('.layout');
         const cs = layout ? getComputedStyle(layout) : null;
@@ -2037,6 +2287,153 @@ function buildContext(app, win) {
       });
     },
     async dpr() { return evaluate(() => window.devicePixelRatio); },
+
+    /* ---------- 视口模拟（CDP）· 小屏 CI 适配 ---------- */
+    /**
+     * 把**渲染器视口**设为 w×h CSS px。
+     * @param {number} w
+     * @param {number} h
+     * @param {object} [opts]
+     *   - deviceScaleFactor：默认沿用当前真实 DPR（避免人为改变 DPR 语义）
+     *   - screenWidth / screenHeight：默认 = w / h
+     *     🔒 **必须同时设置**：否则 window.screen.availHeight 不跟随，
+     *        高度档位判定（computeHeightTier → screen.availHeight）会拿到
+     *        真实工作区高度 → 小屏 runner 上永远进不了 ②档。
+     *        置成 w×h 的物理含义是「模拟一台工作区恰好容得下该客户区的显示器」。
+     * @returns {{requested, screen, dpr, actual}} 实际生效的视口尺寸与 DPR
+     */
+    async setViewport(w, h, opts) {
+      const o = opts || {};
+      const session = await ensureCdp();
+      let dpr = o.deviceScaleFactor;
+      if (dpr == null) {
+        const real = await evaluate(() => window.devicePixelRatio);
+        dpr = (typeof real === 'number' && real > 0) ? real : 1;
+      }
+      const screenW = o.screenWidth != null ? o.screenWidth : w;
+      const screenH = o.screenHeight != null ? o.screenHeight : h;
+      await session.send('Emulation.setDeviceMetricsOverride', {
+        width: w,
+        height: h,
+        deviceScaleFactor: dpr,
+        mobile: false,
+        screenWidth: screenW,
+        screenHeight: screenH,
+      });
+      viewportOverride = { width: w, height: h, dpr, screenWidth: screenW, screenHeight: screenH };
+      // 🔒 视口变化后**显式派发一次 resize** —— 确定性兜底：
+      //    DEC-16 要求「宽度档与高度档都在 resize 上重算（不得只在启动时判一次）」。
+      //    🔒 **不修改产品代码**：复用应用既有的 window resize 监听器。
+      await evaluate(() => { window.dispatchEvent(new Event('resize')); });
+      await win.waitForTimeout(180);
+      const actual = await evaluate(() => {
+        const layout = document.querySelector('.layout');
+        return {
+          clientW: document.documentElement.clientWidth,
+          clientH: document.documentElement.clientHeight,
+          innerW: window.innerWidth,
+          innerH: window.innerHeight,
+          availW: window.screen ? window.screen.availWidth : 0,
+          availH: window.screen ? window.screen.availHeight : 0,
+          dpr: window.devicePixelRatio,
+          layoutAttr: layout ? layout.getAttribute('data-layout') : null,
+          heightAttr: layout ? layout.getAttribute('data-height-tier') : null,
+          heightAttrHtml: document.documentElement.getAttribute('data-height-tier'),
+        };
+      });
+      return { requested: { width: w, height: h }, screen: { width: screenW, height: screenH }, dpr, actual };
+    },
+
+    /** 恢复真实窗口尺寸（撤销视口覆盖）。 */
+    async resetViewport() {
+      if (!viewportOverride) {
+        return { restored: false, reason: '当前无视口覆盖' };
+      }
+      await cdp.send('Emulation.clearDeviceMetricsOverride');
+      viewportOverride = null;
+      await evaluate(() => { window.dispatchEvent(new Event('resize')); });
+      await win.waitForTimeout(180);
+      const actual = await evaluate(() => ({
+        clientW: document.documentElement.clientWidth,
+        clientH: document.documentElement.clientHeight,
+        innerH: window.innerHeight,
+        availH: window.screen ? window.screen.availHeight : 0,
+        dpr: window.devicePixelRatio,
+      }));
+      return { restored: true, actual };
+    },
+
+    /** 当前是否处于视口覆盖态（供报告与自检使用）。 */
+    viewportState() { return viewportOverride ? Object.assign({}, viewportOverride) : null; },
+
+    /**
+     * 档位自洽性快照：
+     *   「应用落地的 data-height-tier」 vs 「按当前 clientH/workH 纯算的档位」。
+     * 🔒 这是**相对当前环境**的断言 —— 不硬编码某个档位，
+     *    因此在小屏 runner 与大屏真机上都成立，且能抓住「resize 未重算」这类缺陷。
+     */
+    async tierState() {
+      return evaluate(() => {
+        const layout = document.querySelector('.layout');
+        const clientH = window.innerHeight;
+        const workH = window.screen && window.screen.availHeight ? window.screen.availHeight : 0;
+        const decided = window.__desktopHeightTier ? window.__desktopHeightTier.decide(clientH, workH) : null;
+        const nameOf = (t) => (t === 1 ? 'standard' : t === 2 ? 'compact' : t === 3 ? 'tight' : null);
+        return {
+          clientW: document.documentElement.clientWidth,
+          clientH,
+          workH,
+          availW: window.screen ? window.screen.availWidth : 0,
+          decided,
+          decidedName: nameOf(decided),
+          layoutAttr: layout ? layout.getAttribute('data-layout') : null,
+          heightAttrLayout: layout ? layout.getAttribute('data-height-tier') : null,
+          heightAttrHtml: document.documentElement.getAttribute('data-height-tier'),
+        };
+      });
+    },
+
+    /**
+     * 采集运行环境画像（工作区尺寸 / 最大可达客户区 / 当前档位 / DPR）。
+     * 🔒 供 JSON 报告 meta 与 CI 日志自证「哪些用例因屏幕小而无法执行」。
+     */
+    async envInfo() {
+      const display = await app.evaluate(async ({ screen }) => {
+        const d = screen.getPrimaryDisplay();
+        const w = d.workArea; const b = d.bounds;
+        return {
+          workArea: { x: w.x, y: w.y, width: w.width, height: w.height },
+          bounds: { x: b.x, y: b.y, width: b.width, height: b.height },
+          scaleFactor: d.scaleFactor,
+          label: (d.label || (d.bounds.width + 'x' + d.bounds.height)),
+        };
+      });
+      // 🔒 「最大可达客户区」= **实测**（请求工作区全尺寸后回读真实客户区），
+      //    不是理论推导 —— Electron 的原生外框增量（标题栏）会吃掉一部分高度。
+      const maxReq = await ctx.setContentSize(display.workArea.width, display.workArea.height);
+      const maxClientArea = { width: maxReq.width, height: maxReq.height };
+      const real = await evaluate(() => ({
+        clientW: document.documentElement.clientWidth,
+        clientH: document.documentElement.clientHeight,
+        innerW: window.innerWidth,
+        innerH: window.innerHeight,
+        availW: window.screen ? window.screen.availWidth : 0,
+        availH: window.screen ? window.screen.availHeight : 0,
+        dpr: window.devicePixelRatio,
+      }));
+      const tier = await evaluate(() => (window.__desktopHeightTier ? window.__desktopHeightTier.info() : null));
+      return {
+        display,
+        // 🔒 生效约束：--clamp-window 生效时以它为准（= 模拟的 CI runner 工作区）
+        effectiveWorkArea: clampTo
+          ? { x: display.workArea.x, y: display.workArea.y, width: clampTo.width, height: clampTo.height }
+          : display.workArea,
+        clamped: !!clampTo,
+        maxClientArea, real, tier,
+        viewportSim: 'CDP Emulation.setDeviceMetricsOverride',
+      };
+    },
+
     async dprUsageAudit() {
       return evaluate(() => {
         let layoutMultiplier = 0, diagnosticUsage = 0;
@@ -2755,6 +3152,17 @@ function buildContext(app, win) {
 async function main() {
   const argv = process.argv.slice(2);
   const catArg = (argv.find((a) => a.startsWith('--cat=')) || '').split('=')[1];
+  // 🔒 --env-only：只采集并打印运行环境画像（工作区 / 最大可达客户区 / 当前档位），
+  //    不执行任何用例 → 供 CI 在桌面 E2E **前后**各跑一次，把 runner 的
+  //    屏幕尺寸打进日志，使「哪些用例因屏幕小而无法执行」可被日志自证。
+  const envOnly = argv.includes('--env-only');
+  // 🔒 --clamp-window=WxH：在**大屏机器上本地复现**小屏 CI runner 的窗口约束
+  //    （工作区只有 1024×720 时 Electron 把客户区钳到约 1024×654）。
+  //    仅影响**原生窗口**请求，不影响 CDP 视口模拟。
+  const clampArg = (argv.find((a) => a.startsWith('--clamp-window=')) || '').split('=')[1];
+  const clampTo = clampArg && /^\d+x\d+$/.test(clampArg)
+    ? { width: parseInt(clampArg.split('x')[0], 10), height: parseInt(clampArg.split('x')[1], 10) }
+    : null;
 
   console.log('=== P4-B · 桌面专项测试矩阵 ===\n');
 
@@ -2798,11 +3206,55 @@ async function main() {
   await win.evaluate(HELPERS);
   console.log('     ✅ 已就绪\n');
 
-  const ctx = buildContext(app, win);
+  const ctx = buildContext(app, win, { clampTo });
   const selected = catArg ? cases.filter((c) => c.cat === catArg) : cases;
+
+  /* ==========================================================================
+     §4.0 运行环境画像（小屏 CI 适配 · 自证用）
+     --------------------------------------------------------------------------
+     🔒 目的：让「哪些用例因屏幕太小而无法执行」**在日志与 JSON 报告里自证**，
+        而不是靠人回忆。BLOCKED 语义 = **环境原因导致未执行**，≠ 通过。
+     ========================================================================== */
+  let env = null;
+  try {
+    env = await ctx.envInfo();
+    ctx.env = env;
+    const w = env.display.workArea;
+    const ew = env.effectiveWorkArea || w;
+    const m = env.maxClientArea;
+    console.log('============================================================');
+    console.log('【环境画像】小屏 CI 适配自证');
+    console.log('============================================================');
+    console.log(`  显示器         = ${env.display.label}（scaleFactor=${env.display.scaleFactor}）`);
+    console.log(`  真实工作区     = ${w.width}×${w.height}（屏幕 ${env.display.bounds.width}×${env.display.bounds.height}）`);
+    if (env.clamped) {
+      console.log(`  ⚙️ 生效约束     = ${ew.width}×${ew.height}（--clamp-window 模拟小屏 runner）`);
+    }
+    console.log(`  最大可达客户区 = ${m.width}×${m.height}   ← 实测（请求工作区全尺寸后回读）`);
+    console.log(`  真实客户区     = ${env.real.clientW}×${env.real.clientH}｜innerH=${env.real.innerH}｜screen.availHeight=${env.real.availH}`);
+    console.log(`  DPR            = ${env.real.dpr}`);
+    console.log(`  当前高度档位   = ${env.tier ? env.tier.name : '未知'}（clientH=${env.tier ? env.tier.clientH : '?'} / workH=${env.tier ? env.tier.workH : '?'}）`);
+    console.log(`  视口模拟通道   = ${env.viewportSim}`);
+    const can = [
+      ['1440×900', m.width >= 1440 && m.height >= 900],
+      ['1200×800', m.width >= 1200 && m.height >= 800],
+      ['1024×680', m.width >= 1024 && m.height >= 680],
+    ];
+    console.log(`  原生窗口可达性 = ${can.map(([s, ok]) => s + (ok ? ' ✅' : ' ❌(装不下→原生路径用例判 BLOCKED)')).join(' ｜ ')}`);
+    console.log('============================================================\n');
+  } catch (e) {
+    console.log('  ⚠️ 环境画像采集失败：' + (e && e.message ? e.message : String(e)));
+  }
+
+  if (envOnly) {
+    console.log('  （--env-only：仅采集环境画像，未执行任何用例）');
+    await app.close().catch(() => {});
+    process.exit(0);
+  }
 
   const results = [];
   let pass = 0; let fail = 0; let blocked = 0;
+  const blockedList = [];
 
   for (const c of selected) {
     const rec = { id: c.id, cat: c.cat, title: c.title, target: c.target, input: c.input, expect: c.expect };
@@ -2818,7 +3270,7 @@ async function main() {
     rec.evidence = r.evidence || 'reports/desktop-suite.json';
     rec.blocked = !!r.blocked;
     rec.note = r.note || '';
-    if (r.blocked) { rec.verdict = 'BLOCKED'; blocked++; }
+    if (r.blocked) { rec.verdict = 'BLOCKED'; blocked++; blockedList.push({ id: c.id, title: c.title, note: rec.note, actual: String(r.actual) }); }
     else if (r.pass) { rec.verdict = 'PASS'; pass++; }
     else { rec.verdict = 'FAIL'; fail++; }
     results.push(rec);
@@ -2833,6 +3285,15 @@ async function main() {
   console.log('【汇总】桌面专项测试矩阵');
   console.log('============================================================');
   console.log(`  用例数 = ${selected.length} ｜ PASS ${pass} ｜ FAIL ${fail} ｜ BLOCKED ${blocked}`);
+  // 🔴 BLOCKED（环境原因导致未执行）**≠ 通过** —— 必须显式呈现，不得混入 PASS。
+  if (blocked > 0) {
+    console.log(`  ⚠️ BLOCKED ${blocked}（环境原因）—— 下列用例**未执行**，不计入通过：`);
+    for (const b of blockedList) {
+      console.log(`     🚧 ${b.id} ${b.title}`);
+      console.log(`        原因：${b.note || '环境原因'}`);
+      console.log(`        实测：${String(b.actual).slice(0, 200)}`);
+    }
+  }
   const byCat = {};
   for (const r of results) {
     byCat[r.cat] = byCat[r.cat] || { n: 0, pass: 0, fail: 0, blocked: 0 };
@@ -2851,8 +3312,36 @@ async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const out = path.join(OUT_DIR, 'desktop-suite.json');
   fs.writeFileSync(out, JSON.stringify({
-    meta: { generatedAt: new Date().toISOString(), electron: '45.1.0', node: process.version, platform: process.platform },
-    summary: { total: selected.length, pass, fail, blocked, byCat, consoleErrors: consoleMsgs, pageErrors },
+    meta: {
+      generatedAt: new Date().toISOString(),
+      electron: '45.1.0',
+      node: process.version,
+      platform: process.platform,
+      // 🔒 环境画像：自证「哪些用例因屏幕小而无法执行」（小屏 CI 适配）
+      env: env ? {
+        display: env.display,
+        workArea: env.display.workArea,
+        effectiveWorkArea: env.effectiveWorkArea,
+        clamped: !!env.clamped,
+        maxClientArea: env.maxClientArea,
+        realClientArea: { width: env.real.clientW, height: env.real.clientH },
+        screenAvail: { width: env.real.availW, height: env.real.availH },
+        dpr: env.real.dpr,
+        heightTier: env.tier ? env.tier.name : null,
+        viewportSim: env.viewportSim,
+        nativeReachable: {
+          '1440x900': env.maxClientArea.width >= 1440 && env.maxClientArea.height >= 900,
+          '1200x800': env.maxClientArea.width >= 1200 && env.maxClientArea.height >= 800,
+          '1024x680': env.maxClientArea.width >= 1024 && env.maxClientArea.height >= 680,
+        },
+      } : null,
+    },
+    summary: {
+      total: selected.length, pass, fail, blocked, byCat,
+      // 🔴 blocked 语义：**环境原因导致未执行**，≠ 通过（门禁按 exit code 2 拦截）
+      blockedList,
+      consoleErrors: consoleMsgs, pageErrors,
+    },
     results,
   }, null, 2), 'utf8');
   console.log(`\n  📄 JSON 报告：${out}`);

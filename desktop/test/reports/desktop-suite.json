@@ -1,13 +1,64 @@
 {
   "meta": {
-    "generatedAt": "2026-11-01T14:07:07.820Z",
+    "generatedAt": "2026-11-01T15:49:43.066Z",
     "electron": "45.1.0",
     "node": "v22.22.2",
-    "platform": "win32"
+    "platform": "win32",
+    "env": {
+      "display": {
+        "workArea": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1392
+        },
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "scaleFactor": 1,
+        "label": "S2719DGF"
+      },
+      "workArea": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1392
+      },
+      "effectiveWorkArea": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1392
+      },
+      "clamped": false,
+      "maxClientArea": {
+        "width": 2560,
+        "height": 1392
+      },
+      "realClientArea": {
+        "width": 2560,
+        "height": 1392
+      },
+      "screenAvail": {
+        "width": 2560,
+        "height": 1392
+      },
+      "dpr": 1,
+      "heightTier": "standard",
+      "viewportSim": "CDP Emulation.setDeviceMetricsOverride",
+      "nativeReachable": {
+        "1440x900": true,
+        "1200x800": true,
+        "1024x680": true
+      }
+    }
   },
   "summary": {
-    "total": 91,
-    "pass": 91,
+    "total": 92,
+    "pass": 92,
     "fail": 0,
     "blocked": 0,
     "byCat": {
@@ -54,12 +105,13 @@
         "blocked": 0
       },
       "TC-H": {
-        "n": 15,
-        "pass": 15,
+        "n": 16,
+        "pass": 16,
         "fail": 0,
         "blocked": 0
       }
     },
+    "blockedList": [],
     "consoleErrors": [],
     "pageErrors": []
   },
@@ -253,7 +305,7 @@
       "target": "每次改输入后，结果区 DOM 在 100ms 内完成更新",
       "input": "连续 5 次改输入宽度",
       "expect": "5 次延迟全部 ≤100ms",
-      "actual": "各次延迟=[3.699999988079071, 3.9000000059604645, 3.9000000059604645, 3.5, 3.300000011920929] ms 最大=3.9000000059604645ms",
+      "actual": "各次延迟=[2.699999988079071, 3.4000000059604645, 3.7999999821186066, 4, 3.399999976158142] ms 最大=4ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -367,10 +419,10 @@
       "id": "TC-DP-04",
       "cat": "TC-DP",
       "title": "三尺寸截图产出",
-      "target": "1440×900 / 1200×800 / 1024×680 各一张 PNG 且尺寸正确",
+      "target": "1440×900 / 1200×800 / 1024×680 各一张 PNG；客户区必须真的达成；PNG 栅格尺寸与客户区一致",
       "input": "三个客户区尺寸",
-      "expect": "3 张 PNG，尺寸与设定一致",
-      "actual": "1440×900→1440×900 ｜ 1200×800→1200×800 ｜ 1024×680→1024×680",
+      "expect": "3 张 PNG，客户区达成 + 栅格尺寸一致（环境装不下时判 BLOCKED）",
+      "actual": "1440×900：客户区 1440×900 → PNG 1440×900（k=1，DPR=1） ｜ 1200×800：客户区 1200×800 → PNG 1200×800（k=1，DPR=1） ｜ 1024×680：客户区 1024×680 → PNG 1024×680（k=1，DPR=1）",
       "evidence": "shots/",
       "blocked": false,
       "note": "",
@@ -721,7 +773,7 @@
       "target": "超长含字母串 → ER-02 逐字；超长纯数字串 → 不崩溃、无 NaN/Infinity、后续操作 ≤500ms",
       "input": "宽 = \"9\".repeat(60) + \"abc\"；再 = \"9\".repeat(20)",
       "expect": "ER-02 逐字 + 纯数字串无 NaN 且可继续操作",
-      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=2.800000011920929ms",
+      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=2.7999999821186066ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1085,7 +1137,7 @@
       "target": "1440×900 → ①；1440×750 → ②；1440×600 → ③；再回 1440×900 → ①",
       "input": "连续四次改变客户区高度",
       "expect": "data-height-tier 依次 standard / compact / tight / standard",
-      "actual": "档位序列=[\"standard\",\"compact\",\"tight\",\"standard\"]（期望 [\"standard\",\"compact\",\"tight\",\"standard\"]）",
+      "actual": "档位序列=[\"standard\",\"compact\",\"tight\",\"standard\"]（期望 [\"standard\",\"compact\",\"tight\",\"standard\"]）｜逐档自洽=[true,true,true,true]",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1098,7 +1150,7 @@
       "target": "第②档下副标题 text-overflow=ellipsis + 单行；标题可见",
       "input": "1440×750（第②档）",
       "expect": "副标题 ellipsis + nowrap + 单行高；标题仍可见",
-      "actual": "档位=compact ellipsis=ellipsis nowrap=nowrap 副标题高=18(行高18) 标题可见=true",
+      "actual": "档位=compact ellipsis=ellipsis nowrap=nowrap 副标题高=18(行高18) 标题可见=true｜clientH=750 workH=750 纯算档位=2",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1176,7 +1228,7 @@
       "target": "[比例][候选][匹配][误差][复制] 五项；逐项点击后目标区块顶部进入可视区；Tab 序位于警示条关闭按钮之后、复制按钮之前",
       "input": "1440×600（第③档，输入 14/4）",
       "expect": "五项齐全 + 跳转到位 + Tab 序正确",
-      "actual": "隐藏=false 项=[\"比例\",\"候选\",\"匹配\",\"误差\",\"复制\"]｜跳转={\"ratio\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":65,\"bottom\":113},\"candidates\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":462},\"match\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":933},\"error\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":584},\"copy\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":520,\"bottom\":589}}｜Tab序 警示条→锚点=true 锚点→复制=true",
+      "actual": "隐藏=false 项=[\"比例\",\"候选\",\"匹配\",\"误差\",\"复制\"]｜跳转={\"ratio\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":65,\"bottom\":113},\"candidates\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":462},\"match\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":933},\"error\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":584},\"copy\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":466,\"bottom\":535}}｜Tab序 警示条→锚点=true 锚点→复制=true",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1202,7 +1254,7 @@
       "target": "焦点在舞台内 → 切到第③档 → 焦点迁移到 EL-ST-16，出现 400ms 高亮，全程不落 body",
       "input": "焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600",
       "expect": "焦点=EL-ST-16 且有高亮类；无 body 焦点",
-      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793542020858}",
+      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793548174892}",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1242,6 +1294,19 @@
       "input": "1024×600",
       "expect": "三面板可见 + 舞台内容折叠 + 行内摘要可见 + 展开入口可用",
       "actual": "档位=tight/stacked｜面板 3/3 可见｜areas=\"a\" \"b\" \"c\"｜摘要在舞台面板内=true 可见=true｜展开前舞台内容可见=false → 展开后=true（按钮=\"折叠舞台\"）",
+      "evidence": "reports/desktop-suite.json",
+      "blocked": false,
+      "note": "",
+      "verdict": "PASS"
+    },
+    {
+      "id": "TC-H-16",
+      "cat": "TC-H",
+      "title": "小屏 CI 适配自证：CDP 视口模拟与档位判定自洽（宽度档 + 高度档）",
+      "target": "视口模拟三档宽度判定正确 + 高度档自洽 + 纯逻辑判定表正确 + 复位后视口还原",
+      "input": "判定表 (900,1392)(780,1392)(700,1392)(660,1392)(900,700)；视口 1440×900 / 1200×800 / 1024×680",
+      "expect": "判定表 = [1,2,2,3,3]；布局档 = three / two / stacked；高度档逐档自洽；复位后视口回到真实值",
+      "actual": "判定表=[1,2,2,3,3]（期望 [1,2,2,3,3]）✅｜1440×900→layout=three(期望 three) 视口=1440×900 高度档=standard/纯算=standard (clientH=900 workH=900) ｜ 1200×800→layout=two(期望 two) 视口=1200×800 高度档=standard/纯算=standard (clientH=800 workH=800) ｜ 1024×680→layout=stacked(期望 stacked) 视口=1024×680 高度档=tight/纯算=tight (clientH=680 workH=680)｜复原：前=1440×900 后=1440×900✅",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
