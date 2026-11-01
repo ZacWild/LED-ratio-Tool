@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-01T13:02:58.705Z",
+    "platform": "win32"
+  },
+  "summary": {
+    "total": 4,
+    "pass": 3,
+    "fail": 1,
+    "skip": 0,
+    "sizes": null
+  },
+  "results": [
+    {
+      "id": "PC-01",
+      "name": "产物齐备（安装包 / 便携版 / win-unpacked）",
+      "pass": true,
+      "skipped": false,
+      "actual": "安装包=LED Ratio Tool-1.1.0-x64.exe｜便携版=LED Ratio Tool-1.1.0-x64.exe｜unpacked=true"
+    },
+    {
+      "id": "PC-02",
+      "name": "体积记录（安装包 / 便携版 / 解包 / asar）",
+      "pass": true,
+      "skipped": false,
+      "actual": "安装包 105.2 MB｜便携版 105.2 MB｜解包 357.1 MB｜app.asar 334 KB"
+    },
+    {
+      "id": "PC-03",
+      "name": "asar 白名单（无 test/ docs/ *.md *.map）",
+      "pass": true,
+      "skipped": false,
+      "actual": "共 18 项，0 泄漏"
+    },
+    {
+      "id": "PC-04",
+      "name": "静默安装（per-user，指定目录）",
+      "pass": false,
+      "skipped": false,
+      "actual": "安装失败（exit=0）"
+    }
+  ]
+}

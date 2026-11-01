@@ -286,6 +286,19 @@ async function main() {
     rec.domAttributionAggregate = domAgg;
 
     if (cmp.ratio > THRESHOLD_RATIO) {
+      if (accept) {
+        // 🔴 --accept 的**更新**语义：把当前实际图作为新基准。
+        //    （旧实现只在基准**缺失**时建立基准，无法更新 → 授权后基准更新形同虚设）
+        //    ⚠️ 使用前必须完成逐像素核验（DOM 归属 + 视觉对照），确认差异是
+        //       **预期设计变更**而非回归；阈值本身不受影响。
+        fs.copyFileSync(actualFile, baselineFile);
+        rec.verdict = 'BASELINE_UPDATED';
+        rec.reason = `像素差 ${(cmp.ratio * 100).toFixed(4)}% 超阈值，已按 --accept 更新基准（需负责人授权）`;
+        rec.baselineUpdated = true;
+        results.push(rec);
+        console.log(`  📌 ${s.name} 基准已更新（--accept，差异 ${(cmp.ratio * 100).toFixed(4)}%）`);
+        continue;
+      }
       rec.verdict = 'FAIL';
       rec.reason = `像素差 ${(cmp.ratio * 100).toFixed(4)}% 超阈值 ${(THRESHOLD_RATIO * 100).toFixed(3)}%`;
       failCount++;
@@ -312,7 +325,8 @@ async function main() {
   console.log('\n============================================================');
   console.log('【汇总】视觉回归');
   console.log('============================================================');
-  console.log(`  档位数 = ${SIZES.length} ｜ PASS ${results.filter((r) => r.verdict === 'PASS').length} ｜ FAIL ${failCount} ｜ 无基准 ${missingBaseline}`);
+  const updatedN = results.filter((r) => r.verdict === 'BASELINE_UPDATED').length;
+  console.log(`  档位数 = ${SIZES.length} ｜ PASS ${results.filter((r) => r.verdict === 'PASS').length} ｜ FAIL ${failCount} ｜ 基准已更新 ${updatedN} ｜ 无基准 ${missingBaseline}`);
   console.log(`  启动重试次数：${attempts}`);
 
   fs.writeFileSync(path.join(OUT_DIR, 'visual-regression.json'), JSON.stringify({
@@ -333,6 +347,7 @@ async function main() {
   if (missingBaseline > 0 && failCount === 0) process.exit(2);
   if (failCount > 0) process.exit(1);
   process.exit(0);
+  // 注：--accept 更新了基准的档位不计入 failCount（更新动作本身即「已知变更的接受」）
 }
 
 main().catch((e) => {

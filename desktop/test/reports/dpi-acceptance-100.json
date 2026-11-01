@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-01T12:48:17.550Z",
+    "expectedPercent": 100,
+    "realScaleFactor": 1,
+    "devicePixelRatio": 1,
+    "display": "S2719DGF",
+    "platform": "win32"
+  },
+  "summary": {
+    "total": 21,
+    "pass": 18,
+    "fail": 3
+  },
+  "results": [
+    {
+      "id": "DPI-1440x900-overflow",
+      "name": "无文档级横向滚动",
+      "pass": true,
+      "actual": "scrollW=1440 clientW=1440",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1440x900-hit",
+      "name": "主要控件有效命中区 ≥32×32",
+      "pass": true,
+      "actual": "全部达标",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1440x900-focus",
+      "name": "关键控件可聚焦",
+      "pass": true,
+      "actual": "{\"#input-width\":\"ok\",\"#input-height\":\"ok\",\"#btn-swap\":\"ok\",\"#btn-copy-resolution\":\"ok\",\"#btn-copy-full\":\"ok\",\"#ft-settings\":\"ok\"}",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1440x900-scroll",
+      "name": "文档不滚动、面板各自滚动",
+      "pass": true,
+      "actual": "doc=900/900 input可滚=true result可滚=true",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1440x900-font",
+      "name": "关键文本与图标有实测尺寸",
+      "pass": true,
+      "actual": "ratio={\"size\":\"40px\",\"lineHeight\":\"48px\",\"family\":\"\\\"JetBrains Mono\\\"\"} icon={\"w\":14,\"h\":14}",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1440x900-settings",
+      "name": "根设置按钮不可见（桌面用状态栏入口）",
+      "pass": true,
+      "actual": "根按钮不可见=true",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1440x900-tier",
+      "name": "高度档位已判定",
+      "pass": false,
+      "actual": "data-height-tier=(未设置)",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1200x800-overflow",
+      "name": "无文档级横向滚动",
+      "pass": true,
+      "actual": "scrollW=1200 clientW=1200",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1200x800-hit",
+      "name": "主要控件有效命中区 ≥32×32",
+      "pass": true,
+      "actual": "全部达标",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1200x800-focus",
+      "name": "关键控件可聚焦",
+      "pass": true,
+      "actual": "{\"#input-width\":\"ok\",\"#input-height\":\"ok\",\"#btn-swap\":\"ok\",\"#btn-copy-resolution\":\"ok\",\"#btn-copy-full\":\"ok\",\"#ft-settings\":\"ok\"}",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1200x800-scroll",
+      "name": "文档不滚动、面板各自滚动",
+      "pass": true,
+      "actual": "doc=800/800 input可滚=true result可滚=true",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1200x800-font",
+      "name": "关键文本与图标有实测尺寸",
+      "pass": true,
+      "actual": "ratio={\"size\":\"40px\",\"lineHeight\":\"48px\",\"family\":\"\\\"JetBrains Mono\\\"\"} icon={\"w\":14,\"h\":14}",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1200x800-settings",
+      "name": "根设置按钮不可见（桌面用状态栏入口）",
+      "pass": true,
+      "actual": "根按钮不可见=true",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1200x800-tier",
+      "name": "高度档位已判定",
+      "pass": false,
+      "actual": "data-height-tier=(未设置)",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1024x680-overflow",
+      "name": "无文档级横向滚动",
+      "pass": true,
+      "actual": "scrollW=1024 clientW=1024",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1024x680-hit",
+      "name": "主要控件有效命中区 ≥32×32",
+      "pass": true,
+      "actual": "全部达标",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1024x680-focus",
+      "name": "关键控件可聚焦",
+      "pass": true,
+      "actual": "{\"#input-width\":\"ok\",\"#input-height\":\"ok\",\"#btn-swap\":\"ok\",\"#btn-copy-resolution\":\"ok\",\"#btn-copy-full\":\"ok\",\"#ft-settings\":\"ok\"}",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1024x680-scroll",
+      "name": "文档不滚动、面板各自滚动",
+      "pass": true,
+      "actual": "doc=680/680 input可滚=true result可滚=true",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1024x680-font",
+      "name": "关键文本与图标有实测尺寸",
+      "pass": true,
+      "actual": "ratio={\"size\":\"40px\",\"lineHeight\":\"48px\",\"family\":\"\\\"JetBrains Mono\\\"\"} icon={\"w\":14,\"h\":14}",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1024x680-settings",
+      "name": "根设置按钮不可见（桌面用状态栏入口）",
+      "pass": true,
+      "actual": "根按钮不可见=true",
+      "evidence": "reports/dpi-acceptance.json"
+    },
+    {
+      "id": "DPI-1024x680-tier",
+      "name": "高度档位已判定",
+      "pass": false,
+      "actual": "data-height-tier=(未设置)",
+      "evidence": "reports/dpi-acceptance.json"
+    }
+  ]
+}

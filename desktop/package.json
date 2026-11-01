@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "private": true,
   "license": "MIT",
-  "description": "LED 大屏比例与视频画布换算工具 · Windows 桌面版",
+  "description": "LED 屏比例换算台 —— 屏幕尺寸与视频画布比例换算工具（Windows 桌面版）",
   "main": "main/main.js",
   "engines": {
     "node": ">=20.0.0"
@@ -18,6 +18,7 @@
     "evidence:p4b": "node test/p4b-evidence.cjs",
     "test:smoke": "node test/smoke-launch.mjs --runs=10",
     "test:desktop": "node test/desktop-suite.mjs",
+    "test:visual": "node test/visual-regression.mjs",
     "test:differential": "node test/differential-200.mjs",
     "test:golden": "node test/golden-vectors.mjs",
     "test:golden:selftest": "node test/golden-negative-selftest.mjs",
@@ -29,5 +30,8 @@
     "electron": "45.1.0",
     "electron-builder": "26.18.0",
     "playwright-core": "1.56.1"
+  },
+  "author": {
+    "name": "LED Ratio Tool Authors"
   }
 }
