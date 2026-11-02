@@ -3,14 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LED 大屏比例与视频画布换算工具</title>
+<title>LED Ratio Tool</title>
 <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
 
 <header class="app-header">
-  <h1 class="app-header__title">LED 比例换算台</h1>
-  <p class="app-header__subtitle">按屏幕物理尺寸换算画布比例与视频像素尺寸</p>
+  <div class="app-header__brand">
+    <img class="app-header__logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAEvklEQVR4nO3dTW5cVRSF0ZAaH7QyGAgkNgpKQgMRMh4Q0zqdBFLSQ0oDRG3r4qe7WUvacseWXK7jr+OfevIEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4j83M5dhTq9nl7LtiE8c3/7OZeWcV+2lmvjz7rtjIzLyfmT+sYh9n5vXZN8VGBKBqAkBGAKomAGQEoGoCQEYAqnYNwA9n3xQbEYCqCQAZAajaNQCvzr4pNiIAVRMAMgJQta4BuD/7ptiIAFRNAMgIQNWuAbg/+6bYiABUTQDICEDVrgG4O/um2IgAVE0AyAhA1a4BuHv2TbERAaiaAJARgKoJABkBqJoAkBGAqgkAGQGomgCQEYCqCQAZAaiaAJARgKp9+BSBl2ffFBsRgKr5TUAyAlA1fw5MRgCq5j8CkRGAuvmnoNxOAOr25uybYiMnBeC3T2/vZubbmflmZr7+lz2fme+uP+I6Pu7/spfH477l6/T8eP/XM/P2kfeVVyXe1EkBeHG8lPUXt+yzz/Wm92/ZAx735YjAx0feLwKwqZMCcPf5gbPGEYH7E57P92c/dh5IAHoIADEB6CEAxASghwAQE4AeAkBMAHoIADEB6CEAxASghwAQE4AeAkBMAHoIADEB6HEE4E4AuJkA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYgLQQwCICUAPASAmAD0EgJgA9BAAYicF4H5mnh4Ha8GO5+yvt0//ZvcCwM1OCsCvx6HeWbRXM/Pm2I8z8/Oxd8fezszvJzyfArCrkwJgXROAXQmALZgA7EoAbMEEYFcCYAsmALsSAFswAdiVANiCCcCuBMAWTAB2JQC2YAKwKwGwBROAXQmALZgA7EoAbMEEYFcCYAsmALsSAFswAdiVANiCCcCuBMAWTAB2JQC2YAKwKwGwBROAXQmALZgA7EoAbMEEYFcCYAsmALsSAFswAdiVANiCCcCuBMAWTAB2JQC2YAKwKwGwBROAXQmALZgA7EoAbMEEYFcCYAsmADuamcvMPPvsxSXNHrLrDV3OvmdCRwAu//Ay02a37iIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwGP4El2eiIgORpZsAAAAASUVORK5CYII=" alt="LED Ratio Tool 标志" width="30" height="30">
+    <div class="app-header__text">
+      <h1 class="app-header__title">LED Ratio Tool</h1>
+      <p class="app-header__subtitle">按屏幕物理尺寸换算画布比例与视频像素尺寸</p>
+    </div>
+  </div>
+  <div class="app-header__live" id="live-resolution" role="status" aria-live="polite">
+    <span class="app-header__live-label">目标分辨率</span>
+    <span class="app-header__live-value" id="live-resolution-value">等待换算</span>
+  </div>
   <div class="app-header__actions">
     <div class="segmented" role="radiogroup" aria-label="单位切换">
       <button type="button" class="segmented__item unit-segment" data-unit="m" role="radio" aria-checked="true">m</button>

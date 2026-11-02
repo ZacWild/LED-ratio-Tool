@@ -36,6 +36,7 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | **Electron 安全配置实体验证（P7-2）** | ✅ **已完成**（`76e893b`）：拿最终产物验证，不读配置。Fuse Wire `010011001` 8 项全部符合安全目标、与官方 `@electron/fuses` 三方一致、相对官方 `electron.exe` 翻转 7 个；`ELECTRON_RUN_AS_NODE=1` / `NODE_OPTIONS` / `--inspect` 三项运行时攻击全部无效；asar 不放行目录回落；三种篡改位置分别验证并披露覆盖范围边界；并含「清场基线」防止断言空转。`test:fuses` 16/16，已进 CI 条件门禁。详见 §1.3 |
 | **正式生产打包（P7-4）** | ✅ **已完成**：NSIS 安装包 + Portable 便携版双形态、同版本 `1.1.0`，版本/大小/SHA-256/签名状态四项齐备（`test/reports/p7-artifacts.json`，SHA-256 经 `certutil` 三方复核一致）。**签名状态 = NotSigned**（`no code signing certificate configured`，PE 证书表 Size=0）→ 仍为发布阻塞项。详见 §1.4 |
 | **真实 Windows 环境验收（P7-5）** | ✅ **已完成（28 项 / 26 通过 / 2 SKIP / 0 失败）**：安装·启动·卸载、覆盖安装·版本升级（1.0.0→1.1.0）、设置持久化与数据保留、便携版中立目录与断网可用全部实测。过程中**改掉 1 个真实产品缺陷**（`settingsGet` 是 Promise，按同步对象判断导致持久化永不生效）与 3 处假判据。详见 §1.5 |
+| **产品品牌统一（P7-1 · Brand Identity Unification）** | ✅ **已完成**：产品身份全面统一为 `LED Ratio Tool`——窗口标题、应用内品牌栏（品牌图标 + 名称）、顶栏实时换算分辨率（数据同源 + 三态）、快捷方式名、关于窗、HTML `<title>`、EXE 文件描述；内部技术身份（`appId` / `APP_DIR_NAME` / IPC 通道）保持稳定不变。根 HTML 版 85/85、桌面冒烟 0 报错、图标自检 10/10。详见 §1.6 |
 | 高 DPI **125%** 档 | ✅ **8/8 渲染项通过**（系统级缩放真实切换，`scaleFactor=1.25` / `dpr=1.25` 双证） |
 | 高 DPI **150%** 档 | ⛔ **BLOCKED（本环境不可达）**：`SPI_SETLOGICALDPIOVERRIDE` 只到 `index=1`（125%），`index=2/3/4` 一律回落 `GetDpiForSystem=120`；注册表 `PerMonitorSettings\SIMULATED_…\DpiValue=2` 写入后应用实测仍 `1.25`、工作区仍 `820×567`，生效需注销重登（会终止本会话）。**未用模拟手段冒充**，详见 §1.5 ⑥ |
 | **窗口完整可达（DPI-09）** | ❌ **三档全部不通过**：本机 1024×768（工作区 1024×720）下，`MIN_CONTENT_W/H = 1024×680`（DEC-07）+ 边框 15/64 → 100% 溢出 16/26px、125% 溢出 219/177px。属**预存尺寸策略**，须决策（见 §1.5 ⑤），本节不擅自改设计 |
@@ -333,6 +334,32 @@ exe 的 PE 资源里有 `type="INTEGRITY", id="ELECTRONASAR"`，内容是 **JSON
 
 > 🔒 **本节能证明什么**：这两种形态的产物在真 Windows 上能装、能起、能卸、能升级、设置与数据按 DEC-20 保留、断网照样算得对；100%/125% 两档在真实系统缩放下渲染与换算正确。
 > ⛔ **本节不能证明什么**：① 150% 未验证；② 签名仍缺失；③ 窗口可达性三档不通过；④ 注册表两项未核对；⑤ 本机显示器疑似虚拟适配器，DPI-09 的结论不能直接外推到所有真机。
+
+### 1.6 P7-1 · 产品品牌统一（Brand Identity Unification）
+
+用户提供最终 LOGO（`LOGO2.jpg`），要求把产品身份全面统一为 **`LED Ratio Tool`**，并新增应用内品牌栏 + 顶栏实时换算分辨率。落地点如下：
+
+**第一层 · Windows 原生层**
+| 位置 | 旧值 | 新值 | 载体 |
+|---|---|---|---|
+| 窗口标题 | `LED 比例换算台`（BrowserWindow）/ `LED 大屏比例…`（HTML title） | `LED Ratio Tool` | `main/main.js:255` + `index.html` `<title>` |
+| 快捷方式名 | `LED 比例换算台` | `LED Ratio Tool` | `build/electron-builder.yml:41` `shortcutName` |
+| 安装包 / 便携版文件名 | 已为 `LED Ratio Tool-…` | 不变 | `${productName}` |
+| EXE 文件描述 | `LED 屏比例换算台 —— …` | `LED Ratio Tool —— …` | `desktop/package.json` `description` |
+| 图标（任务栏 / 标题栏 / 开始菜单 / 桌面 / 安装包 / 卸载器） | 最终 LOGO | 不变（`icon.ico` 7 档） | `resources/icon.ico` |
+
+**第二层 · 应用内品牌栏**
+- 左侧：品牌图标（同母版导出的透明背景 PNG，`renderer/brand-logo.png`，以 `data:` URI 内联进 `index.html`）+ `LED Ratio Tool` + 副标题。
+- 右侧：**实时换算分辨率**（如 `3840 × 2160 px`），做成明显结果展示而非普通状态文字。
+
+**实时分辨率三条硬规则（均满足）**
+1. **数据同源**：复用 `primaryCandidate(candidates).result` 的 `outputWidth/outputHeight`，与主结果面板 `#res-value` 完全一致，不重新实现计算。
+2. **实时同步**：挂在 `update()` 主渲染循环，物理尺寸 / 比例模式 / 画布设置变化即同步刷新。
+3. **无效态**：宽或高为空 → `等待换算`；输入非法（非数值 / 负数 / 目标比例不可解）→ `暂不可计算`；绝不残留上一组有效分辨率。三态实测：`1920 × 549 px`（ready）/ `等待换算`（waiting）/ `暂不可计算`（error）。
+
+**内部技术身份保持稳定（未动）**：`appId = com.ledratiotool.desktop`、`APP_DIR_NAME = LED Ratio Tool`、设置目录、存储路径、IPC 通道（恰好 8 个）、测试标识全部不变——随意改动会被 Windows 视为另一个应用，破坏旧版升级与设置继承。
+
+**验收结果**：根 HTML 版 `test:e2e` **85/85**、`test:unit` **64/64**、`test:redlines` 通过；`verify:icons` **10/10**（含「不含旧占位橙 #F0A832」）；`sync:check` 无漂移；桌面冒烟 2/2 通过（0 console error/warning/pageerror）；`p7-artifacts` 归因 **MATCH 4/4**（asar 内源码与工作区逐字节一致）。签名状态仍为 **NotSigned**（与 §1.4 口径一致）。
 
 
 ---

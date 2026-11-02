@@ -38,7 +38,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: LED 比例换算台
+  shortcutName: LED Ratio Tool
   # 🔴 electron-builder 26.18.0 的 NsisOptions 已**移除** shortcutIcon
   #    （additionalProperties:false → 未知键会导致整个 nsis 块校验失败，
   #    报错只列 null 分支，极难定位）。桌面快捷方式图标改由 installerIcon 决定。

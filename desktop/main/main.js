@@ -252,7 +252,7 @@ function createWindow() {
     minWidth: MIN_CONTENT_W, // ✅ 与 width/height 同口径 = 最小客户区（E-3）
     minHeight: MIN_CONTENT_H,
     show: false, // 就绪后再显示，避免白屏闪烁
-    title: 'LED 比例换算台',
+    title: 'LED Ratio Tool',
     // 🔒 D-08 品牌图标（任务栏 / 标题栏）：
     //    打包版**不设**该键 —— Windows 对未显式指定图标的窗口回落到 exe 内嵌图标，
     //    即 electron-builder 的 win.icon（resources/icon.ico），无需重复指定。

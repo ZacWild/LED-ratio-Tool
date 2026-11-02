@@ -417,6 +417,49 @@
 
   /* ===================== 渲染：结果面板 ===================== */
 
+  /**
+   * 顶栏实时换算分辨率（P7-1 品牌统一 · 第二层）。
+   *
+   * 数据同源：直接复用 primaryCandidate(candidates).result 的
+   *   outputWidth / outputHeight，与主结果面板（renderResult 的 #res-value）
+   *   完全一致 —— 不重新实现任何计算逻辑。
+   *
+   * 三态（用户硬性规则，防止残留上一组有效分辨率误导现场使用）：
+   *   ready   → 「3840 × 2160 px」（formatResolution 与主面板同口径）
+   *   waiting → 宽或高尚未填写完整（未完成计算）→「等待换算」
+   *   error   → 输入非空但非法（非数值 / 负数 / 目标比例不可解）→「暂不可计算」
+   */
+  function renderLiveResolution(candidates) {
+    var wrap = els.liveResolution;
+    var valueNode = els.liveResolutionValue;
+    if (!wrap || !valueNode) return;
+
+    var primary = primaryCandidate(candidates);
+    var res = primary ? primary.result : null;
+    var text;
+    var kind;
+
+    if (res && res.ok && res.outputWidth) {
+      text = formatResolution(res.outputWidth, res.outputHeight) + ' px';
+      kind = 'ready';
+    } else {
+      var w = String(state.widthText == null ? '' : state.widthText).trim();
+      var h = String(state.heightText == null ? '' : state.heightText).trim();
+      if (w === '' || h === '') {
+        text = '等待换算';
+        kind = 'waiting';
+      } else {
+        text = '暂不可计算';
+        kind = 'error';
+      }
+    }
+
+    if (valueNode.textContent !== text) valueNode.textContent = text;
+    wrap.classList.toggle('is-ready', kind === 'ready');
+    wrap.classList.toggle('is-waiting', kind === 'waiting');
+    wrap.classList.toggle('is-error', kind === 'error');
+  }
+
   function renderResult(dims, target, candidates) {
     var screenRatio = dims.ok ? Core.computeRatio(dims.widthMm, dims.heightMm) : null;
     var primary = primaryCandidate(candidates);
@@ -1917,6 +1960,7 @@
     renderPresetMeta(dims);   // 预设列表 meta 的「与屏幕偏差」随屏幕尺寸实时刷新
     syncSelectionStates();
     renderResult(dims, target, candidates);
+    renderLiveResolution(candidates);
     renderStage(dims, target, candidates);
     fitStageFallback();
 
@@ -2028,6 +2072,8 @@
     els.settingsToggle = document.getElementById('btn-settings');
     els.settings = document.getElementById('settings-panel');
     els.toleranceInput = document.getElementById('input-tolerance');
+    els.liveResolution = document.getElementById('live-resolution');
+    els.liveResolutionValue = document.getElementById('live-resolution-value');
   }
 
   function init() {

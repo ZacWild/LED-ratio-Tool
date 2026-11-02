@@ -325,7 +325,7 @@ jobs:
           $cfg = "build/electron-builder.yml"
           if (-not (Test-Path $cfg)) { Write-Error "缺少 $cfg"; exit 1 }
           $content = Get-Content $cfg -Raw
-          foreach ($must in @('com.ledratiotool.desktop','LED Ratio Tool','LED 比例换算台','deleteAppDataOnUninstall: false')) {
+          foreach ($must in @('com.ledratiotool.desktop','LED Ratio Tool','shortcutName: LED Ratio Tool','deleteAppDataOnUninstall: false')) {
             if (-not $content.Contains($must)) {
               Write-Error "打包配置缺少必需项：$must"
               exit 1

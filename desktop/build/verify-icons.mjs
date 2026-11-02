@@ -2,7 +2,7 @@
  * LED-ratio-Tool 桌面版 · 品牌图标资源自检
  * ============================================================================
  * 依据：
- *   D-08  —— 应用图标定稿为最终 LOGO（橙色外框 + 深色内屏）
+ *   P7-1  —— 品牌统一：最终 LOGO（LOGO2.jpg）＝白 #F8F8F8「错位双层取景框」+ 炭灰 #262626 底
  *   任务书 —— 「清理旧占位图标，核对所有资源引用」
  *
  * 检查项：
@@ -10,8 +10,8 @@
  *   IC-02 尺寸集合齐备：16/24/32/48/64/128/256，全部 32bpp、正方形
  *   IC-03 目录项偏移/长度不越界、不重叠，且覆盖整个数据区
  *   IC-04 每个 BMP 条目头部合法（40 字节 DIB、height=2×width、BI_RGB 32bpp）
- *   IC-05 像素为品牌色（橙 #F0A832 + 深色 #1B1D21/#27251F 占比 ≥ 50%）
- *   IC-06 不含旧占位色（#FFC169 / #8A9099 / #17181C 各自 < 1%）
+ *   IC-05 像素为品牌色（白 #F8F8F8 + 炭灰 #262626 合计 ≥ 90%，容差归类抗锯齿边缘）
+ *   IC-06 不含旧品牌橙 #F0A832 及旧占位色（#FFC169 / #8A9099 / #17181C 等，各自 < 1%）
  *   IC-07 内容铺满画布（bbox 宽 ≥ 画布 90%，四边留白对称）
  *   IC-08 icon-256x256.png 与 ico 的 256 条目**字节一致**（同源同编码）
  *   IC-09 electron-builder.yml 中 icon / installerIcon / uninstallerIcon 均指向存在的文件
@@ -34,10 +34,18 @@ const BUILDER_YML = path.join(DESKTOP, 'build', 'electron-builder.yml');
 const MAIN_JS = path.join(DESKTOP, 'main', 'main.js');
 
 const REQUIRED_SIZES = [16, 24, 32, 48, 64, 128, 256];
-// 品牌色（最终 LOGO 的四种不透明色）
-const BRAND = ['#F0A832', '#27251F', '#1B1D21', '#6E747E'];
-// 旧占位图配色 —— 出现即说明回退到占位素材
-const LEGACY = ['#FFC169', '#8A9099', '#17181C'];
+// 品牌色（P7-1 最终 LOGO：白框 + 炭灰底）—— 用作深浅两相的判定基准
+const BRAND_WHITE = [248, 248, 248]; // #F8F8F8
+const BRAND_DARK = [38, 38, 38];     // #262626
+// 旧品牌橙（D-08 时代外框）+ 旧占位暖色 —— 出现即说明回退到旧素材。
+// 🔴 旧 logo 的深色（#17181C/#27251F/#1B1D21）与新炭灰 #262626 同为「近黑」，
+//    在 RGB 距离上重叠，无法当判别器 —— 真正的判别色是**橙**。
+const LEGACY = [
+  { hex: '#F0A832', rgb: [240, 168, 50] },
+  { hex: '#FFC169', rgb: [255, 193, 105] },
+];
+// 容差：把抗锯齿边缘/JPEG 噪声归入邻近的目标色（RGB 欧氏距离）
+const TOL = 40;
 
 const results = [];
 const check = (id, desc, fn) => {
@@ -130,6 +138,36 @@ function colorStats(rgba, w, h) {
 
 const share = (hist, opaque, color) => ((hist.get(color) || 0) / opaque) * 100;
 
+/** 容差归类占比：把「欧氏距离 ≤ tol 的像素」计入目标色 —— 抗锯齿边缘会被归到邻近的纯色 */
+function nearShare(hist, opaque, rgb, tol) {
+  let n = 0;
+  for (const [k, v] of hist) {
+    // colorStats 的键是 '#RRGGBB'
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(k);
+    if (!m) continue;
+    const r = parseInt(m[1], 16);
+    const g = parseInt(m[2], 16);
+    const b = parseInt(m[3], 16);
+    const d = Math.sqrt((r - rgb[0]) ** 2 + (g - rgb[1]) ** 2 + (b - rgb[2]) ** 2);
+    if (d <= tol) n += v;
+  }
+  return (n / opaque) * 100;
+}
+
+/** 单色（灰度）像素占比：r≈g≈b，含白、炭灰及其中间过渡 —— 新 LOGO 是纯单色构图 */
+function grayShare(hist, opaque) {
+  let n = 0;
+  for (const [k, v] of hist) {
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(k);
+    if (!m) continue;
+    const r = parseInt(m[1], 16);
+    const g = parseInt(m[2], 16);
+    const b = parseInt(m[3], 16);
+    if (Math.max(r, g, b) - Math.min(r, g, b) <= 24) n += v;
+  }
+  return (n / opaque) * 100;
+}
+
 /* ---------------- 读取 ---------------- */
 let icoBuf = null;
 let ico = null;
@@ -194,25 +232,29 @@ check('IC-04', '每个 BMP 条目 DIB 头合法（40 字节 / 32bpp / BI_RGB / h
   return bmpEntries.length > 0 || '没有任何 BMP 条目（小尺寸必须用 BMP 以兼容 legacy 渲染）';
 });
 
-check('IC-05', '像素为品牌色（橙 #F0A832 + 深色占比 ≥ 50%）', () => {
+check('IC-05', '品牌为「白框 + 炭灰底」单色构图（灰度 ≥ 95%，深浅两相俱在）', () => {
   if (!bmpEntries.length) return '无 BMP 条目可取样';
   const bad = [];
   for (const { e, w, h, rgba } of bmpEntries) {
     const { hist, opaque } = colorStats(rgba, w, h);
-    const brand = BRAND.reduce((s, c) => s + share(hist, opaque, c), 0);
-    if (brand < 50) bad.push(`${e.width}px 品牌色仅 ${brand.toFixed(1)}%`);
+    const gray = grayShare(hist, opaque);
+    const light = nearShare(hist, opaque, BRAND_WHITE, 60);
+    const dark = nearShare(hist, opaque, BRAND_DARK, 60);
+    if (gray < 95) bad.push(`${e.width}px 单色仅 ${gray.toFixed(1)}%`);
+    if (light < 5) bad.push(`${e.width}px 白框占比过低（${light.toFixed(1)}%）`);
+    if (dark < 60) bad.push(`${e.width}px 炭灰底占比过低（${dark.toFixed(1)}%）`);
   }
   return bad.length ? bad.join('；') : true;
 });
 
-check('IC-06', '不含旧占位图配色（#FFC169 / #8A9099 / #17181C）', () => {
+check('IC-06', '不含旧品牌橙 #F0A832 / 旧占位暖色 #FFC169', () => {
   if (!bmpEntries.length) return '无 BMP 条目可取样';
   const bad = [];
   for (const { e, w, h, rgba } of bmpEntries) {
     const { hist, opaque } = colorStats(rgba, w, h);
     for (const c of LEGACY) {
-      const s = share(hist, opaque, c);
-      if (s >= 1) bad.push(`${e.width}px 含旧占位色 ${c} ${s.toFixed(1)}%`);
+      const s = nearShare(hist, opaque, c.rgb, TOL);
+      if (s >= 1) bad.push(`${e.width}px 含旧色 ${c.hex} ${s.toFixed(1)}%`);
     }
   }
   return bad.length ? bad.join('；') : true;

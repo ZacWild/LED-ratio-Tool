@@ -315,7 +315,7 @@ async function main() {
         `进程数=${procCount}｜窗口=${winTitle || '(未取到窗口标题)'}`);
     } else {
       // 🔴 条件通过（不是失败）：便携版**本身可独立运行** —— 已实测（shell 直启：
-      //    16 秒内起 4 进程，窗口标题「LED 比例换算台」，解包目录
+      //    16 秒内起 4 进程，窗口标题「LED Ratio Tool」，解包目录
       //    %LOCALAPPDATA%\Temp\<uuid>.tmp）。
       //    但本脚本内**无法**拉起它：已试 4 种 spawn 方式（detached+ignore /
       //    detached+inherit / Start-Process / 非detached+管道），全部 0 进程；

@@ -62,8 +62,8 @@ const SETTINGS = path.join(APP_DIR, 'settings.json');
 //    且明确要求不得用其他 shell/脚本绕过。因此本脚本**不查询注册表**，
 //    该项记 SKIP 并在报告中注明「需人工或用平台允许的工具核对」——
 //    宁可标 SKIP，也不伪造一个「已核对」。
-const START_MENU = path.join(os.homedir(), 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'LED 比例换算台.lnk');
-const DESKTOP_LNK = path.join(os.homedir(), 'Desktop', 'LED 比例换算台.lnk');
+const START_MENU = path.join(os.homedir(), 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'LED Ratio Tool.lnk');
+const DESKTOP_LNK = path.join(os.homedir(), 'Desktop', 'LED Ratio Tool.lnk');
 
 const results = [];
 let failures = 0;

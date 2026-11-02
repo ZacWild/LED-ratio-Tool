@@ -32,7 +32,7 @@
 | **D4** | **1280px 三栏转两栏断点**优先于旧版 1100px 断点 | 唯一宽度轴断点 = 1280 | `renderer/desktop-ui.js:40,378-383` ✅ |
 | **D5** | **1024px 窄窗口按 IX-13 采用三面板纵向堆叠**（不得改回两栏或隐藏面板） | `data-layout="stacked"`，A/B/C 三行 | `renderer/app.css:155-166` ✅ |
 | **D6** | 三栏 / 两栏 / 窄窗口三种布局**分别验收** | 三档各一组用例 + 三档截图 | `test/desktop-suite.mjs` TC-D-01/02/03、TC-DP-04 ✅ |
-| **D7** | 产品名与应用存储目录 = `LED Ratio Tool`；快捷方式中文显示名 = `LED 比例换算台` | `productName` / `APP_DIR_NAME` = `LED Ratio Tool`；`nsis.shortcutName` = `LED 比例换算台` | `build/electron-builder.yml:2,39`；`main/paths.js:21` ✅ |
+| **D7** | 产品名 / 应用存储目录 / 快捷方式名 / 窗口标题**统一** = `LED Ratio Tool`（P7-1 品牌统一，旧中文名「LED 比例换算台」弃用） | `productName` / `APP_DIR_NAME` / `nsis.shortcutName` / `main.title` 全部 = `LED Ratio Tool` | `build/electron-builder.yml:2,41`；`main/paths.js:21`；`main/main.js:255` ✅ |
 | **D8** | 垂直预算按 P4 实测修订为 **784px**（不再用旧版 756px） | 面板区高 = 客户区 900 − 68（标题40+状态栏28）− 48（内边距 24×2）= **784** | 本文件 §3 实测表 ✅ |
 | **D9** | **DEC-16 紧凑高度第 ②③ 档**：**TK-72 已闭合**（Step 6 第 3 阶段）→ **②/③ 档收纳已实施**；**任何档位都不得隐藏核心操作**（输入 / 结果 / 警告 / 复制） | 判定在**渲染层自算**（`renderer/desktop-ui.js` `decideHeightTier` / `computeHeightTier`），🔒 **不新增 IPC 通道**；`main.layout` 写入 `data-height-tier`（standard / compact / tight） | `desktop-ui.js:483-531` ✅（实测见 §4.9） |
 | **D10** | Electron 45.1.0 = Chromium **156.0.8078.49** / Node **24.22.1**；生命周期终点 **2027-04-27** | 版本台账由 `process.versions` 实读 | `main/main.js:329` ✅ |
@@ -226,7 +226,7 @@
 | **Δ-09** | 表格布局 | `:602`/`:629`/`:633-639` `auto` 布局 + `nowrap` + 首列 sticky | `table-layout:fixed` + 显式列宽 + 表头 sticky | D-03 §9.2 D-9；`app.css:408-451` |
 | **Δ-10** | 宽/高字段布局 | `:395` `.field-row` **横向**双列 | **恒为纵向堆叠**（CF-2 结论） | D-03 §9.2 D-21；`app.css:207-211` |
 | **Δ-11** | 菜单栏 / 状态栏 | `:471` 顶栏 56px；`:602` `--header-h: 56px /* ≤760px 时 48px */` | **无菜单栏**（HTML 版无原生菜单）→ 桌面版：Windows 原生菜单 28px + 标题条 40px + 状态栏 28px | D-03 §5.1/§5.2；`app.css:86-89, 528-542` |
-| **Δ-12** | 产品名 / 目录名 | `DESIGN-SPEC` 全文以「LED 比例换算台」为界面标题 | **产品名 = 应用存储目录 = `LED Ratio Tool`**；`LED 比例换算台` 仅作**快捷方式显示名**（`nsis.shortcutName`）与**窗口标题** | D7 / DEC-12 / TK-81；`electron-builder.yml:2,39`；`main/paths.js:21` |
+| **Δ-12** | 产品名 / 目录名 | `DESIGN-SPEC` 全文以「LED 比例换算台」为界面标题 | **产品名 = 应用存储目录 = 快捷方式名 = 窗口标题 = `LED Ratio Tool`**（P7-1 起快捷方式名与窗口标题也统一为英文，旧中文名弃用） | D7 / DEC-12 / TK-81；`electron-builder.yml:2,41`；`main/paths.js:21`；`main/main.js:255` |
 | **Δ-13** | 标题条高度 | `:602` `--header-h: 56px` | 桌面端标题条 **40px**（不通过改 `:root` 实现，在 `.app-header` 上局部覆盖） | D-03 §3.2；`app.css:86-89` |
 | **Δ-14** | 列表高度 | `:497` `.list--scroll{max-height:240px}` | `flex:1 1 auto; min-height:120px; max-height:min(40vh,320px)` | D-03 §9.2 D-5；`app.css:275-279` |
 | **Δ-15** | 死代码 | `:771`/`:779` `.scene` / `.screen-wrap` 有规则无元素 | 桌面版**不继承**（`app.css` 中 0 命中） | D-03 §3.4 |
