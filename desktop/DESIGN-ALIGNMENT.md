@@ -662,7 +662,7 @@ label.textContent = button.getAttribute('data-orig-label');
 
 | 门禁 | 命令 | 结果 |
 |---|---|---|
-| 桌面套件 | `npm run test:desktop` | ✅ **91/91 通过**（原 76 条零回归 + 新增 TC-H 15 条）；console error/warning = **0**，pageerror = **0** |
+| 桌面套件 | `npm run test:desktop` | ✅ **93/93 通过**（原 76 条零回归 + TC-H 17 条；2026-11-02 回写：原记 91/91 为 TC-H-16/17 加入前的旧口径）；console error/warning = **0**，pageerror = **0** |
 | 安全审计 | `npm run audit:security` | ✅ **47/47 通过** |
 | 差分门禁 | `npm run test:differential` | ✅ **N = 0 ｜ M = 0 ｜ PASS 200**（覆盖率 100.00%） |
 | 视觉回归 | `npm run test:visual` | 🟡 **1440×900 = 0.0214% ✅｜1200×800 = 0.0289% ✅｜1024×680 = 0.1774% ❌**（**预期的高度收纳差异**，DOM 归属分析见 §4.9；**未自行更新基准** → TK-160）<br>⚠️ 已过期：`13bbf34` 授权更新后 1024×680 = 0.0000%，见 §11.2 |
@@ -718,7 +718,7 @@ label.textContent = button.getAttribute('data-orig-label');
 - **定性**：🔴 **不是产品缺陷** —— 桌面版的档位判定读的是**渲染器视口**
   （`renderer/desktop-ui.js:412` `detectTier()` → `documentElement.clientWidth`；
   `:492` `computeHeightTier()` → `window.innerHeight` + `window.screen.availHeight`），
-  与原生窗口尺寸无关；同一二进制在 2560×1392 屏上 91/91 全过。
+  与原生窗口尺寸无关；同一二进制在 2560×1392 屏上 93/93 全过（2026-11-02 回写：原记 91/91）。
 - **处置（显式分流，不做「自动回退」）**：
   - 视口依赖的布局用例 → `ctx.setViewport(w,h)`（CDP `Emulation.setDeviceMetricsOverride`，
     **必须同时设 screenWidth/screenHeight**，否则 `screen.availHeight` 不跟随 → ②档永远进不去）；
@@ -835,7 +835,20 @@ label.textContent = button.getAttribute('data-orig-label');
 （C 栏可滚动区极小），**建议保留显示并作为规则的显式例外**，需负责人书面确认后写入 RC-161-1。
 **未确认前保持现状，不得实施删除。**
 
-**落地条件**：代码修改与 `baseline-1200x800.png` 更新均需书面授权。本轮**未改** `desktop-ui.js`、**未执行** `--accept`。
+**落地条件（2026-11-02 已获书面授权并执行，见 §11.1.1）**：代码修改与 `baseline-1200x800.png` 更新同批执行。
+
+### 11.1.1 实施记录（2026-11-02 · 授权后落地）
+
+| 项 | 结果 |
+|---|---|
+| 代码改动 | 仅 `desktop/renderer/desktop-ui.js`：新增 `actualColumns()` / `isStackedTight()`；`applyAnchorVisibility()` 改为 `hasResult && (actualColumns() === 2 \|\| isStackedTight())`；`applyTier()` 补一次刷新调用（高度档未变时也能响应宽度断点）。**其余文件零改动** |
+| 可见性矩阵（实测） | 1440×900 隐藏（不变）｜1440×620 显示（不变）｜**1200×800 显示（原隐藏）**｜**1200×780 显示（原隐藏）**｜1024×680 隐藏（不变）｜1024×720（stacked×tight）显示（E1，不变） |
+| 锚点条几何（1200×800） | rect **772×32**、五项单行不换行；吸顶层 123 → **163px（+40px）**；结果面板可视高 742 → **702px**；无横向溢出 |
+| 视觉基准 | **仅 `baseline-1200x800.png` 经授权更新**：blob `cf8c02f…` → `dc6dd1e…`；`baseline-1440x900.png` / `baseline-1024x680.png` blob **未变** |
+| 差异构成（1200×800） | **11.5825%** = y∈[291,621] 逐像素 **40px 精确平移（残差 0）** + 面板下沿表头半高裁剪；左侧输入区与状态栏残差 **0**；`#input-*`/`#step-*` 共 277px 属 1440 档同源既有噪声 |
+| 产品口径签字 | 「新增锚点条占用 40px 吸顶高度，结果区可视高度相应减少 40px；匹配表在面板下沿的表头半裁属**正常滚动裁剪**（行序列未变），无重叠、无溢出、无数据变化 → 接受」 |
+| 回归 | 桌面 E2E **93/93**、HTML E2E **85/85**、视觉 **3/3**（更新后再跑，基准更新 **0** 项）、TC-H 17/17、TC-RESIZE 8/8、TC-DP 10/10 |
+| E1 落地 | `stacked × tight` 以 `isStackedTight()` 显式例外保留（非副作用），注释中写明「宽度档**且**高度档，缺一不可」 |
 
 ### 11.2 TK-160 台账纠正 —— 1024×680 的 0.1774% 是「基准更新前」的历史值
 
@@ -885,8 +898,36 @@ label.textContent = button.getAttribute('data-orig-label');
 | 单元测试 | **64/64 PASS** |
 | 业务红线守卫 | **PASS**（core.js 哈希锁 `dd49a782…` 未变；app.js 8 处口径通过） |
 | 安全静态审计 | **47/47 PASS** |
-| 视觉回归 | **3/3 PASS**（0.0214% / 0.0289% / 0.0000%，基准更新 0 项） |
+| 视觉回归 | **3/3 PASS**（0.0214% / 0.0289% / 0.0000%；TK-161 落地时 1200×800 曾出现 11.5825%，经授权 `--accept` 更新为唯一变更基准，复跑更新 0 项） |
+| 高 DPI 验收（TK-148） | **100% 21/21 PASS**；**125% / 150% = BLOCKED（环境未就绪）**，需人工切换系统缩放并（必要时）注销重登；验收指引 `desktop/DPI-ACCEPTANCE.md`、入口 `desktop/test/dpi-run.cmd`。**未用任何模拟手段冒充** |
 | 资源同步 | `sync-assets --check-only` **无漂移** |
 | Differential 200 / Golden Vector | **未重跑**：`src/core.js` 哈希与起始提交一致，输入未变；按预算约束不重复全量，**不记为通过** |
 | 正式打包（electron-builder / 签名 / 安装包冒烟） | **未执行**（不在 RC 收尾范围，属正式发行验收） |
+
+### 11.5 PR 与 Ruleset 状态（2026-11-02）
+
+**Ruleset `Protect main`（id `26175678`，`enforcement=active`，作用于 `~DEFAULT_BRANCH`）**
+
+| 规则 | 变更前 | 变更后 |
+|---|---|---|
+| `deletion` / `non_fast_forward` | ✅ | ✅（保留） |
+| `pull_request` | 0 个必需审批、无 code-owner 评审、不要求解决评论 | ✅ 原样保留（参数逐字段未改） |
+| `required_status_checks` | ❌ **缺失** —— 只有 PR 保护、没有状态检查（PR 可在 CI 红灯时被合并） | ✅ **已补**：`context = "Windows · 桌面版门禁"`，`strict = false` |
+
+- 检查名与 CI 作业名**字节一致**（长度 15，`===` 比较为 true），已用 `GET /commits/{sha}/check-runs` 与 `GET /rulesets/{id}` 交叉验证，避免「名字差一个中点导致永远不满足」。
+- 变更后 PR #1 `mergeable_state = clean`（说明必需检查已被当前 head 满足，未造成误锁）。
+- 回滚材料：变更前规则集快照与变更后载荷均留档（工作区 `ruleset-before.json` / `ruleset-after.json`）。
+- ⚠️ 仍建议（未擅自改）：`required_approving_review_count` 从 0 提到 ≥1 —— 属评审策略，需负责人决定。
+
+**PR #1（`feature/desktop-windows` → `main`）**
+
+| 项 | 值 |
+|---|---|
+| 提交数 / 文件数 | 31 commits / 103 files（+258,984 / −22，含二进制与产物） |
+| base | `main` @ `545bd0d` |
+| head | 本轮推送后为 `feature/desktop-windows` 最新提交 |
+| 状态 | open、非 draft、`mergeable`、`mergeable_state=clean`、0 review / 0 comment |
+| CI | head 提交上 `Windows · 桌面版门禁` = success（push run 与 pull_request run 各一次） |
+
+**合并前检查清单（已完成项）**：① 差异范围与 TK 边界核对（仅 TK-161/162/163/164 相关 + 台账/基准/验收文档）；② `core.js` 哈希锁未变；③ 主进程 / IPC / CSP / builder / 依赖零改动；④ Ruleset 必需检查已配置且当前通过；⑤ 工作区干净、远端同步。**合并动作本身未执行**（本轮授权范围为「保持 PR Open」）。
 

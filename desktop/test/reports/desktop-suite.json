@@ -1,13 +1,13 @@
 {
   "meta": {
-    "generatedAt": "2026-11-01T18:24:38.798Z",
+    "generatedAt": "2026-11-02T02:17:40.987Z",
     "electron": "45.1.0",
     "node": "v22.22.2",
     "platform": "win32",
     "env": {
       "display": {
-        "id": 2175172920,
-        "label": "S2719DGF",
+        "id": 3036494085,
+        "label": "LEN P27q-10",
         "scaleFactor": 1,
         "workArea": {
           "x": 0,
@@ -310,7 +310,7 @@
       "target": "每次改输入后，结果区 DOM 在 100ms 内完成更新",
       "input": "连续 5 次改输入宽度",
       "expect": "5 次延迟全部 ≤100ms",
-      "actual": "各次延迟=[2.7000000178813934, 3.0999999940395355, 3.199999988079071, 3.9000000059604645, 3.800000011920929] ms 最大=3.9000000059604645ms",
+      "actual": "各次延迟=[4.0999999940395355, 3.4000000059604645, 3.5999999940395355, 3, 3.7999999821186066] ms 最大=4.0999999940395355ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -778,7 +778,7 @@
       "target": "超长含字母串 → ER-02 逐字；超长纯数字串 → 不崩溃、无 NaN/Infinity、后续操作 ≤500ms",
       "input": "宽 = \"9\".repeat(60) + \"abc\"；再 = \"9\".repeat(20)",
       "expect": "ER-02 逐字 + 纯数字串无 NaN 且可继续操作",
-      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=2.899999976158142ms",
+      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=3.300000011920929ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1259,7 +1259,7 @@
       "target": "焦点在舞台内 → 切到第③档 → 焦点迁移到 EL-ST-16，出现 400ms 高亮，全程不落 body",
       "input": "焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600",
       "expect": "焦点=EL-ST-16 且有高亮类；无 body 焦点",
-      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793557469398}",
+      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793585851530}",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1285,7 +1285,7 @@
       "target": "三栏→两栏（C 栏宽度变化）后，同一个块标题仍是第一个完全可见者",
       "input": "1440×900 滚到匹配表附近 → 1200×800 → 1440×900",
       "expect": "锚点块标题保持不变",
-      "actual": "前=计算规则说明(offset 1105, scrollTop 420)｜两栏=计算规则说明(offset 1027)｜回三栏=计算规则说明(offset 1105)",
+      "actual": "前=计算规则说明(offset 1105, scrollTop 420)｜两栏=计算规则说明(offset 987)｜回三栏=计算规则说明(offset 1105)",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",

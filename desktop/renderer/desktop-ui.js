@@ -458,6 +458,12 @@
     }
 
     applyColumnWidths();
+    /* 🔒 RC-161-1（2026-11-02 裁决）：宽度档变化必须**刷新锚点条可见性**。
+       applyHeightTier() 在 changed = false 时早退（高度档未变），
+       因此仅靠高度档路径无法响应「同高度、跨宽度断点」的场景
+       → 1200×800 / 1200×780 这类宽度档切换后锚点条仍停留在旧状态。
+       此处补一次显式调用，**不改变 applyHeightTier 的早退语义**。 */
+    applyAnchorVisibility();
     positionHandles();
     applyIx13();
     syncStatusBar();
@@ -1101,12 +1107,50 @@
     resultPanel.scrollTop += delta;
   }
 
+  /**
+   * 结果区**实际网格列数**（RC-161-1 · 2026-11-02 裁决）。
+   * --------------------------------------------------------------------------
+   * 🔒 宽度档只决定名义分栏，**不是**可视列数：
+   *    · stacked                  → 1（三面板纵向堆叠，C 栏独占整宽）
+   *    · two                      → 2（舞台折叠为摘要）
+   *    · three + 极低高度          → 2（该档舞台同样折叠为摘要，CSS 实际两列）
+   *    · three + standard/compact → 3
+   * 🔒 该函数是**只读判定**，不改任何 DOM/样式，不得被用作其它排版计算的分支。
+   */
+  function actualColumns() {
+    if (tier === TIER_TWO) return 2;
+    if (tier === TIER_STACKED) return 1;
+    if (heightTier === HEIGHT_TIER_TIGHT) return 2; // three + tight → 舞台折叠为摘要
+    return 3;
+  }
+
+  /**
+   * E1 例外（RC-161-1 显式保留）：窄窗口堆叠 + 极低高度。
+   * 🔒 判据口径是「宽度档 **且** 高度档」，缺一不可。
+   * 🔒 例外原因：该档 C 栏可视区最小（纵向堆叠 + 抬升的吸顶/吸底夹击），
+   *    结果区长度不变而可视高度最小 → 若隐藏锚点条，五个分段将失去唯一快速入口。
+   *    因此**必须保留**锚点条，即使 actualColumns() 为 1。
+   */
+  function isStackedTight() {
+    return tier === TIER_STACKED && heightTier === HEIGHT_TIER_TIGHT;
+  }
+
+  /**
+   * 锚点条可见性（S3-5 · EL-RS-26）。
+   * 🔒 RC-161-1（2026-11-02 裁决）显示条件，语义不得改写：
+   *       hasResult && (actualColumns === 2 || isStackedTight)
+   * 🔒 **不得由高度档单独决定**（旧口径 `heightTier === TIGHT` 已废止）：
+   *    两栏宽度档在高度充足（standard / compact）时同样需要锚点条 ——
+   *    该档舞台折叠后 C 栏内容与三栏一致，而横向空间已被压缩。
+   * 🔒 调用点共四处，缺一不可：init 首屏、高度档变化（applyHeightTierLayout）、
+   *    宽度档变化（applyTier）、结果内容变化（MutationObserver）。
+   */
   function applyAnchorVisibility() {
     if (!resultAnchors) return;
     var hasResult = false;
     var ratioEl = $('ratio-value');
     if (ratioEl && !ratioEl.classList.contains('is-empty')) hasResult = true;
-    resultAnchors.hidden = !(heightTier === HEIGHT_TIER_TIGHT && hasResult);
+    resultAnchors.hidden = !(hasResult && (actualColumns() === 2 || isStackedTight()));
   }
 
   /* ======================================================================
