@@ -31,8 +31,8 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | 200 组差分（DEC-15） | ✅ **完全通过**：200/200 执行，差异 **0** 条，未覆盖字段 **0**，字段级覆盖率 **100%**（43 个字段 / 6,882 条 L1 断言） |
 | 视觉回归 | ✅ **3/3 通过**（1440×900 / 1200×800 / 1024×680，阈值 0.1%）：三张基准已于 `b48aaa8` **按授权更新**至 UI Polish 后的实际画面，重跑差异 **0.0000%**、更新 0 项（明细见 §1.1） |
 | 高 DPI **100%** 档 | ✅ **21/21 通过**（`scaleFactor = 1` 实读，非模拟） |
-| Windows CI 工作流 | ✅ **已在 GitHub 实际运行并通过**（次数与逐次结论以 Actions 页面为准，本表不写死以免每次推送即过期）。`feature/desktop-windows` 上 push run **#35** / pull_request run **#36**（`a05defd`）均 success、全部步骤 0 失败。`Protect main` 规则集已把 **`Windows · 桌面版门禁`** 设为 required status check；PR #1 已合并进 `main`（squash → `626673f`） |
-| **品牌图标（D-08 最终 LOGO）** | ✅ **已完成**（`cc9be31`）：最终 LOGO → `icon.ico` 7 档（16~128 = BMP，256 = PNG）+ `icon-256x256.png`，旧占位图已删除。exe / 安装包 / 便携版 / 已安装程序 / 卸载器 / 快捷方式 / 标题栏 / 任务栏 **八处实测同源同字节**，并新增 `verify:icons` 10 项自检进入 CI 门禁。详见 §1.2 |
+| Windows CI 工作流 | ✅ **已在 GitHub 实际运行并通过**（次数与逐次结论以 Actions 页面为准，本表不写死以免每次推送即过期）。`Protect main` 规则集已把 **`Windows · 桌面版门禁`** 设为 required status check；PR #1（→ `626673f`）、PR #2（→ `a1dc1ae`）均在该门禁下合并。本轮 D-08 图标改动的 required check 结果以 **PR #3** 页面实时状态为准 |
+| **品牌图标（D-08 最终 LOGO）** | ✅ **已完成**（`cc9be31`）：最终 LOGO → `icon.ico` 7 档（16~128 = BMP，256 = PNG）+ `icon-256x256.png`，旧占位图已删除。exe / 安装包 / 便携版 / 已安装程序 / 卸载器 / 快捷方式 / 标题栏 / 任务栏 **八处实测同源**（前五处与 png 为**逐字节一致**，快捷方式为 .lnk 字段核对，标题栏与任务栏为实截核对），并新增 `verify:icons` 10 项自检进入 CI 门禁。详见 §1.2 |
 | 正式安装包 / 签名 / 完整安装链路 | ⏳ **尚待 P7 验收**。CI 中的打包步骤只产出 Preview Candidate 与尺寸报告（**不参与门禁**）；当前未发布、未签名 |
 | 高 DPI **125% / 150%** 档 | ⛔ **BLOCKED（环境未就绪）**：需人工切换系统缩放（必要时注销重登）后按 `DPI-ACCEPTANCE.md` 执行，**未用模拟手段冒充** |
 
@@ -598,6 +598,7 @@ set ELECTRON_RUN_AS_NODE=
 | 开发分支 `feature/desktop-windows` | `cc9be31`（D-08 品牌图标）—— **分支保留未删除**，作为后续改动的提交入口 |
 | PR #1 | **Closed · merged**（2026-11-02T06:18:01Z，squash → `626673f`）。合并前 `mergeable_state = clean`，required check `Windows · 桌面版门禁` 在 head `a05defd` 上 success |
 | PR #2 | **Closed · merged**（2026-11-02T08:19:35Z，squash → `a1dc1ae`）。内容：Actions 升级 Node 24 / 汇总脚本插值修复 / 过期 Ruleset 说明校正 |
+| PR #3 | **Open**（base `main`）：D-08 品牌图标落地。head 提交与 required check 结果以 PR 页面实时状态为准，**本文件不复刻** |
 | Tag | 仅 **1 个**：`pre-desktop`（桌面版开发起点）。**当前工作尚无正式版本 Tag** |
 | Release | **0 个** —— 未发布任何版本，与「正式安装包 / 签名尚待 P7 验收」（§一）一致 |
 | 合并动作 | ✅ **已由项目负责人执行 Squash Merge**（`626673f`、`a1dc1ae`）。合并后 `main` 受 `Protect main` 保护，后续改动仍须走 PR + required check |
