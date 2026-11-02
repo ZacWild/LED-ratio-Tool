@@ -33,13 +33,13 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | 高 DPI **100%** 档 | ✅ **21/21 通过**（`scaleFactor = 1` 实读，非模拟） |
 | Windows CI 工作流 | ✅ **已在 GitHub 实际运行并通过**（次数与逐次结论以 Actions 页面为准，本表不写死以免每次推送即过期）。`Protect main` 规则集已把 **`Windows · 桌面版门禁`** 设为 required status check；PR #1（→ `626673f`）、PR #2（→ `a1dc1ae`）均在该门禁下合并。本轮 D-08 图标 + P7-2 安全实证的 required check 结果以 **PR #3** 页面实时状态为准 |
 | **品牌图标（D-08 最终 LOGO）** | ✅ **已完成**（`cc9be31`）：最终 LOGO → `icon.ico` 7 档（16~128 = BMP，256 = PNG）+ `icon-256x256.png`，旧占位图已删除。exe / 安装包 / 便携版 / 已安装程序 / 卸载器 / 快捷方式 / 标题栏 / 任务栏 **八处实测同源**（前五处与 png 为**逐字节一致**，快捷方式为 .lnk 字段核对，标题栏与任务栏为实截核对），并新增 `verify:icons` 10 项自检进入 CI 门禁。详见 §1.2 |
-| **Electron 安全配置实体验证（P7-2）** | ✅ **已完成**（`76e893b`）：拿最终产物验证，不读配置。Fuse Wire `010011001` 8 项全部符合安全目标、与官方 `@electron/fuses` 三方一致、相对官方 `electron.exe` 翻转 7 个；`ELECTRON_RUN_AS_NODE=1` / `NODE_OPTIONS` / `--inspect` 三项运行时攻击全部无效；asar 不放行目录回落；三种篡改位置分别验证并披露覆盖范围边界。`test:fuses` 15/15，已进 CI 条件门禁。详见 §1.3 |
+| **Electron 安全配置实体验证（P7-2）** | ✅ **已完成**（`76e893b`）：拿最终产物验证，不读配置。Fuse Wire `010011001` 8 项全部符合安全目标、与官方 `@electron/fuses` 三方一致、相对官方 `electron.exe` 翻转 7 个；`ELECTRON_RUN_AS_NODE=1` / `NODE_OPTIONS` / `--inspect` 三项运行时攻击全部无效；asar 不放行目录回落；三种篡改位置分别验证并披露覆盖范围边界；并含「清场基线」防止断言空转。`test:fuses` 16/16，已进 CI 条件门禁。详见 §1.3 |
 | 正式安装包 / 签名 / 完整安装链路 | ⏳ **尚待 P7 验收**。CI 中的打包步骤只产出 Preview Candidate 与尺寸报告（**不参与门禁**）；当前未发布、未签名 |
 | 高 DPI **125% / 150%** 档 | ⛔ **BLOCKED（环境未就绪）**：需人工切换系统缩放（必要时注销重登）后按 `DPI-ACCEPTANCE.md` 执行，**未用模拟手段冒充** |
 
 > 📅 **本文档数据截止：2026-11-02，分支 `feature/desktop-windows` @ `76e893b`**。数字均取自 `desktop/test/reports/` 下的真实报告与 GitHub Actions 实际运行记录，不手工估算。本文档自身的后续文档提交不计入上述测试数据。
 
-> ✅ **当前测试门禁全部通过**：桌面 E2E 93/93、HTML E2E 85/85、单元测试 64/64、安全审计 47/47、200 组差分完全通过、视觉回归 3/3、100% 缩放档 21/21、图标自检 10/10、**最终产物安全实证 15/15**。
+> ✅ **当前测试门禁全部通过**：桌面 E2E 93/93、HTML E2E 85/85、单元测试 64/64、安全审计 47/47、200 组差分完全通过、视觉回归 3/3、100% 缩放档 21/21、图标自检 10/10、**最终产物安全实证 16/16**。
 
 > ⚠️ **但本工程仍不是可交付版本。**
 > ① **125% / 150% 高 DPI 未验收** —— BLOCKED，需人工切换系统缩放；
@@ -119,7 +119,7 @@ ICO 头 → 尺寸集合 → 偏移不越界不重叠 → DIB 头（40B / 32bpp 
 > 验收口径来自任务原文：**「拿最终产物验证，而不是仅凭配置文件认定安全配置已经生效。」**
 > 因此本节所有结论都来自 `dist/win-unpacked/LED Ratio Tool.exe` 这个 249,865,728 B 的二进制本身，以及**把它真的跑起来**的可观测行为。`build/electron-builder.yml` 里的 `electronFuses` 段只作为「安全目标表」的来源，**不作为证据**。
 >
-> 一键复现：`npm run test:fuses` → 15/15。报告：`test/reports/fuses-verify.json`。
+> 一键复现：`npm run test:fuses` → 16/16。报告：`test/reports/fuses-verify.json`。
 
 **① 静态：从二进制里把 Fuse Wire 读出来**
 
@@ -150,6 +150,7 @@ Electron 的 fuse 不是配置项，而是 exe 里的一段固定结构：`SENTI
 
 | 编号 | 攻击动作 | 实测结果 |
 |---|---|---|
+| D-00 | （基线，非攻击）先清场再空参数启动 | 应用正常启动、stdout 有 `[LED-VERSIONS]` —— 确认后续用例**不是空转** |
 | D-01 | `ELECTRON_RUN_AS_NODE=1` + `-e "console.log('NODE_MODE_ACTIVE')"` | 脚本**未被执行**；stdout 出现真实应用启动日志 `[LED-VERSIONS]` —— 环境变量被忽略，未退化为 Node 执行器 |
 | D-02 | `NODE_OPTIONS=--require <marker.cjs>` | marker 文件**未生成**，`NODE_OPTIONS` 被丢弃 |
 | D-03 | `--inspect=9339` | 端口 9339 **全程未 LISTEN**，无 `Debugger listening` 输出 |
@@ -193,7 +194,15 @@ exe 的 PE 资源里有 `type="INTEGRITY", id="ELECTRONASAR"`，内容是 **JSON
 | 2 | D-04 报「篡改后仍正常启动」 | 篡改点选在 `Math.floor(len/2)`，落在**渲染 payload**；而该路径是流式校验、错误时点在 stream end | 拆成 D-04a/b/c 三个位置，分别对应三种真实机制 |
 | 3 | D-04c 一开始报「无任何校验报错」 | asar header 里 `offset`/`size` 是**字符串**（asar 为规避大文件精度问题），`payloadStart + offset` 变成字符串拼接 → 篡改下标算成天文数字 → **写入空操作** | `Number()` 归一，并新增自检：**篡改必须真的改变字节**，否则直接抛错，杜绝空操作骗绿 |
 
-**⑥ CI 口径**
+**⑥ CI 首跑抓到的「空转假绿」（本地全绿、runner 上暴露）**
+
+首次上 CI（run #48）时 D-01 失败、其余看着全绿。翻报告才发现：**D-02 的 `appStarted` 也是 `false`** —— 也就是说前两个用例里应用根本没启动，而「marker 未生成」照样成立、断言照样通过。
+
+- **真因**：打包验收步骤（`test:pc`）可能留下实例，Windows **单实例锁**让后续新进程**静默退出**（stdout 只有一个 `\r\n`）。D-04 段开头本来就有 `killApp()`，所以之后的 D-05 一切正常——这也解释了为什么只有前两条"不启动"。
+- **危害**：如果只把 D-01 修成「看到启动日志就算过」，D-02/D-03 依然是**假绿**——它们断言的是"某个坏结果没发生"，而"没发生"的最省事解释就是"进程压根没跑"。
+- **修法**（不是放宽断言，而是**加前置条件**）：新增 **D-00 清场基线** —— 先 `taskkill` 并**轮询确认进程真的消失**，再空参数启动一次，必须看到 `[LED-VERSIONS]`；同时把 D-02/D-03 的断言改成「**坏结果没发生**」+「**应用确实已启动**」两个条件同时成立。这样一来，环境起不来就红，不会再有空转通过。
+
+**⑦ CI 口径**
 
 新增步骤「P7-2 Fuses 实体验证（产物在则必过）」：
 
@@ -282,7 +291,7 @@ npm run dev          # ③ 启动桌面版（= preflight + sync + electron .）
 | `npm run test:differential` | **200 组差分**（DEC-15 三层期望源） | 0 = 完全通过 / 1 = 有差异 / 2 = **有条件通过** / 3 = 环境阻塞 |
 | `npm run test:golden` | L2 黄金向量独立套件（22 向量：21 执行 + 1 不适用） | 0 / 1 |
 | `npm run test:dpi` | 真实系统 DPI 验收（`--expect=100/125/150`） | 0 = 通过 / 1 = 失败 / 3 = 环境不匹配 |
-| `npm run test:fuses` | **P7-2 最终产物安全实证（15 项）**：Fuse Wire 静态读取 + 运行时攻击 + ASAR 篡改三路径 + onlyLoadAppFromAsar。⚠️ 需要先 `npm run build:win` 产出 `dist/win-unpacked` | 0 = 全通过 / 1 = 有失败 / 3 = 环境阻塞（产物缺失） |
+| `npm run test:fuses` | **P7-2 最终产物安全实证（16 项）**：Fuse Wire 静态读取 + 运行时攻击 + ASAR 篡改三路径 + onlyLoadAppFromAsar。⚠️ 需要先 `npm run build:win` 产出 `dist/win-unpacked` | 0 = 全通过 / 1 = 有失败 / 3 = 环境阻塞（产物缺失） |
 | `npm run test:visual` | 视觉回归（3 档，阈值 0.1%）。⚠️ **未纳入 CI 门禁**，本地/授权后手动执行 | 0 = 通过 / 1 = 超阈值 |
 | `npm run evidence:p4a` | P4-A 的 9 项证据采集 | 0 / 1 / 2 |
 | `npm run evidence:p4b` | P4-B 的 26 项证据采集 | 0 / 1 / 2 |
@@ -372,7 +381,7 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 16. 200 组差分（DEC-15）
 17. 真实 DPI 验收（100% 档，21 项）
 18. 打包 + Preview Candidate 产物验收（**只出报告，不参与门禁**）
-18.5 P7-2 Fuses 实体验证（`test:fuses` 15 项 · **产物在则必过，产物缺失记 SKIP**）
+18.5 P7-2 Fuses 实体验证（`test:fuses` 16 项 · **产物在则必过，产物缺失记 SKIP**）
 19. 生成产物 SHA-256 清单 → 上传报告 / 截图 / CI 日志 → 汇总门禁结果
 ```
 

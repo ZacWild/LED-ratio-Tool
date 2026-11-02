@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-02T09:55:59.588Z",
+    "generatedAt": "2026-11-02T10:12:28.563Z",
     "exe": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\dist\\win-unpacked\\LED Ratio Tool.exe",
     "exeBytes": 249865728,
     "appAsarBytes": 356159,
@@ -100,26 +100,41 @@
       "detail": "相对官方 electron.exe 翻转了 7 个：RunAsNode(ENABLE→DISABLE)，EnableCookieEncryption(DISABLE→ENABLE)，EnableNodeOptionsEnvironmentVariable(ENABLE→DISABLE)，EnableNodeCliInspectArguments(ENABLE→DISABLE)，EnableEmbeddedAsarIntegrityValidation(DISABLE→ENABLE)，OnlyLoadAppFromAsar(DISABLE→ENABLE)，GrantFileProtocolExtraPrivileges(ENABLE→DISABLE)"
     },
     {
+      "id": "D-00",
+      "title": "基线：清场后应用能正常启动（其余动态用例的前提）",
+      "ok": true,
+      "detail": "干净启动，stdout 出现 [LED-VERSIONS] —— 后续用例不会是空转",
+      "exitCode": null,
+      "stdout": "\r\n[LED-VERSIONS] {\"node\":\"24.22.1\",\"acorn\":\"8.18.0\",\"ada\":\"4.0.0\",\"amaro\":\"1.1.11\",\"ares\":\"1.34.9\",\"brotli\":\"1.2.0\",\"cldr\":\"48.0\",\"icu\":\"78.2\",\"llhttp\":\"9.4.3\",\"merve\":\"1.2.2\",\"modules\":\"150\",\"napi\":\"10\",\"nbytes\":\"0.1.4\",\"ncrypto\":\"0.0.1\",\"nghttp2\":\"1.70.0\",\"nghttp3\":\"\",\"ngtcp2\":\"\",\"openssl\":\"0.0.0\"",
+      "stderr": ""
+    },
+    {
       "id": "D-01",
       "title": "ELECTRON_RUN_AS_NODE=1 不退化为 Node 执行器",
       "ok": true,
       "detail": "环境变量被忽略，仍启动了真实应用（stdout 有 [LED-VERSIONS]）",
-      "stdout": "\r\n[LED-VERSIONS] {\"node\":\"24.22.1\",\"acorn\":\"8.18.0\",\"ada\":\"4.0.0\",\"amaro\":\"1.1.11\",\"ares\":\"1.34.9\",\"brotli\":\"1.2.0\",\"cldr\":\"48.0\",\"icu\":\"78.2\",\"llhttp\":\"9.4.3\",\"merve\":\"1.2.2\",\"modules\":\"150\",\"napi\":\"10\",\"nbytes\":\"0.1.4\",\"ncrypto\":\"0.0.1\",\"nghttp2\":\"1.70.0\",\"nghttp3\":\"\",\"ngtcp2\":\"\",\"openssl\":\"0.0.0\",\"simdjson\":\"4.6.11\",\"simdutf\":\"7.7.0\",\"sqlite\":\"3.53.4\",\"tz\":\"2026e\",\"undici\":\"7.30.1\",\"unicode\":\"1"
+      "stdout": "\r\n[LED-VERSIONS] {\"node\":\"24.22.1\",\"acorn\":\"8.18.0\",\"ada\":\"4.0.0\",\"amaro\":\"1.1.11\",\"ares\":\"1.34.9\",\"brotli\":\"1.2.0\",\"cldr\":\"48.0\",\"icu\":\"78.2\",\"llhttp\":\"9.4.3\",\"merve\":\"1.2.2\",\"modules\":\"150\",\"napi\":\"10\",\"nbytes\":\"0.1.4\",\"ncrypto\":\"0.0.1\",\"nghttp2\":\"1.70.0\",\"nghttp3\":\"\",\"ngtcp2\":\"\",\"openssl\":\"0.0.0\",\"simdjson\":\"4.6.11\",\"simdutf\":\"7.7.0\",\"sqlite\":\"3.53.4\",\"tz\":\"2026e\",\"undici\":\"7.30.1\",\"unicode\":\"1",
+      "stderr": "",
+      "exitCode": null
     },
     {
       "id": "D-02",
-      "title": "NODE_OPTIONS=--require 不被执行",
+      "title": "NODE_OPTIONS=--require 不被执行（且应用确实已启动）",
       "ok": true,
-      "detail": "未生成 marker，NODE_OPTIONS 被丢弃",
-      "appStarted": true
+      "detail": "未生成 marker，NODE_OPTIONS 被丢弃；且应用已正常启动（非空转）",
+      "appStarted": true,
+      "exitCode": null,
+      "stderr": ""
     },
     {
       "id": "D-03",
-      "title": "--inspect 不开启 Node 调试端口",
+      "title": "--inspect 不开启 Node 调试端口（且应用确实已启动）",
       "ok": true,
-      "detail": "端口 9339 全程未监听",
+      "detail": "端口 9339 全程未监听，且应用已正常启动（非空转）",
       "port": 9339,
-      "listening": false
+      "listening": false,
+      "appStarted": true,
+      "exitCode": null
     },
     {
       "id": "D-04a",
@@ -128,7 +143,7 @@
       "detail": "启动前 FATAL：Integrity check failed for asar archive entry '<header>'（退出码 2147483651）",
       "tamperAt": 120,
       "exitCode": 2147483651,
-      "stderr": "[36236:1102/175550.119:FATAL:electron\\shell\\common\\asar\\asar_util.cc:357] Integrity check failed for asar archive entry '<header>' (b2251cffcadbfa9d937442699749170a76d5afd47037f4cb611750c0c79bc085 vs 40223fb69a6a8dbf638d8132c23f89b517bd203a5bfa38ad24bf9d5247fdefa9, 3833 bytes)\r\n"
+      "stderr": "[33632:1102/181219.787:FATAL:electron\\shell\\common\\asar\\asar_util.cc:357] Integrity check failed for asar archive entry '<header>' (b2251cffcadbfa9d937442699749170a76d5afd47037f4cb611750c0c79bc085 vs 40223fb69a6a8dbf638d8132c23f89b517bd203a5bfa38ad24bf9d5247fdefa9, 3833 bytes)\r\n"
     },
     {
       "id": "D-04b",
@@ -149,7 +164,7 @@
       "file": "renderer/styles.css",
       "started": true,
       "exitCode": 2147483651,
-      "stderr": "[29612:1102/175551.020:FATAL:electron\\shell\\browser\\net\\asar\\asar_file_validator.cc:129] Failed to validate block while ending ASAR file stream: 0\r\n"
+      "stderr": "[37952:1102/181220.466:FATAL:electron\\shell\\browser\\net\\asar\\asar_file_validator.cc:129] Failed to validate block while ending ASAR file stream: 0\r\n"
     },
     {
       "id": "D-05",
@@ -173,8 +188,8 @@
     }
   ],
   "summary": {
-    "total": 15,
-    "pass": 15,
+    "total": 16,
+    "pass": 16,
     "fail": 0,
     "verdict": "PASS"
   }

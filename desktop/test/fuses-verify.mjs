@@ -19,9 +19,10 @@
  *   F-06  与「未翻转的官方 electron.exe」对比，列出被翻转的 fuse（证明翻转动作真实发生）
  *
  * 动态检查项（每一项都要真实启动进程）：
+ *   D-00  基线：清场后应用能正常启动（其余「未执行/未生成/未监听」类断言的前提）
  *   D-01  ELECTRON_RUN_AS_NODE=1 → 不得退化为 Node 执行器（必须仍启动真实应用）
- *   D-02  NODE_OPTIONS=--require <marker> → marker 不得生成
- *   D-03  --inspect=<port> → 调试端口不得 LISTEN
+ *   D-02  NODE_OPTIONS=--require <marker> → marker 不得生成 **且应用确实已启动**
+ *   D-03  --inspect=<port> → 调试端口不得 LISTEN **且应用确实已启动**
  *   D-04a 篡改 asar header 内摘要 → 启动前即被拒（entry '<header>' 校验）
  *   D-04b 篡改主进程脚本首块 → 启动前即被拒（asar per-file hash 校验）
  *   D-04c 篡改渲染资源末块 → 必须被检测（Chromium 流校验，允许已启动后 FATAL；见边界说明）
@@ -50,7 +51,7 @@ import path from 'node:path';
 import net from 'node:net';
 import os from 'node:os';
 import crypto from 'node:crypto';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -222,14 +223,30 @@ function parseAsarHeader(file) {
 const sha256Text = (s) => crypto.createHash('sha256').update(Buffer.from(s, 'utf8')).digest('hex');
 
 /* ============================ 2.6 Windows 句柄/进程工具 ============================ */
-/** 强杀本 exe 的所有实例。破坏性用例之间必须做，否则 rename 会 EBUSY。 */
-function killApp() {
-  return new Promise((resolve) => {
-    if (process.platform !== 'win32') return resolve();
-    const p = spawn('taskkill', ['/F', '/IM', path.basename(EXE)], { stdio: 'ignore', windowsHide: true });
-    p.on('exit', () => resolve());
-    p.on('error', () => resolve());
-  });
+/** 强杀本 exe 的所有实例，并**等它们真的消失**。破坏性用例之间必须做，否则 rename 会 EBUSY。 */
+async function killApp() {
+  if (process.platform !== 'win32') return;
+  const name = path.basename(EXE);
+  const alive = () => {
+    try {
+      const out = spawnSync('tasklist', ['/FI', `IMAGENAME eq ${name}`, '/NH'], { encoding: 'utf8', windowsHide: true });
+      return (out.stdout || '').includes(name);
+    } catch {
+      return false;
+    }
+  };
+  for (let i = 0; i < 3; i++) {
+    if (!alive()) return;
+    await new Promise((resolve) => {
+      const p = spawn('taskkill', ['/F', '/IM', name], { stdio: 'ignore', windowsHide: true });
+      p.on('exit', () => resolve());
+      p.on('error', () => resolve());
+    });
+    for (let k = 0; k < 10; k++) {
+      await sleep(300);
+      if (!alive()) return;
+    }
+  }
 }
 
 /**
@@ -437,6 +454,23 @@ async function main() {
   fs.writeFileSync(markerJs, `require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'NODE_OPTIONS 被执行了');\n`);
   if (fs.existsSync(marker)) fs.unlinkSync(marker);
 
+  // 🔴 D-00 基线：先清场，再确认「干净环境下应用能正常启动」
+  //    这一步是**所有「未执行 / 未生成 / 未监听」类断言的前提**。
+  //    踩过的坑（CI run #48 实测）：打包步骤里的 pc-verify 可能留下实例，
+  //    Windows 单实例锁会让新进程**静默退出**（stdout 只有一个空行）——
+  //    于是「marker 未生成」照样成立，用例空转通过，实际上什么都没验证。
+  //    因此这里先 kill 并等待进程真的消失，再跑一次空参数启动作为基线。
+  await killApp();
+  {
+    const r = await run(EXE, [], { timeout: 8000 });
+    const started = /\[LED-VERSIONS\]/.test(r.stdout);
+    rec('D-00', '基线：清场后应用能正常启动（其余动态用例的前提）', started,
+      started
+        ? '干净启动，stdout 出现 [LED-VERSIONS] —— 后续用例不会是空转'
+        : `❌ 应用未正常启动（退出码 ${r.code}）。此时任何「未执行/未生成」的结论都不成立，不能算通过`,
+      { exitCode: r.code, stdout: r.stdout.slice(0, 300), stderr: r.stderr.slice(0, 300) });
+  }
+
   // D-01 ELECTRON_RUN_AS_NODE
   {
     const r = await run(EXE, ['-e', "console.log('NODE_MODE_ACTIVE')"], {
@@ -450,8 +484,8 @@ async function main() {
         ? '❌ 二进制执行了 -e 脚本 —— RunAsNode 实际未关闭'
         : realApp
           ? '环境变量被忽略，仍启动了真实应用（stdout 有 [LED-VERSIONS]）'
-          : `未执行 -e，但也没看到应用启动日志（timedOut=${r.timedOut}）`,
-      { stdout: r.stdout.slice(0, 400) });
+          : `未执行 -e，但也没看到应用启动日志（timedOut=${r.timedOut}，退出码 ${r.code}）`,
+      { stdout: r.stdout.slice(0, 400), stderr: r.stderr.slice(0, 400), exitCode: r.code });
   }
 
   // D-02 NODE_OPTIONS
@@ -461,10 +495,17 @@ async function main() {
       timeout: 7000,
     });
     const fired = fs.existsSync(marker);
+    const appStarted = /\[LED-VERSIONS\]/.test(r.stdout);
     if (fired) fs.unlinkSync(marker);
-    rec('D-02', 'NODE_OPTIONS=--require 不被执行', !fired,
-      fired ? '❌ marker 文件被生成 —— NODE_OPTIONS 实际生效' : '未生成 marker，NODE_OPTIONS 被丢弃',
-      { appStarted: /\[LED-VERSIONS\]/.test(r.stdout) });
+    // 🔴 必须同时要求「应用真的起来了」：否则进程根本没跑，marker 当然不会生成，
+    //    这条断言就会**空转通过**（CI run #48 上就是这样假绿的）。
+    rec('D-02', 'NODE_OPTIONS=--require 不被执行（且应用确实已启动）', !fired && appStarted,
+      fired
+        ? '❌ marker 文件被生成 —— NODE_OPTIONS 实际生效'
+        : appStarted
+          ? '未生成 marker，NODE_OPTIONS 被丢弃；且应用已正常启动（非空转）'
+          : `❌ 应用未启动（退出码 ${r.code}）—— marker 未生成不能作为 NODE_OPTIONS 被丢弃的证据`,
+      { appStarted, exitCode: r.code, stderr: r.stderr.slice(0, 300) });
   }
 
   // D-03 --inspect
@@ -481,9 +522,17 @@ async function main() {
     }
     const r = await p;
     const dbg = /Debugger listening on/i.test(r.stdout + r.stderr);
-    rec('D-03', '--inspect 不开启 Node 调试端口', !listening && !dbg,
-      listening ? `❌ 端口 ${port} 处于 LISTEN` : dbg ? '❌ 出现 "Debugger listening" 输出' : `端口 ${port} 全程未监听`,
-      { port, listening });
+    const appStarted = /\[LED-VERSIONS\]/.test(r.stdout);
+    // 同样必须要求应用真的起来：进程若压根没跑，端口当然不会 LISTEN —— 那是空转而非「被禁用」
+    rec('D-03', '--inspect 不开启 Node 调试端口（且应用确实已启动）', !listening && !dbg && appStarted,
+      listening
+        ? `❌ 端口 ${port} 处于 LISTEN`
+        : dbg
+          ? '❌ 出现 "Debugger listening" 输出'
+          : appStarted
+            ? `端口 ${port} 全程未监听，且应用已正常启动（非空转）`
+            : `❌ 应用未启动（退出码 ${r.code}）—— 端口未监听不能作为 CLI Inspect 被禁用的证据`,
+      { port, listening, appStarted, exitCode: r.code });
   }
 
   /* ---------------- 破坏性用例：先备份，结束必还原 ---------------- */
