@@ -59,6 +59,7 @@
 #   5. npm run test:redlines       ← 8 处受保护业务口径（A-01~A-08）
 #   6. npm run test:unit           ← core.js 单元测试
 #   7. 构建（root build + desktop sync + electron-builder 打包配置校验）
+#   7.4 品牌图标资源自检（verify-icons.mjs，10 项 · D-08）
 #   8. Electron 启动冒烟 **连续 10 次**   ← TK-88：app:// ERR_FAILED(-2) 竞态
 #   8.5 桌面 E2E **前置环境取证**（工作区尺寸 / 最大可达客户区 / 当前档位）
 #   9. 桌面 E2E（desktop-suite.mjs，93 条用例）
@@ -313,7 +314,8 @@ jobs:
 
       # 7.3 桌面版打包配置校验（不产出 EXE）
       # 🔴 **不执行 electron-builder 实际打包**：正式发行包属 P7 阶段，
-      #    且当前 desktop/resources/icon.ico 尚未产出（P4-B 不含 D-08 图标）。
+      #    打包与安装链路验收（含签名）仍归 P7，不在此处进行。
+      #    （D-08 品牌图标已落地：resources/icon.ico 7 档，由 7.4 单独自检。）
       #    本步骤只做 **配置可解析性** 校验，不产出任何交付物。
       - name: 校验打包配置（不产出 EXE）
         shell: pwsh
@@ -329,6 +331,18 @@ jobs:
             }
           }
           Write-Host "✅ 打包配置校验通过（appId / productName / shortcutName / 卸载保留设置）"
+
+      # 7.4 品牌图标资源自检（D-08）
+      # 断言对象是**实际随包发出去的那份资源**，不是配置字符串：
+      #   · ico 结构（7 档尺寸 / 32bpp / 偏移不越界不重叠）
+      #   · 像素为最终 LOGO 品牌色，且**不含旧占位图配色** —— 防止占位图回退
+      #   · icon-256x256.png 与 ico 的 256 条目字节一致（同源产物）
+      #   · electron-builder.yml 的 icon / installerIcon / uninstallerIcon 均可解析
+      #   · main.js 引用的 icons 路径存在
+      - name: 品牌图标资源自检（D-08）
+        shell: pwsh
+        working-directory: desktop
+        run: npm run verify:icons
 
       # ==========================================================================
       # 8 · Electron 启动冒烟 —— 连续 10 次（TK-88）
@@ -589,6 +603,7 @@ jobs:
             '业务红线'   = 'test:redlines（8 处受保护口径 A-01~A-08）'
             '单元测试'   = 'test:unit（core.js 单元测试 64 条）'
             '构建'       = 'HTML 单文件 + 桌面资源同步 + 打包配置校验（不产出 EXE）'
+            '图标自检'   = 'D-08 品牌图标（ico 7 档结构 / 品牌色且无旧占位色 / 三处引用可解析）'
             '启动冒烟'   = 'Electron 连续启动 ×10（TK-88 app:// 竞态）'
             '桌面 E2E'   = 'desktop-suite（93 条）'
             '黄金向量'   = '负向自检 + L2 独立套件（22 向量：21 执行 + 1 不适用）'

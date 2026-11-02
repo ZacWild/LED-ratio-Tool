@@ -24,8 +24,9 @@
     "test:golden:selftest": "node test/golden-negative-selftest.mjs",
     "test:dpi": "node test/dpi-acceptance.mjs",
     "test:pc": "node test/pc-verify.mjs",
+    "verify:icons": "node build/verify-icons.mjs",
     "dev": "npm run preflight && node build/sync-assets.mjs && electron .",
-    "build:win": "npm run preflight && node build/sync-assets.mjs && electron-builder --win --x64 --config build/electron-builder.yml"
+    "build:win": "npm run preflight && npm run verify:icons && node build/sync-assets.mjs && electron-builder --win --x64 --config build/electron-builder.yml"
   },
   "dependencies": {},
   "devDependencies": {

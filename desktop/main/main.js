@@ -253,6 +253,13 @@ function createWindow() {
     minHeight: MIN_CONTENT_H,
     show: false, // 就绪后再显示，避免白屏闪烁
     title: 'LED 比例换算台',
+    // 🔒 D-08 品牌图标（任务栏 / 标题栏）：
+    //    打包版**不设**该键 —— Windows 对未显式指定图标的窗口回落到 exe 内嵌图标，
+    //    即 electron-builder 的 win.icon（resources/icon.ico），无需重复指定。
+    //    开发版没有 exe，不指定就会显示 Electron 默认图标，故仅在未打包时挂载。
+    //    resources/ 属 buildResources、不在 files 白名单内，不进 asar —— 因此
+    //    打包运行时该路径本就不存在，用 app.isPackaged 分支而不是存在性判断。
+    ...(app.isPackaged ? {} : { icon: path.join(__dirname, '..', 'resources', 'icon.ico') }),
     backgroundColor: '#141518', // 与 --bg-app 同色，消除加载期白闪
     autoHideMenuBar: false,
     webPreferences: {
