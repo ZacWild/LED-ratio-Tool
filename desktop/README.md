@@ -32,11 +32,11 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | 视觉回归 | ✅ **3/3 通过**（1440×900 / 1200×800 / 1024×680，阈值 0.1%）：三张基准已于 `b48aaa8` **按授权更新**至 UI Polish 后的实际画面，重跑差异 **0.0000%**、更新 0 项（明细见 §1.1） |
 | 高 DPI **100%** 档 | ✅ **21/21 通过**（`scaleFactor = 1` 实读，非模拟） |
 | Windows CI 工作流 | ✅ **已在 GitHub 实际运行并通过**（次数与逐次结论以 Actions 页面为准，本表不写死以免每次推送即过期）。`feature/desktop-windows` 上 push run **#35** / pull_request run **#36**（`a05defd`）均 success、全部步骤 0 失败。`Protect main` 规则集已把 **`Windows · 桌面版门禁`** 设为 required status check；PR #1 已合并进 `main`（squash → `626673f`） |
-| **品牌图标（D-08 最终 LOGO）** | ✅ **已完成**（`9109cc5`）：最终 LOGO → `icon.ico` 7 档（16~128 = BMP，256 = PNG）+ `icon-256x256.png`，旧占位图已删除。exe / 安装包 / 便携版 / 已安装程序 / 卸载器 / 快捷方式 / 标题栏 / 任务栏 **八处实测同源同字节**，并新增 `verify:icons` 10 项自检进入 CI 门禁。详见 §1.2 |
+| **品牌图标（D-08 最终 LOGO）** | ✅ **已完成**（`cc9be31`）：最终 LOGO → `icon.ico` 7 档（16~128 = BMP，256 = PNG）+ `icon-256x256.png`，旧占位图已删除。exe / 安装包 / 便携版 / 已安装程序 / 卸载器 / 快捷方式 / 标题栏 / 任务栏 **八处实测同源同字节**，并新增 `verify:icons` 10 项自检进入 CI 门禁。详见 §1.2 |
 | 正式安装包 / 签名 / 完整安装链路 | ⏳ **尚待 P7 验收**。CI 中的打包步骤只产出 Preview Candidate 与尺寸报告（**不参与门禁**）；当前未发布、未签名 |
 | 高 DPI **125% / 150%** 档 | ⛔ **BLOCKED（环境未就绪）**：需人工切换系统缩放（必要时注销重登）后按 `DPI-ACCEPTANCE.md` 执行，**未用模拟手段冒充** |
 
-> 📅 **本文档数据截止：2026-11-02，分支 `feature/desktop-windows` @ `9109cc5`**。数字均取自 `desktop/test/reports/` 下的真实报告与 GitHub Actions 实际运行记录，不手工估算。本文档自身的后续文档提交不计入上述测试数据。
+> 📅 **本文档数据截止：2026-11-02，分支 `feature/desktop-windows` @ `cc9be31`**。数字均取自 `desktop/test/reports/` 下的真实报告与 GitHub Actions 实际运行记录，不手工估算。本文档自身的后续文档提交不计入上述测试数据。
 
 > ✅ **当前测试门禁全部通过**：桌面 E2E 93/93、HTML E2E 85/85、单元测试 64/64、安全审计 47/47、200 组差分完全通过、视觉回归 3/3、100% 缩放档 21/21、图标自检 10/10。
 
@@ -594,11 +594,13 @@ set ELECTRON_RUN_AS_NODE=
 
 | 项 | 实际状态 |
 |---|---|
-| 默认分支 `main` | `626673f` —— PR #1 的 squash 合并提交（`feat(desktop): add Electron-based Windows desktop application`） |
-| 开发分支 `feature/desktop-windows` | `a05defd` —— PR #1 合并时的 head，**分支保留未删除**；内容已全部并入 `main` |
+| 默认分支 `main` | `a1dc1ae` —— PR #2 的 squash 合并提交（CI Maintenance） |
+| 开发分支 `feature/desktop-windows` | `cc9be31`（D-08 品牌图标）—— **分支保留未删除**，作为后续改动的提交入口 |
 | PR #1 | **Closed · merged**（2026-11-02T06:18:01Z，squash → `626673f`）。合并前 `mergeable_state = clean`，required check `Windows · 桌面版门禁` 在 head `a05defd` 上 success |
+| PR #2 | **Closed · merged**（2026-11-02T08:19:35Z，squash → `a1dc1ae`）。内容：Actions 升级 Node 24 / 汇总脚本插值修复 / 过期 Ruleset 说明校正 |
 | Tag | 仅 **1 个**：`pre-desktop`（桌面版开发起点）。**当前工作尚无正式版本 Tag** |
 | Release | **0 个** —— 未发布任何版本，与「正式安装包 / 签名尚待 P7 验收」（§一）一致 |
-| 合并动作 | ✅ **已由项目负责人执行 Squash Merge**（`626673f`）。合并后 `main` 受 `Protect main` 保护，后续改动仍须走 PR + required check |
+| 合并动作 | ✅ **已由项目负责人执行 Squash Merge**（`626673f`、`a1dc1ae`）。合并后 `main` 受 `Protect main` 保护，后续改动仍须走 PR + required check |
+| ⚠️ squash 合并的分支陷阱 | 每次 squash 合并后，原分支的 merge-base 会退回旧 base；若直接在其上开新 PR，上一轮的文件会被算成「双方各自新增」→ add/add 冲突。处理：`git rebase --onto origin/main <旧 base> feature/desktop-windows` 把提交重落到新 `main` 之上（本轮已按此处理：重落后与新 `main` 的差异收敛为 **8 文件 +388/−10**） |
 
 > 🔒 上表是**抓取时快照**，不是承诺。Tag / Release / 合并状态一律以 GitHub 实时页面为准；本文档不代替 GitHub 上的真实状态。

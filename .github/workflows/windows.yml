@@ -338,7 +338,7 @@ jobs:
       #   · 像素为最终 LOGO 品牌色，且**不含旧占位图配色** —— 防止占位图回退
       #   · icon-256x256.png 与 ico 的 256 条目字节一致（同源产物）
       #   · electron-builder.yml 的 icon / installerIcon / uninstallerIcon 均可解析
-      #   · main.js 引用的 icons 路径存在
+      #   · main.js 引用的图标路径存在
       - name: 品牌图标资源自检（D-08）
         shell: pwsh
         working-directory: desktop
