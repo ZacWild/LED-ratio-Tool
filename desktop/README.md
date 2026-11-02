@@ -18,18 +18,30 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | 最小窗口 / 高 DPI / 工作区检测 | ✅ 已实现并实测（100% 缩放档） |
 | **完整业务 UI（F-01~F-18）** | ✅ **已实现**（16 项全通过 / 2 项有缺口，见 `DESIGN-ALIGNMENT.md` §5） |
 | 三档响应式布局（1280 三栏 / 两栏 / 1024 纵向堆叠） | ✅ 已实现并分别验收 |
+| 高度降级三档（DEC-16 `standard` / `compact` / `tight`） | ✅ **②/③ 档收纳已实施**（TK-72 闭合，`TC-H-01~15` 15/15 通过；四类核心操作任何档位都不隐藏） |
 | 12 组快捷键 × 4 种焦点状态 | ✅ 已实现并实测 |
 | 原生菜单栏 + 底部状态栏 + 拖拽分栏 | ✅ 已实现并实测 |
-| 桌面专项测试（76 条用例） | ✅ 76/76 通过 |
-| 200 组差分（DEC-15） | ⚠️ **有条件通过**（差异 0 条，未覆盖字段 3036，覆盖率 69.42%） |
-| Windows CI 工作流 | ✅ **已在 GitHub 实际运行并通过**（push run #19 + pull_request run #20，36 步 0 失败）；`Protect main` 规则集已补 `required_status_checks = "Windows · 桌面版门禁"` |
-| 正式安装包 / 便携版 / 签名 | ⏳ 属 P7，尚未产出 |
-| 高 DPI 125% / 150% 档 | ⛔ **BLOCKED（环境未就绪）**：100% 档 21/21 通过；125% / 150% 需人工切换系统缩放（必要时注销重登）后按 `DPI-ACCEPTANCE.md` 执行，**未用模拟手段冒充** |
+| TK-161 结果锚点条按「实际列数」显示 | ✅ **已实施**（规则 RC-161-1 + `E1` 例外 `stacked × tight`，见 `DESIGN-ALIGNMENT.md` §11.1） |
+| 桌面专项 E2E | ✅ **93/93 通过**（TC-D 20 / TC-DP 10 / TC-DS 10 / TC-EX 12 / TC-MENU 10 / TC-COPY 6 / TC-RESIZE 8 / TC-H 17） |
+| HTML 版 E2E | ✅ **85/85 通过**（依赖系统安装的 Google Chrome） |
+| `core.js` 单元测试 | ✅ **64/64 通过** |
+| 业务红线守卫 | ✅ **8 处受保护口径**（A-01~A-08）+ `core.js` SHA-256 哈希锁 |
+| 安全静态审计 | ✅ **47/47 通过** |
+| 200 组差分（DEC-15） | ✅ **完全通过**：200/200 执行，差异 **0** 条，未覆盖字段 **0**，字段级覆盖率 **100%**（43 个字段 / 6,882 条 L1 断言） |
+| 视觉回归 | ✅ **3/3 通过**（1440×900 / 1200×800 / 1024×680，阈值 0.1%） |
+| 高 DPI **100%** 档 | ✅ **21/21 通过**（`scaleFactor = 1` 实读，非模拟） |
+| Windows CI 工作流 | ✅ **已在 GitHub 实际运行 24 次**；最新 push run **#23** + pull_request run **#24**（`c9db38b`）**36 步 0 失败**。`Protect main` 规则集已配置 `required_status_checks = "Windows · 桌面版门禁"`，PR 状态 `mergeable_state = clean` |
+| 正式安装包 / 签名 / 完整安装链路 | ⏳ **尚待 P7 验收**。CI 中的打包步骤只产出 Preview Candidate 与尺寸报告（**不参与门禁**）；当前未发布、未签名 |
+| 高 DPI **125% / 150%** 档 | ⛔ **BLOCKED（环境未就绪）**：需人工切换系统缩放（必要时注销重登）后按 `DPI-ACCEPTANCE.md` 执行，**未用模拟手段冒充** |
 
-> ⚠️ **本工程当前不是可交付版本。**
-> ① 200 组差分只达到「有条件通过」，未达「完全通过」；
-> ② CI 工作流**只是文件已建立** —— GitHub Actions 从未在本仓库实际运行过它；
-> ③ 产品验收与发布放行权属项目负责人（DEC-05）。
+> 📅 **本文档数据截止：2026-11-02，分支 `feature/desktop-windows` @ `c9db38b`**。数字均取自 `desktop/test/reports/` 下的真实报告与 GitHub Actions 实际运行记录，不手工估算。
+
+> ✅ **当前测试门禁全部通过**：桌面 E2E 93/93、HTML E2E 85/85、单元测试 64/64、安全审计 47/47、200 组差分完全通过、视觉回归 3/3、100% 缩放档 21/21。
+
+> ⚠️ **但本工程仍不是可交付版本。**
+> ① **125% / 150% 高 DPI 未验收** —— BLOCKED，需人工切换系统缩放；
+> ② **正式安装包、代码签名与完整安装链路尚待 P7 验收**；
+> ③ 产品验收与发布放行权属项目负责人（DEC-05）—— **测试通过 ≠ 可以发布**。
 
 > 📋 **设计与实现对照**见 [`DESIGN-ALIGNMENT.md`](DESIGN-ALIGNMENT.md) —— 逐条记录 P3 设计基线在桌面版的落地位置、差异、待裁决项（TK-140 ~ TK-150）。
 
@@ -107,8 +119,11 @@ npm run dev          # ③ 启动桌面版（= preflight + sync + electron .）
 | `npm run sync:check` | 桌面副本零漂移 + `core.js` SHA-256 哈希锁 | 0 = 通过 / 1 = 漂移 |
 | `npm run audit:security` | **47 项**安全静态审计 | 0 = 全通过 / 1 = 有失败 |
 | `npm run test:smoke` | **Electron 启动冒烟连续 10 次**（TK-88 竞态） | 0 = 全通过 / 1 = 有轮次失败 / 3 = 环境阻塞 |
-| `npm run test:desktop` | **桌面专项 E2E（76 条用例）** | 0 = 全通过 / 1 = 有失败 / 2 = 有阻塞 / 3 = 环境阻塞 |
+| `npm run test:desktop` | **桌面专项 E2E（93 条用例）** | 0 = 全通过 / 1 = 有失败 / 2 = 有阻塞 / 3 = 环境阻塞 |
 | `npm run test:differential` | **200 组差分**（DEC-15 三层期望源） | 0 = 完全通过 / 1 = 有差异 / 2 = **有条件通过** / 3 = 环境阻塞 |
+| `npm run test:golden` | L2 黄金向量独立套件（22 向量：21 执行 + 1 不适用） | 0 / 1 |
+| `npm run test:dpi` | 真实系统 DPI 验收（`--expect=100/125/150`） | 0 = 通过 / 1 = 失败 / 3 = 环境不匹配 |
+| `npm run test:visual` | 视觉回归（3 档，阈值 0.1%）。⚠️ **未纳入 CI 门禁**，本地/授权后手动执行 | 0 = 通过 / 1 = 超阈值 |
 | `npm run evidence:p4a` | P4-A 的 9 项证据采集 | 0 / 1 / 2 |
 | `npm run evidence:p4b` | P4-B 的 26 项证据采集 | 0 / 1 / 2 |
 
@@ -178,18 +193,29 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 ### 5.3 门禁顺序
 
 ```
-1. npm ci（仓库根）
-2. npm ci（desktop/）
-3. npm run sync:check          ← 副本零漂移 + core.js 哈希锁
-4. npm run audit:security      ← 47 项安全静态审计
-5. npm run test:redlines       ← 8 处受保护业务口径
-6. npm run test:unit           ← core.js 单元测试
-7. 构建（HTML 单文件 + 桌面资源同步 + 打包配置校验）
-8. Electron 启动冒烟 × 10      ← TK-88
-9. 桌面 E2E（76 条）
-10. 200 组差分（DEC-15）
-11. 产物收集（报告 JSON + 截图 + SHA-256 清单）→ 上传
+1. 检出 + 清除 ELECTRON_RUN_AS_NODE（SEC-40）
+2. 安装 Node 20 / Google Chrome，恢复缓存（Playwright 浏览器 / Electron 二进制 / desktop/node_modules）
+3. npm ci（仓库根）
+4. npm ci（desktop/）
+5. npm run sync:check          ← 副本零漂移 + core.js 哈希锁
+6. npm run audit:security      ← 47 项安全静态审计
+7. npm run test:redlines       ← 8 处受保护业务口径
+8. npm run test:unit           ← core.js 单元测试（64 条）
+9. 构建（HTML 单文件 + 桌面资源同步 + 打包配置校验）
+10. Electron 启动冒烟 × 10      ← TK-88
+11. 桌面 E2E 前置环境取证（工作区 / 最大可达客户区 / 当前档位）
+12. 桌面 E2E（93 条）
+13. 桌面 E2E 后置环境取证
+14. 黄金向量负向自检（P0-2）
+15. L2 黄金向量独立套件（22 向量：21 执行 + 1 不适用）
+16. 200 组差分（DEC-15）
+17. 真实 DPI 验收（100% 档，21 项）
+18. 打包 + Preview Candidate 产物验收（**只出报告，不参与门禁**）
+19. 生成产物 SHA-256 清单 → 上传报告 / 截图 / CI 日志 → 汇总门禁结果
 ```
+
+> 🔵 GitHub Actions 中的实际作业共 **36 个步骤**（含 setup / checkout / 缓存与 Post 收尾），上表按「逻辑门禁」归并展示。
+> ⚠️ **视觉回归（`npm run test:visual`）不在 CI 门禁内** —— 基准是否应更新需人工裁决，故只在本地或经授权后执行。
 
 ### 5.4 关键环境约束
 
@@ -200,20 +226,25 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 | **缓存** | `desktop/node_modules` + Playwright 浏览器目录（`PLAYWRIGHT_BROWSERS_PATH`）+ Electron 二进制 |
 | **产物** | `desktop/test/reports/`、`desktop/test/shots/`、`artifacts/SHA256SUMS.txt`（SHA-256 清单） |
 
-### 5.5 🔴 关于 GitHub Ruleset 的强制约束
+### 5.5 Ruleset 必需状态检查（已按顺序完成配置）
 
-> **在 CI 尚未于本仓库实际成功运行过之前，禁止把任何状态检查设为 GitHub Ruleset 的必需项（required status check）。**
+> 🔒 **纪律（保留）**：在 CI 尚未于本仓库成功运行过之前，禁止把任何状态检查设为 Ruleset 的必需项（required status check）。
 >
 > 理由：把一个「从未成功运行过」的检查设为 required，等于给所有后续 PR 判死刑 —— 任何人推 PR 都会因为一个从未被验证能通过的工作流而被永久阻塞。
 >
-> 正确顺序：
-> a. 先推送本工作流文件
-> b. 在仓库 Actions 页面上确认**至少一次真实的绿色运行**
-> c. 再由项目负责人手动把该 job 名（`Windows · 桌面版门禁`）加入 Ruleset 的 required status checks
->
-> 在 (c) 完成之前，Ruleset 的 required checks **必须为空**。本文件不代替 (c)。
+> 正确顺序：a. 先推送工作流文件 → b. 在 Actions 页面确认**至少一次真实的绿色运行** → c. 再由项目负责人把该 job 名（`Windows · 桌面版门禁`）加入 Ruleset 的 required status checks。
 
-> 🔴 **「工作流已建立」≠「CI 已通过」**。截至本文件创建时刻，GitHub Actions **从未在本仓库实际运行过**本工作流。首次真实运行发生在本文件被推送到远端之后。
+**当前实际状态（2026-11-02）**
+
+| 项 | 状态 |
+|---|---|
+| CI 真实运行 | ✅ 已在 GitHub 实际运行 **24 次**；最新 push run **#23** / pull_request run **#24**（`c9db38b`）均 **success**，36 步 0 失败 |
+| Ruleset `Protect main` | ✅ 已配置 `required_status_checks`，context = **`Windows · 桌面版门禁`**（与作业名逐字节一致） |
+| 效果验证 | ✅ PR #1 的 `mergeable_state` 由 `unstable` 转为 **`clean`** —— 说明必需检查已真实生效 |
+
+> 上述 a / b / c 三步均已完成：工作流已推送、已有多次真实绿色运行、必需检查已由项目负责人配置。
+
+> ✅ **「工作流已建立」≠「CI 已通过」** —— 本仓库已越过该门槛：CI 不仅建立了，而且已在 `feature/desktop-windows` 上**真实运行并通过**（见上表）。
 
 ---
 
@@ -289,7 +320,7 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 led-ratio-tool-repo/
 ├── .github/
 │   └── workflows/
-│       └── windows.yml           ← 🔴 真正生效的 Windows CI 工作流（23 个步骤）
+│       └── windows.yml           ← 🔴 真正生效的 Windows CI 工作流（29 个定义步骤 → 实际作业 36 步）
 ├── src/                          ← 🔒 受保护：HTML 版业务源码（桌面版从这里同步）
 ├── index.html                    ← 🔒 受保护：HTML 版入口（桌面版从这里同步）
 ├── dist/led-ratio-tool.html      ← 🔒 受保护：HTML 版正式交付物
@@ -297,7 +328,8 @@ led-ratio-tool-repo/
 └── desktop/                      ← ⬅️ 桌面版工程（本目录可改）
     ├── .github/workflows/
     │   └── windows.yml           ← 📄 指向说明（非可执行工作流）
-    ├── DESIGN-ALIGNMENT.md       ← 📋 实施台账：P3 → 桌面版逐条对照 + TK-72 提案
+    ├── DESIGN-ALIGNMENT.md       ← 📋 实施台账：P3 → 桌面版逐条对照 + TK 提案与 RC 裁决
+    ├── DPI-ACCEPTANCE.md         ← 📐 125% / 150% 高 DPI 真实验收指引（当前 BLOCKED）
     ├── README.md                 ← 📖 本文件
     ├── PROTECTED.md              ← 受保护业务口径登记（A-01~A-08）
     ├── core.lock.json            ← core.js SHA-256 哈希锁
@@ -325,13 +357,20 @@ led-ratio-tool-repo/
     │   └── electron-builder.yml  打包配置（P7 使用）
     └── test/
         ├── security-audit.cjs    47 项安全静态审计
-        ├── smoke-launch.mjs      🆕 Electron 启动冒烟（参数化次数，TK-88）
-        ├── desktop-suite.mjs     桌面专项 E2E（76 条用例）
+        ├── smoke-launch.mjs      Electron 启动冒烟（参数化次数，TK-88）
+        ├── desktop-suite.mjs     桌面专项 E2E（93 条用例）
         ├── differential-200.mjs  200 组差分执行器（DEC-15）
+        ├── golden-vectors.mjs    L2 黄金向量独立套件（22 向量）
+        ├── golden-negative-selftest.mjs 黄金向量负向自检（P0-2）
+        ├── visual-regression.mjs 视觉回归（3 档，未纳入 CI 门禁）
+        ├── visual-selfcheck.mjs  视觉回归自检
+        ├── dpi-acceptance.mjs    真实系统 DPI 验收（--expect=100/125/150）
+        ├── dpi-run.cmd           DPI 验收一键入口（CRLF 固定）
+        ├── pc-verify.mjs         打包产物 / Preview Candidate 验收
         ├── p4a-evidence.cjs      P4-A 的 9 项证据采集
         ├── p4b-evidence.cjs      P4-B 的 26 项证据采集
-        ├── visual-regression.mjs 视觉回归
         ├── offline-verify.cjs    离线三层核验
+        ├── harness/              PNG 解码 / 像素比对 / 页面探针公共库
         ├── oracle/               L1 独立 oracle
         ├── vectors/golden.json   L2 黄金向量
         ├── reports/              测试报告 JSON
@@ -416,9 +455,21 @@ set ELECTRON_RUN_AS_NODE=
 
 ### 8. 窗口高度不足时会不会隐藏核心操作
 
-**不会。** 当前实现只输出高度档位判定值（`heightTier` 1/2/3），**没有任何按高度收纳核心操作的代码路径**。
+**核心操作一个都不隐藏。** 高度不足时只做「收纳」—— 压缩 chrome 与折叠说明性内容，不碰输入输出。这是 DEC-16 的高度三档设计，**TK-72 已闭合、②/③ 档收纳已实施**（逐条清单见 [`DESIGN-ALIGNMENT.md`](DESIGN-ALIGNMENT.md) §4）。
 
-第 ②③ 档（紧凑高度模式）的**收纳清单与布局方案**已写成提案，见 [`DESIGN-ALIGNMENT.md`](DESIGN-ALIGNMENT.md) §4（TK-72）—— **须项目负责人批准后才会实现**。
+🔒 **四类元素在任何档位都不得隐藏、不得移出可达范围**：① 输入（屏幕宽 / 高）② 结果（比例值 / 分辨率）③ 警告（21:9 警示条）④ 复制（两个复制入口）。`TC-H-11` 实测三档全部满足。
+
+档位由**渲染层自算**（`desktop-ui.js` → `decideHeightTier()`；阈值 `MIN_CLIENT_H = 680` / `STANDARD_CLIENT_H = 784` / `FRAME_DELTA = 65`，`resize` 时 rAF 节流重算），写在 `.layout[data-height-tier]` 并**镜像到 `<html>`** 作为标题条/状态栏的样式钩子（两处由同一函数写入，不会漂移）：
+
+| 档位 | 判据 | 已实施的收纳动作 |
+|---|---|---|
+| ① `standard` | `clientH ≥ 784` | **无收纳**。说明块恒常展开，**不提供折叠入口**（折叠头 `hidden`，不占 Tab 位） |
+| ② `compact` | `680 ≤ clientH < 784` | 标题条副标题单行省略（标题保留）· 三栏/两栏档面板 `gap` 16→12 · 标准库列表限高 `min(30vh, 200px)`（**仍可滚动访问**）· C 栏四个说明块默认折叠为单个「说明」折叠头（原生 `<button>`，`Enter`/`Space` 可展开） |
+| ③ `tight` | `clientH < 680`，或**工作区放不下**最小标准客户区（`workH < 745`） | 副标题隐藏 · 标题条 40→28 · 状态栏 28→24（错误出口与设置入口均保留）· 三栏档舞台折叠（网格等同两栏）· 纵向堆叠档**保留 B 行**、舞台内容折叠为行内摘要 + 就地展开入口 · 新增结果分段锚点条 `[比例][候选][匹配][误差][复制]` · 说明块默认折叠（同 ② 档） |
+
+> 🔒 **高度轴与宽度轴正交**（TK-147）：`stacked × tight` 叠加时三个面板**仍纵向排列、一个都不隐藏**，只是舞台内容折叠（`TC-H-15` 实测面板 3/3 可见、`grid-template-areas` 未变）。
+> 🔒 **折叠 ≠ 删除**（TK-146）：说明块折叠用 `display:none`，展开后**条目数不变**（`TC-H-05` 实测 10→10）。
+> 💡 **只读诊断**：`window.__desktopHeightTier.info()` 可读出当前档位与判据实参，供测试取证与台账使用 —— 不含业务计算、不新增 IPC 通道。
 
 ### 9. 如何查看版本号
 
@@ -454,7 +505,7 @@ set ELECTRON_RUN_AS_NODE=
 | 网络 | 运行时出网计数 = 0 |
 | 禁用项 | 自动更新 / 系统托盘 / 账号云同步 / 遥测崩溃上报 —— 四层反向核验 |
 
-详见 `_audit/out/P3-表C-Electron安全清单.md`，静态审计由 `npm run audit:security` 执行（47 项）。
+上表每一项都有对应的机器检查：实现位置为 `main/csp.js`（CSP 唯一来源）、`preload/preload.js`（8 方法冻结暴露）、`main/ipc.js`（8 个 handler 唯一注册处）、`main/main.js`（协议与安全拦截），检查项的唯一来源是 `desktop/test/security-audit.cjs`。执行 `npm run audit:security` → **47/47 通过**（最新记录见 [`DESIGN-ALIGNMENT.md`](DESIGN-ALIGNMENT.md)）。
 
 ---
 
@@ -471,3 +522,16 @@ set ELECTRON_RUN_AS_NODE=
 | 5 | ⛔ 完成后给 PR 链接 + 变更摘要 + 测试结果 + 已知问题，**等确认后再合并** |
 
 > 🔒 本次授权**不代表**桌面应用已通过产品验收或获得正式发布许可（DEC-05）。
+
+### 11.1 当前实际状态（GitHub API 实读快照）
+
+| 项 | 实际状态 |
+|---|---|
+| 默认分支 `main` | `545bd0d` —— Revise download instructions in README |
+| 开发分支 `feature/desktop-windows` | PR #1 的 head 分支，**未合并** |
+| PR #1 | **Open** · `mergeable_state = clean` · 非草稿 · base `main`；抓取时为 34 次提交 / 105 个变更文件（+258,983 / −22）。**提交数随每次推送递增，以 PR 页面为准** |
+| Tag | 仅 **1 个**：`pre-desktop`（桌面版开发起点）。**当前工作尚无正式版本 Tag** |
+| Release | **0 个** —— 未发布任何版本，与「正式安装包 / 签名尚待 P7 验收」（§一）一致 |
+| 合并动作 | ⛔ **未执行** —— 等 PR 链接 + 变更摘要 + 测试结果 + 已知问题提交后由项目负责人确认 |
+
+> 🔒 上表是**抓取时快照**，不是承诺。Tag / Release / 合并状态一律以 GitHub 实时页面为准；本文档不代替 GitHub 上的真实状态。
