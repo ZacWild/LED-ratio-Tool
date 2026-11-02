@@ -1,0 +1,1128 @@
+/**
+ * LED-ratio-Tool 桌面版 · 桌面专属增量样式
+ * ---------------------------------------------------------------------------
+ * 决策依据：
+ *   D-03 §0.1 —— 桌面版在 desktop/renderer/ 下维护自己的样式；
+ *                src/styles.css 的 token 全部原样继承；
+ *                桌面专属增量全部写入本文件
+ *   D-03 §3.3 —— 新增 token ≤ 8（实际用 6 个 + 0 个新增，本文件不新增第 7 个）
+ *   D-03 §7   —— 圆角统一 4px / 6px / 8px 三档
+ *   D-03 §9.2 —— D-1~D-22 的 22 项桌面差异落地
+ *   DEC-08    —— 1280px 是三栏切换阈值，不是最小窗口宽度
+ *   DEC-14    —— 客户区尺寸口径（全部尺寸 = CSS px = Windows DIP）
+ *   DEC-16    —— 高度降级三档；TK-72 已闭合 → **②/③ 档收纳已实施**
+ *   IX-01~IX-08 / IX-12 / IX-13 —— 滚动模型、sticky、拖拽、折叠、窄化
+ *
+ * 🔒 本文件不得出现新的十六进制色值（除 6 个新增 token 外）——
+ *    其余一律走 styles.css 的 :root 变量（V-01）。
+ * 🔒 本文件**不新增**字号级、间距级、圆角档位（沿用 7 级 / 6 档 / 3 档）。
+ * 🔒 本文件**不新增** @keyframes、**不新增** transition（动效白名单仍为 2 处）。
+ */
+
+/* ==========================================================================
+   6 个新增 token（D-03 §3.3）
+   --------------------------------------------------------------------------
+   N-1 ~ N-3 滚动条：默认 Chromium 亮色滑块在深底上刺眼且难定位（缺陷 6）
+   N-4 ~ N-5 手柄：琥珀是应用唯一的操作色（O-01）
+   N-6     遮罩：自绘模态需与背景分离
+   ========================================================================== */
+:root {
+  /* UI Polish（2026-11-02）：轨道由 transparent 改为「略深于面板」的凹槽，
+     滑块与悬停态同步降亮度 —— 原 #4A5058 在 #1B1D21 面板上偏亮、成片时抢视线。 */
+  --scrollbar-track: #17191D;
+  --scrollbar-thumb: #3C424B;
+  --scrollbar-thumb-hover: #59616D;
+  --drag-handle: #3A3E45;
+  --drag-handle-hover: #F0A832;
+  --scrim: rgba(10, 10, 12, 0.62);
+}
+
+/* ==========================================================================
+   滚动条（缺陷 6 · D-03 §4.7.11｜UI Polish 2026-11-02 重做）
+   --------------------------------------------------------------------------
+   🔴 根因：原规则同时声明了标准属性 `scrollbar-width: thin` 与 `::-webkit-scrollbar`。
+      Chromium 121+ 起，只要出现 `scrollbar-width`，就**改用平台原生滚动条**
+      并忽略 `::-webkit-scrollbar` 的着色 —— 实测审计（UI Polish）
+      面板与比例列表渲出的都是 Windows 浅色滚动条（浅灰滑块 + 近白轨道），
+      在 #1B1D21 面板上成片刺眼，正是「突兀的浅色滚动条」的来源。
+   ✅ 修法：删除 `scrollbar-width: thin`，让 `::-webkit-scrollbar` 成为唯一真源。
+      宽度仍取 10px（与原生 thin 实测同宽）→ **不产生任何布局位移**。
+   🔒 不得改为 `display:none` / `scrollbar-width:none` / `overflow:hidden`：
+      滚动条必须保留**可发现性与可拖动性**，滚轮、拖拽、键盘滚动行为不变。
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: var(--radius-sm);
+}
+::-webkit-scrollbar-thumb {
+  /* 2px 透明边框 + padding-box 裁切 → 视觉滑块 6px，可拖动热区仍为整条 10px */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  background-color: var(--scrollbar-thumb);
+  border-radius: var(--radius-sm);
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-thumb-hover);
+}
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+
+.panel,
+.list--scroll,
+.table-wrap,
+.modal__body,
+.status-bar__scroll {
+  /* 🔒 只保留 gutter，**不要**再加 scrollbar-width（见上方根因说明） */
+  scrollbar-gutter: stable;
+}
+
+/* ==========================================================================
+   外壳：窗口永不整体滚动（IX-01）
+   --------------------------------------------------------------------------
+   采用 flex 列布局而非 calc(100vh - …)：
+   垂直预算 = 标题 40 + 状态栏 28 → 面板区高 = 客户区高 − 68（D-03 §8.2）。
+   实测垂直预算 **784px**（900 客户区 − 68 − 48 内边距）。
+   ========================================================================== */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 标题条：D-03 §3.2 —— 桌面端 40px（不通过改 :root 实现） */
+.app-header {
+  flex: 0 0 40px;
+  height: 40px;
+}
+
+/* 单位分段已迁入 A 栏「屏幕尺寸」组（EL-HD-01，D-01 §1.1）→ 顶栏动作区留空 */
+.app-header__actions {
+  display: none;
+}
+
+/* HTML 版的设置浮层在桌面版由自绘模态承担（D-03 §5.3） */
+#settings-panel {
+  display: none !important;
+}
+
+.layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--col-input) minmax(480px, 1fr) var(--col-result);
+  grid-template-areas: 'a b c';
+  gap: var(--space-4);
+  /* 取消 max-width 与居中（缺陷 4 / D-03 §3.4）—— 多余宽度全给 B 栏 */
+  max-width: none;
+  margin: 0;
+  padding: var(--space-5);
+  overflow: hidden;
+  position: relative;
+}
+
+/* 各面板独立滚动（IX-02 / IX-04） */
+.panel {
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  scrollbar-gutter: stable;
+}
+
+/* 模态打开时背景面板停止滚动（D-03 §5.3 / D-02 §9.4） */
+body.is-modal-open .panel {
+  overflow: hidden;
+}
+
+.panel--input {
+  min-width: 280px;
+}
+.panel--result {
+  min-width: 360px;
+}
+
+/* ==========================================================================
+   三档响应式布局（DEC-08 · D-01 §2~§4）
+   --------------------------------------------------------------------------
+   ① ≥1280px   三栏 A | B | C          —— 完整舞台
+   ② 1025~1279 两栏 A | C            —— 舞台折叠为摘要（EL-ST-15）
+   ③ ≤1024px   三面板纵向堆叠 A/B/C   —— 窄窗口（IX-13 口径）
+   🔴 1024px 窄窗口采用**纵向堆叠**而非两栏：两栏会把 A 栏压到 288px，
+      违反 IX-13 的「内容盒宽 ≥ 300px」，并使宽高输入框净宽不足。
+   ========================================================================== */
+.layout[data-layout='two'] {
+  grid-template-columns: var(--col-input) minmax(0, 1fr);
+  grid-template-areas: 'a c';
+}
+
+/* 🔒 只隐藏**直属**的舞台面板 —— 内联展开到 C 栏时（EL-ST-16）不受此规则影响 */
+.layout[data-layout='two'] > .panel--stage {
+  display: none;
+}
+
+.layout[data-layout='stacked'] {
+  grid-template-columns: minmax(0, 1fr);
+  /* 🔒 结果行留足高度：核心结果卡 + 警示条 + 复制组三层必须同时可见
+      （任务书「窄窗口纵向堆叠时保证核心结果、警告、复制操作均可见」） */
+  grid-template-rows: minmax(140px, 0.7fr) minmax(110px, 0.5fr) minmax(230px, 1.7fr);
+  grid-template-areas:
+    'a'
+    'b'
+    'c';
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.layout[data-layout='stacked'] .panel--stage {
+  display: flex;
+}
+
+/* ==========================================================================
+   舞台：高度自适应（缺陷 2 · D-03 §3.2）
+   clamp(240px, 面板区高 − 24px, 560px) 的 flex 等价实现
+   ========================================================================== */
+.panel--stage {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.stage {
+  flex: 1 1 auto;
+  min-height: 240px;
+  max-height: 560px;
+  height: auto;
+}
+
+.layout[data-layout='stacked'] .stage {
+  min-height: 120px;
+  max-height: 260px;
+}
+
+/* 两栏档把舞台内联展开到 C 栏时（IX-12 / EL-ST-16） */
+.panel--stage.is-inline {
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ==========================================================================
+   输入区（EL-IN · D-03 §4.7.1）
+   --------------------------------------------------------------------------
+   CF-2 结论：宽/高字段**恒为纵向堆叠**（桌面版不继承 .field-row 横排）。
+   ========================================================================== */
+.field-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+/* ---------------------------------------------------------------------------
+   步进按钮：实体 32×32，视觉符号 24×24
+   ---------------------------------------------------------------------------
+   🔴 P4-B 缺陷 DEF-02 的修复。
+   原实现：视觉 24×24 + `::after { inset:-6px }` 声称命中区 36×36。
+   实测（elementFromPoint 逐像素扫描）有效命中区只有 **26×34 < 32×32** ——
+   原因：两个按钮间距仅 2px，`::after` 的扩展区**互相覆盖**，
+   且被相邻控件遮挡的部分不算命中 → 声明的 36×36 并不成立。
+
+   修复原则：
+     · **实体盒就是命中区**（不做伪元素扩展）→ 永不重叠、绝不需声明
+     · 实体 32×32 满足 D-02 §10 的最低要求
+     · 视觉符号用 ::before 画，缩到 24×24，保持与原视觉一致
+     · 步进组占位 = 32×2 + gap 2 = **66px ≤ 76px**（.input 的 padding-right 不变）
+       → **输入框文字净宽不变**（D-03 §4.7.1 的关键约束）
+
+   ⚠️ 单位后缀同步右移到 right:80px —— 它是 absolute 不占布局，
+      但必须让开步进组的 66px，否则会被按钮盖住。
+   --------------------------------------------------------------------------- */
+.stepper__btn {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  opacity: 1; /* 常驻可见（O-04） */
+  font-size: 0; /* 文字内容改由 ::before 绘制，避免字体影响行高 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* 视觉符号：24×24，与原视觉一致 */
+.stepper__btn::before {
+  content: attr(data-glyph);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: var(--text-body-size);
+  line-height: 1;
+  pointer-events: none;
+}
+.stepper__btn:hover {
+  border-color: var(--accent);
+}
+
+/* 单位后缀让开步进组（32×2 + gap 2 = 66px → right:80px 留 14px 视觉间距） */
+.input-unit {
+  right: 80px;
+}
+.stepper__btn:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+/* 列表高度自适应（缺陷 5 · IX-07） */
+.list--scroll {
+  flex: 1 1 auto;
+  min-height: 120px;
+  max-height: min(40vh, 320px);
+}
+
+/* IX-13 分组折叠头（EL-IN-35 · D-03 §2.2 续编编号，待并入 D-01 §1） */
+/* 🔴 Step 5 P1-2：分组折叠开关命中区修复（TC-DP-10 实测 40×20 < 32×32）
+   原实现是 20px 高的小芯片（高度不足 D-02 §10 的 32×32）。
+   ⚠️ 该缺陷在 P4-B 被掩盖：控件位于输入面板滚动折叠线以下时
+      「完全不可命中」会被 hitAreaAudit 跳过（另案），修正测量方法
+      （先 scrollIntoView）后才暴露出来。
+
+   修复采用与 `.segmented__item::before` 一致的模式：
+     · 按钮实体盒 **32px 高** = 命中区（标签行本身 31px，可容纳）；
+     · 视觉芯片（20px 高、原背景/边框/圆角）改由 `::before { inset: 6px 0 }`
+       绘制 → **视觉与原实现完全一致**；
+     · 文字 line-height 32px 垂直居中，仍落在芯片内。
+
+   🔴 关键：按钮必须 `z-index: 0` **建立自己的堆叠上下文**，
+      否则 ::before 的 `z-index: -1` 会逃逸到根堆叠上下文、绘制在所有
+      内容之后 —— 实测（Step 5 二分定位）这会让整页 1200/1024 档
+      产生 ~9000 px 的**亚像素合成差异**（视觉无感但像素级回归），
+      加上 z-index:0 后三档视觉回归全部归零。
+      （`.segmented__item` 本来就有 z-index:0，所以它的 ::before 无此问题。）
+   ❌ 试过并否决：`::after { inset: -6px }` 扩展命中区 —— 实测只到 50×30
+      （左右被标签文字、下方被组内容覆盖），仍不足 32。 */
+.group__toggle {
+  position: relative;
+  z-index: 0;
+  float: right;
+  margin-left: var(--space-2);
+  padding: 0 var(--space-2);
+  height: 32px;
+  font-size: var(--text-micro-size);
+  line-height: 32px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.group__toggle::before {
+  content: '';
+  position: absolute;
+  inset: 6px 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  z-index: -1;
+}
+.group__toggle:hover {
+  color: var(--text-primary);
+}
+.group__toggle:hover::before {
+  border-color: var(--accent);
+}
+.group.is-collapsed > *:not(.group__label):not(.group__toggle) {
+  display: none;
+}
+
+/* ==========================================================================
+   结果栏：三层 sticky（DF-02 / D-01 §2.4）
+   --------------------------------------------------------------------------
+   ① 核心结果卡  top:0
+   ② 警示条      与核心卡同容器（始终位于核心卡之下）
+   ③ 复制组      bottom:0
+   ========================================================================== */
+.panel--result {
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.panel--result > .panel__title {
+  padding-top: var(--space-4);
+}
+
+.result-sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin: 0 calc(-1 * var(--space-4));
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.result-core {
+  background: var(--bg-panel);
+}
+
+.result-body {
+  padding-top: var(--space-3);
+}
+
+.result-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 11;
+  margin: var(--space-3) calc(-1 * var(--space-4)) calc(-1 * var(--space-4));
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.result-actions .btn-row {
+  margin-top: 0;
+}
+
+/* 🔒 D-01 §5.1 ST-06：复制反馈期间按钮宽度**不得变化**
+   （「复制分辨率」→「已复制」会让按钮变窄 → 吸底栏抖动，且相邻按钮位移
+     会造成误击。实测：反馈态 75px vs 常态 101px）。 */
+.result-actions #btn-copy-resolution {
+  min-width: 104px;
+}
+.result-actions #btn-copy-full {
+  min-width: 120px;
+}
+
+/* 舞台折叠摘要（EL-ST-15 / EL-ST-16 · 两栏档） */
+.stage-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4) var(--space-3) 0;
+  margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+/* 🔒 [hidden] 必须显式覆盖 display:flex —— 否则 UA 的 [hidden]{display:none}
+   会被本规则的 display 覆盖 → 折叠摘要永远可见（实测缺陷）。 */
+.stage-summary[hidden] {
+  display: none;
+}
+.stage-summary__ratio {
+  font-family: var(--font-num);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-lh);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-accent);
+}
+.stage-summary__fit {
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+  color: var(--text-secondary);
+}
+.stage-summary__toggle {
+  position: relative;
+  margin-left: auto;
+  height: 24px;
+  padding: 0 var(--space-2);
+  font-size: var(--text-micro-size);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+/* 🔒 TK-162：命中区补足 32×32（D-02 §10 下限）。
+   视觉高度仍 24px、不改变 flex 布局与对齐 —— 仅用透明伪元素把
+   **有效命中区**上下各扩 6px（24 + 12 = 36px 名义值，扣除亚像素取整后
+   逐像素扫描实测 ≥34px，留 2px 余量）；按钮本体宽度已 62px > 32px。
+   🔒 相邻元素为不可交互的文本（.stage-summary__ratio / __fit），扩区不抢占任何可点击目标。 */
+.stage-summary__toggle::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+}
+.stage-summary__toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+/* 表格不横向滚动（D-03 §4.7.7 / IX-06） */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table--match,
+.table--error {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.table--match th:nth-child(1),
+.table--match td:nth-child(1) {
+  width: 84px;
+}
+.table--match th:nth-child(2),
+.table--match td:nth-child(2) {
+  width: 88px;
+}
+.table--match th:nth-child(3),
+.table--match td:nth-child(3) {
+  width: 72px;
+}
+.table--match th:nth-child(4),
+.table--match td:nth-child(4) {
+  width: 68px;
+}
+.table--error th:nth-child(1),
+.table--error td:nth-child(1) {
+  width: 100px;
+}
+.table--error th:nth-child(2),
+.table--error td:nth-child(2) {
+  width: 96px;
+}
+.table--error th:nth-child(3),
+.table--error td:nth-child(3) {
+  width: 104px;
+}
+.table--error th:nth-child(4),
+.table--error td:nth-child(4) {
+  width: 88px;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+}
+
+/* 等宽数字补齐（D-03 §4.3.1 的 tabular-nums 覆盖缺口） */
+.list__meta,
+.approx-line,
+.mode-item__res,
+.mode-item__meta,
+.canvas-label,
+.dim {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 九宫格改用 calc 定位（D-03 X-2，修正百分比取整误差） */
+.guide--grid .v {
+  width: 1px;
+  background: var(--border-strong);
+}
+.guide--grid .h {
+  height: 1px;
+  background: var(--border-strong);
+}
+.guide--grid .v:nth-child(1) {
+  left: calc(100% / 3);
+}
+.guide--grid .v:nth-child(2) {
+  left: calc(100% * 2 / 3);
+}
+.guide--grid .h:nth-child(1) {
+  top: calc(100% / 3);
+}
+.guide--grid .h:nth-child(2) {
+  top: calc(100% * 2 / 3);
+}
+
+/* ==========================================================================
+   拖拽手柄（O-01 / F-14 / EL-HD-07 / EL-HD-08）
+   ========================================================================== */
+.drag-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 5;
+  padding: 0;
+  border: 0;
+}
+.drag-handle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 6px;
+  height: 48px;
+  margin-top: -24px;
+  background: var(--drag-handle);
+  border-radius: var(--radius-sm);
+}
+.drag-handle:hover::before,
+.drag-handle:focus-visible::before,
+.drag-handle.is-dragging::before {
+  background: var(--drag-handle-hover);
+}
+.drag-handle::after {
+  content: '';
+  position: absolute;
+  inset: 0 -3px; /* 命中区 12px（D-01 EL-HD-07） */
+}
+.drag-handle:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   状态栏（O-11 · EL-FT-01~09 · D-03 §5.2）
+   ========================================================================== */
+.status-bar {
+  flex: 0 0 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  background: var(--bg-app);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+  color: var(--text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.status-bar__item {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.status-bar__sep {
+  width: 1px;
+  height: 12px;
+  background: var(--border-subtle);
+  flex: 0 0 auto;
+}
+.status-bar__spacer {
+  flex: 1 1 auto;
+}
+.status-bar__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.status-bar__badge .icon {
+  font-size: 12px;
+  line-height: 1;
+}
+.status-badge--success {
+  color: var(--success);
+}
+.status-badge--warning {
+  color: var(--warning);
+}
+.status-badge--info {
+  color: var(--info);
+}
+.status-badge--muted {
+  color: var(--text-secondary);
+}
+.status-badge--error {
+  color: var(--error);
+}
+.status-bar__error {
+  color: var(--error);
+  font-family: var(--font-ui);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  max-width: 30ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.status-bar__error:empty {
+  display: none;
+}
+.status-bar__btn {
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0 var(--space-2);
+  height: 20px;
+  font-family: var(--font-ui);
+}
+.status-bar__btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+/* ==========================================================================
+   高度降级三档 · DEC-16 · TK-72 已闭合（②/③ 档收纳）
+   --------------------------------------------------------------------------
+   高度档位由**渲染层自算**（desktop-ui.js → decideHeightTier / computeHeightTier），
+   写在 .layout 的 data-height-tier 上：standard / compact / tight。
+
+   🔒 样式钩子说明：.app-header 与 .status-bar 是 .layout 的**兄弟节点**
+      （在 body 之下），无法被 `.layout[data-height-tier=…] .app-header` 命中
+      → 同一属性值同时镜像到 <html data-height-tier>，作为标题条/状态栏的钩子。
+      两处属性由同一个函数 applyHeightTier() 写入 → 不可能漂移。
+
+   🔒 收纳只作用于「说明性内容 / 次要选择入口 / 舞台」；
+      **输入 / 结果 / 警告 / 复制四类核心操作在任何档位都不隐藏、不移出可达范围**。
+   ========================================================================== */
+
+/* ---------- 第②档（compact · 轻量收纳）：客户区 680 ~ 783 ---------- */
+
+/* S2-1 标题条副标题 EL-HD-03 单行省略（标题 EL-HD-02 保留） */
+html[data-height-tier='compact'] .app-header__subtitle {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 面板间距 16 → 12（窄窗口堆叠档本就是 12，不受影响） */
+.layout[data-height-tier='compact'] {
+  gap: var(--space-3);
+}
+
+/* S2-4 A 栏标准库列表 EL-IN-17 限高（仍可滚动访问） */
+.layout[data-height-tier='compact'] #standard-list {
+  max-height: min(30vh, 200px);
+}
+
+/* ---------- 第③档（tight · 重量收纳）：客户区 < 680 或工作区不足 ---------- */
+
+/* S3-2 副标题隐藏（EL-HD-02 标题保留） */
+html[data-height-tier='tight'] .app-header__subtitle {
+  display: none;
+}
+
+/* S3-3 标题条 40 → 28 */
+html[data-height-tier='tight'] .app-header {
+  flex: 0 0 28px;
+  height: 28px;
+}
+
+/* S3-4 状态栏 28 → 24（EL-FT-05 错误出口与 EL-FT-08 设置入口均保留） */
+html[data-height-tier='tight'] .status-bar {
+  flex: 0 0 24px;
+  height: 24px;
+}
+
+/* S3-1 三栏宽度轴 + 第③档 → 舞台折叠 → 网格等同两栏（与两栏档同一套实现） */
+.layout[data-layout='three'][data-height-tier='tight'] {
+  grid-template-columns: var(--col-input) minmax(0, 1fr);
+  grid-template-areas: 'a c';
+}
+.layout[data-layout='three'][data-height-tier='tight'] > .panel--stage {
+  display: none;
+}
+
+/* TK-147：窄窗口纵向堆叠 + 第③档 → **B 行保留**，舞台内容折叠为行内摘要 */
+.layout[data-layout='stacked'][data-height-tier='tight'] .panel--stage > .stage {
+  display: none;
+}
+.layout[data-layout='stacked'][data-height-tier='tight'] .panel--stage.is-stage-open > .stage {
+  display: flex;
+}
+/* 行内展开时舞台可滚动（行高受限，避免内容被裁掉） */
+.layout[data-layout='stacked'][data-height-tier='tight'] .panel--stage {
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   S2-2 说明块折叠（EL-RS-21~24 · 免责 notice / 计算规则 / 常见问题 / 现场参数注意）
+   --------------------------------------------------------------------------
+   🔒 折叠 = display:none，**一个条目都不删除**（TK-146 裁定：折叠 ≠ 删除）。
+   🔒 折叠头是原生 <button> → 天然可 Tab 聚焦，Enter / Space 天然可展开。
+   ========================================================================== */
+.explain-fold__toggle {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 var(--space-3);
+  margin-top: var(--space-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.explain-fold__toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+.explain-fold__toggle:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+.explain-fold__toggle[hidden] {
+  display: none;
+}
+.explain-fold.is-collapsed > .notice,
+.explain-fold.is-collapsed > .result-block {
+  display: none;
+}
+
+/* ==========================================================================
+   S3-5 结果分段锚点条（EL-RS-26 · 比例 / 候选 / 匹配 / 误差 / 复制）
+   --------------------------------------------------------------------------
+   🔒 置于 C 栏吸顶层①内（警示条之后、复制组之前）→ Tab 顺序天然满足
+      「警示条关闭按钮之后、复制按钮之前」。
+   ========================================================================== */
+.result-anchors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.result-anchors[hidden] {
+  display: none;
+}
+.result-anchors__item {
+  height: 32px;
+  padding: 0 var(--space-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.result-anchors__item:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+.result-anchors__item:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+.result-anchors__item[aria-current='true'] {
+  color: var(--text-accent);
+  border-color: var(--accent);
+}
+
+/* ==========================================================================
+   S2-3 适配结论角标（EL-ST-17 移入舞台角标）
+   --------------------------------------------------------------------------
+   🔒 文案取既有结果转述（currentFitAdvice），**不新增计算**。
+   ========================================================================== */
+.stage-fit {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  max-width: calc(100% - var(--space-6));
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-lh);
+  color: var(--text-secondary);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+.stage-fit[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   TK-142 焦点迁移后的 400ms 高亮
+   --------------------------------------------------------------------------
+   🔒 不新增 @keyframes / transition —— 用既有 token 的 outline + JS 定时移除。
+   ========================================================================== */
+.is-just-migrated {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   第③档 · 舞台折叠为行内摘要时的摘要条样式
+   ========================================================================== */
+.stage-summary--inline {
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: 0;
+}
+.stage-summary.is-minimal > :not(.stage-summary__toggle) {
+  display: none;
+}
+.stage-summary.is-minimal {
+  justify-content: flex-end;
+}
+
+/* ==========================================================================
+   自绘模态（EL-MD-01~06 / EL-STB-01~04 · D-03 §5.3）
+   ========================================================================== */
+.modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-layer[hidden] {
+  display: none;
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--scrim);
+}
+
+.modal {
+  position: relative;
+  width: min(760px, calc(100vw - 64px));
+  max-height: calc(100vh - 96px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.modal__title {
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-lh);
+  font-weight: 600;
+}
+.modal__close {
+  width: 28px;
+  height: 28px;
+  font-size: var(--text-lg-size);
+  line-height: 1;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.modal__close:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+.modal__body {
+  overflow-y: auto;
+  min-height: 0;
+}
+.modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.modal__foot:empty {
+  display: none;
+}
+
+/* 关于对话框的三线版本（D-01 EL-MD-01 / DEC-13） */
+.about-list {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-lh);
+}
+.about-list__k {
+  color: var(--text-secondary);
+}
+.about-list__v {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 快捷键帮助（D-01 EL-MD-02 · D-05 §2 的 12 × 4 矩阵） */
+.shortcut-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+}
+.shortcut-table th,
+.shortcut-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+  word-break: break-word;
+}
+.shortcut-table thead th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-default);
+}
+.shortcut-table td:first-child {
+  color: var(--text-accent);
+  font-family: var(--font-num);
+}
+.shortcut-table td:nth-child(2) {
+  font-family: var(--font-num);
+  color: var(--text-primary);
+}
+.shortcut-table th:nth-child(1) {
+  width: 52px;
+}
+.shortcut-table th:nth-child(2) {
+  width: 116px;
+}
+.shortcut-table th:nth-child(3) {
+  width: 132px;
+}
+.shortcut-table th:nth-child(4),
+.shortcut-table th:nth-child(5),
+.shortcut-table th:nth-child(6),
+.shortcut-table th:nth-child(7) {
+  width: 92px;
+}
+
+/* 设置对话框（EL-STB-01~04） */
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.settings-input {
+  width: 120px;
+  padding-right: var(--space-3);
+}
+.settings-hint {
+  margin-top: var(--space-2);
+}
+.settings-error {
+  margin-top: var(--space-1);
+  color: var(--error);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+  min-height: var(--text-caption-lh);
+}
+
+/* ==========================================================================
+   分段控件命中区 —— Step 5 P1-2 核验结论：**无需覆盖，维持原始样式**
+   --------------------------------------------------------------------------
+   P4-B 曾报告「DEF-03：画布模式分段有效命中区 67×20 < 32×32」，并据此改了
+   `.segmented` 容器（height:auto / flex-wrap / row-gap / padding-bottom）。
+   Step 5 核验发现该报告是**测试方法缺陷造成的假阳性**：
+     · TC-DP-10 的 hitAreaAudit 在测量前**没有把元素滚动到可见区域**；
+     · 输入面板 `section.panel--input` 是 overflow-y:auto，内容超 784px 可滚动，
+       画布模式段位于**滚动折叠线以下** → 其盒体下部被面板裁掉 → 量到 20px；
+     · 实测（同一控件 scrollIntoView 后）：原始样式下 canvas-mode-segment
+       有效命中 **67×36 ✅**、unit-segment 36×36 ✅、ratio-source 90×36 ✅
+       —— 全部达标，所谓「缺陷」并不存在。
+   因此本文件**移除** P4-B 的 `.segmented` 覆盖，恢复 styles.css 原始样式：
+     · 分段控件命中区本就达标，覆盖只会带来 +4px 的高度变化与视觉回归；
+     · 真正的命中区缺陷是 **DEF-02 步进按钮（26×34 < 32×32）** ——
+       那是 `::after` 扩展区被相邻按钮互相覆盖所致，已由实体 32×32 修复。
+   TC-DP-10 已同步修正测量方法：先 scrollIntoView 再逐像素扫描。
+   ========================================================================== */
+
+/* ==========================================================================
+   UI Polish（2026-11-02）· 分段控件单行化
+   --------------------------------------------------------------------------
+   🔴 缺陷（审计实测，A 栏内容盒 276px）：
+     · 「目标比例来源」三项各 89px，文本「以屏幕实际比例 / 以选中标准比例」
+       需 91px → 折成两行，第二行**溢出 28px 高的琥珀选中块**；
+     · 「目标画布模式」四项各 67px，可用内宽 51px，文本「常用规格」52px
+       → 差 1px 折行，四个按钮全变两行。
+   即：不是"字太大"，而是 `flex: 1` 均分 + 左右各 8px 内边距把可用宽压到
+   比文本窄 1~2px。
+   ✅ 修法（不缩字号、不裁切）：
+     · 这三组改为 `flex: 1 1 auto` —— 基准宽取内容宽，剩余空间再均分，
+       长标签不再被强行压到短标签的同等宽度；
+     · 左右内边距 8px → 4px（--space-1），每组腾出 8px；
+     · `white-space: nowrap` 保证不折行；容器 `flex-wrap: wrap` 兜底 ——
+       万一将来出现更窄的容器（A 栏可拖拽变窄），整块换行也不会裁字。
+   🔒 不加在本文件作用于 `.segmented__item` 的通配规则上：
+      `.unit-segment` 依赖 `flex: 0 0 auto` 保持"内容多宽就多宽"，
+      app.css 后加载会覆盖它 —— 故按具体类名限定。
+   ========================================================================== */
+.panel--input .segmented {
+  height: auto;          /* 由内容撑高：单行 = 28 + 上下 padding 4 = 32px（与原来一致） */
+  min-height: 32px;
+  flex-wrap: wrap;       /* 极窄容器兜底：换行而非裁切/重叠 */
+  row-gap: 2px;
+}
+
+.panel--input .segmented__item.ratio-source-segment,
+.panel--input .segmented__item.canvas-mode-segment,
+.panel--input .segmented__item.prefer-segment {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  padding-left: var(--space-1);
+  padding-right: var(--space-1);
+}
+
+/* ==========================================================================
+   UI Polish（2026-11-02）· 折叠组标题与折叠按钮对齐
+   --------------------------------------------------------------------------
+   🔴 缺陷（审计实测）：`.group__toggle` 是 32px 高的右浮动按钮，
+      而 `.group__label` 行高只有 18px → 芯片中心比标签文字中心**低 7px**；
+      浮动元素不参与父盒高度，32px 按钮还溢出 group 盒 14px，
+      与下一个折叠组标签发生 2px 重叠。
+   ✅ 修法：只在**含折叠按钮的分组**里把标签行高提到 32px（与按钮同高），
+      文字与芯片同时垂直居中（芯片 ::before inset 6px → 6~26px，中心 16px）；
+      浮动元素因此落在 32px 行盒之内，不再溢出、不再压到下一组。
+   🔒 用 `:has()` 精确限定，普通分组标签仍保持 12/18 的紧凑行高，
+      不让整栏密度变松。
+   ========================================================================== */
+.group:has(> .group__toggle) > .group__label {
+  line-height: 32px;
+  margin-bottom: var(--space-1);   /* 行高 +14px，下边距 -4px，整组净增 10px */
+}
+
+/* ==========================================================================
+   UI Polish（2026-11-02）· 比例列表与滚动区的关系
+   --------------------------------------------------------------------------
+   首/末行原本紧贴卡片边框（1px 仅为边框本身），滚动到底部时最后一行与
+   卡片下沿糊在一起；上下各留 4px 后，行与卡片边缘有明确呼吸位。
+   （行高、行数、滚动量不变，只增加可视留白。）
+   ========================================================================== */
+.list--scroll {
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+
+/* ==========================================================================
+   UI Polish（2026-11-02）· 内外层滚动不串扰
+   --------------------------------------------------------------------------
+   比例列表、匹配表、模态正文都在面板内部再滚动。默认 scroll-chaining 会让
+   内层滚到尽头后把滚动"甩"给外层面板 —— 表现为「滚列表，整块面板跟着跳」。
+   `contain` 让内层到边界即停，滚轮/拖拽/键盘滚动本身不受影响。
+   ========================================================================== */
+.list--scroll,
+.table-wrap,
+.modal__body {
+  overscroll-behavior: contain;
+}

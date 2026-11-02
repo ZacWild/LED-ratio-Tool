@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+#
+# LED-ratio-Tool · Git pre-push 钩子
+# =============================================================================
+# 真实实现 Git 原生 pre-push 协议：Git 通过**标准输入**提供待推送的 ref 列表，
+# 每行格式为：
+#
+#     <local ref> <local sha1> <remote ref> <remote sha1>
+#
+# ⚠️ 常见误解：Git **不会**自动提供 GIT_PUSH_REF 环境变量。任何依赖该环境变量
+#    的检查在真实 git push 场景下都读不到值 —— 必须解析标准输入。
+#
+# -----------------------------------------------------------------------------
+# 钩子会拦截的推送（对应 GITHUB-RULES.md 的 R-4）：
+#   · 目标分支为 main / master            → 拒绝
+#   · 目标分支不在允许清单内               → 拒绝
+#   · 推送包含删除操作（:refs/heads/x → 全零 sha）→ 拒绝删除受保护分支/标签
+#   · 推送删除了受保护标签                  → 拒绝
+#
+# -----------------------------------------------------------------------------
+# 它**不能**做的事（务必知悉）：
+#   · 不能阻止他人推送（钩子只在本机本地执行）
+#   · 不能阻止 GitHub 上的合并（那由 GitHub Rulesets / 分支保护承担）
+#   · 不能识别"项目负责人是否已授权"—— 授权是人的判断
+#
+# -----------------------------------------------------------------------------
+# 安装方式（一次性）：
+#     git config core.hooksPath .githooks
+# 验证安装：
+#     git config core.hooksPath            # 应输出 .githooks
+#
+# 手动测试（不实际推送）：
+#     bash .githooks/pre-push
+#
+# 退出码：0 = 允许推送；非 0 = 拒绝推送
+# =============================================================================
+
+set -uo pipefail
+
+DEV_BRANCH="feature/desktop-windows"
+ALLOWED_BRANCHES=("main" "$DEV_BRANCH")
+PROTECTED_TAGS=("pre-desktop")
+
+RED=$'\033[31m'
+GREEN=$'\033[32m'
+YELLOW=$'\033[33m'
+DIM=$'\033[2m'
+RESET=$'\033[0m'
+
+if [ -t 1 ]; then
+  COLOR_ERR="$RED"; COLOR_OK="$GREEN"; COLOR_WARN="$YELLOW"; COLOR_DIM="$DIM"; COLOR_RESET="$RESET"
+else
+  COLOR_ERR=""; COLOR_OK=""; COLOR_WARN=""; COLOR_DIM=""; COLOR_RESET=""
+fi
+
+# 读取 Git 通过标准输入提供的待推送 ref 列表
+PUSH_LINES=""
+if [ ! -t 0 ]; then
+  PUSH_LINES="$(cat)"
+fi
+
+if [ -z "$PUSH_LINES" ]; then
+  echo "${COLOR_WARN}[pre-push]${COLOR_RESET} 标准输入为空 —— 未获取到待推送 ref 列表。"
+  echo "${COLOR_DIM}  手动运行时属于正常现象（Git 才会传入真实列表）。${COLOR_RESET}"
+  echo "${COLOR_DIM}  若通过 git push 触发却为空，说明该 Git 版本行为异常。${COLOR_RESET}"
+  exit 0
+fi
+
+REMOTE_NAME="$(git config --get remote.pushDefault 2>/dev/null || echo origin)"
+
+echo "${COLOR_DIM}[pre-push] 远端 = $REMOTE_NAME${COLOR_RESET}"
+echo "${COLOR_DIM}[pre-push] 待推送 ref：${COLOR_RESET}"
+
+BLOCKED=0
+PUSHED=0
+
+while read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
+  [ -z "${REMOTE_REF:-}" ] && continue
+  PUSHED=$((PUSHED + 1))
+
+  case "$REMOTE_REF" in
+    refs/heads/*)
+      TARGET_BRANCH="${REMOTE_REF#refs/heads/}"
+      echo "  分支  $LOCAL_REF -> $REMOTE_REF"
+
+      # 删除操作：local sha 为全零
+      if [ "$LOCAL_SHA" = "0000000000000000000000000000000000000000" ]; then
+        ALLOWED_DELETE=0
+        for PROTECTED in "${PROTECTED_BRANCHES[@]:-}"; do
+          if [ "$TARGET_BRANCH" = "$PROTECTED" ]; then
+            ALLOWED_DELETE=1
+          fi
+        done
+        if [ "$ALLOWED_DELETE" -eq 1 ]; then
+          echo "${COLOR_ERR}    ⛔ 拒绝删除受保护分支 '$TARGET_BRANCH'${COLOR_RESET}"
+          BLOCKED=1
+        else
+          echo "${COLOR_WARN}    ⚠️  允许删除非受保护分支 '$TARGET_BRANCH'${COLOR_RESET}"
+        fi
+        continue
+      fi
+
+      # R-4：禁止直接推送 main / master
+      if [ "$TARGET_BRANCH" = "main" ] || [ "$TARGET_BRANCH" = "master" ]; then
+        echo "${COLOR_ERR}    ⛔ 拒绝推送到 '$TARGET_BRANCH'${COLOR_RESET}"
+        echo "${COLOR_ERR}       规则 R-4：禁止直接向 main 推送提交。变更请推送到 $DEV_BRANCH，${COLOR_RESET}"
+        echo "${COLOR_ERR}       再由项目负责人审查后走 PR 合并。${COLOR_RESET}"
+        BLOCKED=1
+        continue
+      fi
+
+      # 目标分支须在允许清单内
+      IN_ALLOWLIST=0
+      for ALLOWED in "${ALLOWED_BRANCHES[@]}"; do
+        if [ "$TARGET_BRANCH" = "$ALLOWED" ]; then
+          IN_ALLOWLIST=1
+        fi
+      done
+      if [ "$IN_ALLOWLIST" -eq 0 ]; then
+        echo "${COLOR_ERR}    ⛔ 目标分支 '$TARGET_BRANCH' 不在允许清单内${COLOR_RESET}"
+        echo "${COLOR_ERR}       允许清单：${ALLOWED_BRANCHES[*]}${COLOR_RESET}"
+        BLOCKED=1
+        continue
+      fi
+
+      echo "${COLOR_OK}    ✅ 允许${COLOR_RESET}"
+      ;;
+
+    refs/tags/*)
+      TARGET_TAG="${REMOTE_REF#refs/tags/}"
+      echo "  标签  $LOCAL_REF -> $REMOTE_REF"
+
+      # 删除标签
+      if [ "$LOCAL_SHA" = "0000000000000000000000000000000000000000" ]; then
+        IS_PROTECTED=0
+        for PROTECTED in "${PROTECTED_TAGS[@]:-}"; do
+          if [ "$TARGET_TAG" = "$PROTECTED" ]; then
+            IS_PROTECTED=1
+          fi
+        done
+        if [ "$IS_PROTECTED" -eq 1 ]; then
+          echo "${COLOR_ERR}    ⛔ 拒绝删除受保护标签 '$TARGET_TAG'${COLOR_RESET}"
+          echo "${COLOR_ERR}       pre-desktop 是回滚锚点，删除它等同于销毁回滚能力。${COLOR_RESET}"
+          BLOCKED=1
+        else
+          echo "${COLOR_WARN}    ⚠️  允许删除非受保护标签 '$TARGET_TAG'${COLOR_RESET}"
+        fi
+        continue
+      fi
+
+      echo "${COLOR_OK}    ✅ 允许${COLOR_RESET}"
+      ;;
+
+    *)
+      echo "  其它  $LOCAL_REF -> $REMOTE_REF"
+      ;;
+  esac
+done <<< "$PUSH_LINES"
+
+echo ""
+
+if [ "$BLOCKED" -ne 0 ]; then
+  echo "${COLOR_ERR}[pre-push] 推送被拦截。${COLOR_RESET}"
+  echo "${COLOR_DIM}  如确需推送到受保护分支，请先取得项目负责人授权，并改用 PR 流程。${COLOR_RESET}"
+  echo "${COLOR_DIM}  注意：本钩子只在本机生效；远端 main 的真正保护由 GitHub Rulesets 承担。${COLOR_RESET}"
+  exit 1
+fi
+
+echo "${COLOR_OK}[pre-push] 检查通过（$PUSHED 个 ref）。${COLOR_RESET}"
+exit 0

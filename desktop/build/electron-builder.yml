@@ -1,0 +1,66 @@
+appId: com.ledratiotool.desktop
+productName: LED Ratio Tool
+copyright: Copyright (c) 2026 LED Ratio Tool Authors
+
+directories:
+  # ⚠️ 必须显式指定 —— 默认值 build 会与本工程的 build/ 目录相撞，
+  #    导致图标解析落到 desktop/build/ 而退回默认 Electron 图标。
+  buildResources: resources
+  output: dist
+
+# 🔒 SEC-19：显式白名单。test/ docs/ *.md *.map 一律不进包。
+files:
+  - main/**
+  - preload/**
+  - renderer/**
+  - package.json
+  - '!**/*.map'
+
+asar: true
+asarUnpack: []
+
+win:
+  icon: resources/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: LED 比例换算台
+  # 🔴 electron-builder 26.18.0 的 NsisOptions 已**移除** shortcutIcon
+  #    （additionalProperties:false → 未知键会导致整个 nsis 块校验失败，
+  #    报错只列 null 分支，极难定位）。桌面快捷方式图标改由 installerIcon 决定。
+  installerIcon: resources/icon.ico
+  uninstallerIcon: resources/icon.ico
+  # 🔴 NSIS 安装包与 portable 便携版**必须用不同文件名** ——
+  #    两者共用 win.artifactName 时后构建的会覆盖先构建的（实测：portable 覆盖了 NSIS）。
+  artifactName: '${productName}-${version}-${arch}-setup.${ext}'
+  # 🔒 DEC-20：该键仅对 one-click 安装器生效，本项目 oneClick:false 下无效。
+  #    卸载默认保留 settings.json，由不写删除逻辑 + 安装器结束页告知保证。
+  deleteAppDataOnUninstall: false
+
+# 🔒 SEC-20：Fuses 关闭逃逸路径。翻转在 P7（签名前完成，否则签名失效）。
+electronFuses:
+  runAsNode: false
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableCookieEncryption: true
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: false
+  loadBrowserProcessSpecificV8Snapshot: false
+
+portable:
+  # 🔴 便携版独立命名（与 NSIS 安装包区分）
+  artifactName: '${productName}-${version}-${arch}-portable.${ext}'
+
+publish: null

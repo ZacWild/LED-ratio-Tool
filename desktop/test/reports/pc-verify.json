@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-01T15:14:52.704Z",
+    "platform": "win32"
+  },
+  "summary": {
+    "total": 10,
+    "pass": 9,
+    "fail": 0,
+    "skip": 1,
+    "sizes": {
+      "installer": 121299101,
+      "portable": 110307738,
+      "unpacked": 374438202,
+      "asar": 343391
+    }
+  },
+  "results": [
+    {
+      "id": "PC-01",
+      "name": "产物齐备（安装包 / 便携版 / win-unpacked）",
+      "pass": true,
+      "skipped": false,
+      "actual": "安装包=LED Ratio Tool-1.1.0-x64-setup.exe｜便携版=LED Ratio Tool-1.1.0-x64-portable.exe｜unpacked=true"
+    },
+    {
+      "id": "PC-02",
+      "name": "体积记录（安装包 / 便携版 / 解包 / asar）",
+      "pass": true,
+      "skipped": false,
+      "actual": "安装包 115.7 MB｜便携版 105.2 MB｜解包 357.1 MB｜app.asar 335 KB"
+    },
+    {
+      "id": "PC-03",
+      "name": "asar 白名单（无 test/ docs/ *.md *.map）",
+      "pass": true,
+      "skipped": false,
+      "actual": "共 18 项，0 泄漏"
+    },
+    {
+      "id": "PC-04",
+      "name": "静默安装（per-user，指定目录）",
+      "pass": true,
+      "skipped": false,
+      "actual": "已安装到 C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Tool PC-Test"
+    },
+    {
+      "id": "PC-05",
+      "name": "安装后离线可运行且计算正确（外部请求全阻断）",
+      "pass": true,
+      "skipped": false,
+      "actual": "客户区=1440×900｜外框=1456×965｜scaleFactor=1｜heightTier=1｜dpr=1｜workArea=1392"
+    },
+    {
+      "id": "PC-06",
+      "name": "设置跨启动持久化（容差仍在）",
+      "pass": true,
+      "skipped": false,
+      "actual": "tolerancePercent=1.25｜键=schemaVersion,tolerancePercent,createdAt,updatedAt"
+    },
+    {
+      "id": "PC-07",
+      "name": "升级安装（覆盖安装）",
+      "pass": true,
+      "skipped": false,
+      "actual": "覆盖安装 exit=0｜安装目录仍在=true｜设置保留=1.25"
+    },
+    {
+      "id": "PC-08",
+      "name": "卸载后程序文件清除",
+      "pass": true,
+      "skipped": false,
+      "actual": "exe 仍存在=false｜exit=0｜等待后目录存在=false"
+    },
+    {
+      "id": "PC-09",
+      "name": "卸载后 settings.json **保留**（DEC-20）",
+      "pass": true,
+      "skipped": false,
+      "actual": "保留（tolerancePercent=1.25）"
+    },
+    {
+      "id": "PC-10",
+      "name": "便携版可独立运行（不依赖安装）",
+      "pass": null,
+      "skipped": false,
+      "actual": "条件通过：脚本内 4 种启动方式均未拉起（0 进程）；同一二进制经 shell 直启实测通过（4 进程 + 窗口标题正确）→ 判为自动化环境差异，非产品缺陷。需人工双击复核。"
+    }
+  ]
+}

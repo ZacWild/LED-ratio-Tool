@@ -1,0 +1,23 @@
+# 依赖目录
+node_modules/
+
+# 打包产物（正式交付物在 dist/，由 P7 生成）
+dist/
+*.zip
+*.exe
+*.blockmap
+*.yml.bak
+
+# 密钥 —— 绝不入库（SEC-30）
+*.pfx
+*.p12
+*.cer
+*.pem
+*.key
+.env
+.env.*
+
+# 缓存与临时
+*.log
+*.tmp
+*.bak
