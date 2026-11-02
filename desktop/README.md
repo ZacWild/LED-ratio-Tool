@@ -31,19 +31,20 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | 200 组差分（DEC-15） | ✅ **完全通过**：200/200 执行，差异 **0** 条，未覆盖字段 **0**，字段级覆盖率 **100%**（43 个字段 / 6,882 条 L1 断言） |
 | 视觉回归 | ✅ **3/3 通过**（1440×900 / 1200×800 / 1024×680，阈值 0.1%）：三张基准已于 `b48aaa8` **按授权更新**至 UI Polish 后的实际画面，重跑差异 **0.0000%**、更新 0 项（明细见 §1.1） |
 | 高 DPI **100%** 档 | ✅ **21/21 通过**（`scaleFactor = 1` 实读，非模拟） |
-| Windows CI 工作流 | ✅ **已在 GitHub 实际运行并通过**（次数与逐次结论以 Actions 页面为准，本表不写死以免每次推送即过期）。`feature/desktop-windows` 上 push run **#35** / pull_request run **#36**（`a05defd`）均 success、36 步 0 失败。`Protect main` 规则集已把 **`Windows · 桌面版门禁`** 设为 required status check；PR #1 已合并进 `main`（squash → `626673f`） |
+| Windows CI 工作流 | ✅ **已在 GitHub 实际运行并通过**（次数与逐次结论以 Actions 页面为准，本表不写死以免每次推送即过期）。`feature/desktop-windows` 上 push run **#35** / pull_request run **#36**（`a05defd`）均 success、全部步骤 0 失败。`Protect main` 规则集已把 **`Windows · 桌面版门禁`** 设为 required status check；PR #1 已合并进 `main`（squash → `626673f`） |
+| **品牌图标（D-08 最终 LOGO）** | ✅ **已完成**（`9109cc5`）：最终 LOGO → `icon.ico` 7 档（16~128 = BMP，256 = PNG）+ `icon-256x256.png`，旧占位图已删除。exe / 安装包 / 便携版 / 已安装程序 / 卸载器 / 快捷方式 / 标题栏 / 任务栏 **八处实测同源同字节**，并新增 `verify:icons` 10 项自检进入 CI 门禁。详见 §1.2 |
 | 正式安装包 / 签名 / 完整安装链路 | ⏳ **尚待 P7 验收**。CI 中的打包步骤只产出 Preview Candidate 与尺寸报告（**不参与门禁**）；当前未发布、未签名 |
 | 高 DPI **125% / 150%** 档 | ⛔ **BLOCKED（环境未就绪）**：需人工切换系统缩放（必要时注销重登）后按 `DPI-ACCEPTANCE.md` 执行，**未用模拟手段冒充** |
 
-> 📅 **本文档数据截止：2026-11-02，分支 `feature/desktop-windows` @ `b48aaa8`**。数字均取自 `desktop/test/reports/` 下的真实报告与 GitHub Actions 实际运行记录，不手工估算。本文档自身的后续文档提交不计入上述测试数据。
+> 📅 **本文档数据截止：2026-11-02，分支 `feature/desktop-windows` @ `9109cc5`**。数字均取自 `desktop/test/reports/` 下的真实报告与 GitHub Actions 实际运行记录，不手工估算。本文档自身的后续文档提交不计入上述测试数据。
 
-> ✅ **当前测试门禁全部通过**：桌面 E2E 93/93、HTML E2E 85/85、单元测试 64/64、安全审计 47/47、200 组差分完全通过、视觉回归 3/3、100% 缩放档 21/21。
+> ✅ **当前测试门禁全部通过**：桌面 E2E 93/93、HTML E2E 85/85、单元测试 64/64、安全审计 47/47、200 组差分完全通过、视觉回归 3/3、100% 缩放档 21/21、图标自检 10/10。
 
 > ⚠️ **但本工程仍不是可交付版本。**
 > ① **125% / 150% 高 DPI 未验收** —— BLOCKED，需人工切换系统缩放；
-> ② **正式安装包、代码签名与完整安装链路尚待 P7 验收**；
+> ② **正式安装包、代码签名与完整安装链路尚待 P7 验收**（图标已就位，但**签名仍缺失**）；
 > ③ 产品验收与发布放行权属项目负责人（DEC-05）—— **测试通过 ≠ 可以发布**。
-> ④ **UI Polish 属视觉打磨，不改变发行状态** —— 它只动了 `renderer/app.css`，不产出安装包、不做签名，也不覆盖 ①②。
+> ④ **UI Polish 与品牌图标均不改变发行状态** —— UI Polish 只动 `renderer/app.css`；图标只替换资源与打包入口，两者都不产出签名安装包，也不覆盖 ①②。
 
 > 📋 **设计与实现对照**见 [`DESIGN-ALIGNMENT.md`](DESIGN-ALIGNMENT.md) —— 逐条记录 P3 设计基线在桌面版的落地位置、差异、待裁决项（TK-140 ~ TK-150）。
 
@@ -68,6 +69,49 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 > 🔒 只更新上面三张，**未动其他基准、未重建历史基准**；更新后基准与 `test/shots/visual-*.png` 字节一致，重跑视觉回归 **3/3 PASS、更新 0 项**。
 > 🔒 自绘滚动条带来的文字差异已定性为**像素级重栅格化**而非排版变化：A/B 对照（把 `scrollbar-width: thin` 加回）下 **284 / 287 / 287 条文本节点矩形 0 差异**（位置、宽高、字号、行高逐条比对），差异仅落在字形边缘与滚动条条带；放大 5 倍目视清晰，锐度指标略优于旧版。
 > ⚠️ **UI Polish 不改变发行状态**：正式安装包 / 代码签名 / 完整安装链路仍待 P7，**125% 与 150% 高 DPI 仍为 BLOCKED** —— 见 §一 的 ①②。
+
+### 1.2 品牌图标（D-08 · 最终 LOGO 落地）
+
+| 项 | 内容 |
+|---|---|
+| **源图** | `LED Ratio 图形标志 透明底.png` 594×594 RGBA；**只有 4 种不透明色**：`#27251F` 45.3% / `#1B1D21` 24.2% / `#F0A832` 21.9% / `#6E747E` 0.6%；有效内容 **570×570 居中**，四边透明留白 12px（2.0%） |
+| **生成物** | `resources/icon.ico` **7 档 / 103,608 B**；`resources/icon-256x256.png` **1,458 B**。原占位图（6,268 B，7 档全 PNG 压缩）已删除替换 |
+| **ico 内部构成** | 16 / 24 / 32 / 48 / 64 / 128 = **32bpp BMP + AND 掩码**（自下而上 BGRA，掩码在 alpha<128 处置位，兼容忽略 alpha 的旧渲染器）；256 = **PNG**（IHDR 与目录项一致） |
+| **缩放算法** | 预乘 alpha 的**可分离面积平均**（box/area），每次都从 594 原图**直降**目标尺寸，不逐级减半 —— 避免透明边缘出现暗色晕圈与累积误差 |
+| **16×16 特例** | 源图上下橙框仅 12/594，在 16px 下 = **0.32px**：忠实缩放会丢掉上下边框、只剩左右两根橙柱，「橙框」品牌特征被破坏。故 16 档改用**等宽 2px 橙环 + 深色内屏**的简化剪影（内部横条/细线舍弃）；**32 档及以上仍为忠实重采样**，与源图构图逐像素对应 |
+
+**集成点（全部指向同一份 ico）**
+
+| 位置 | 配置 | 作用 |
+|---|---|---|
+| 应用 exe | `win.icon` | rcedit 写入 exe 资源表 → 任务栏、窗口标题栏、桌面/开始菜单快捷方式的**默认图标源** |
+| NSIS 安装程序 | `nsis.installerIcon` | `setup.exe` 自身图标 + 助手式安装器界面图标（MUI_ICON）+ 快捷方式图标 |
+| NSIS 卸载程序 | `nsis.uninstallerIcon` | 安装后生成的 `Uninstall *.exe` 图标 |
+| 开发版窗口 | `main.js` 的 `BrowserWindow.icon`（**仅 `!app.isPackaged`**） | 打包版由 Windows 回落到 exe 内嵌图标，无需重复指定；开发版没有 exe，不指定就会显示 Electron 默认图标 |
+| ~~`nsis.installerHeaderIcon`~~ | **未配置（有意）** | scheme.json 标注 *one-click installer only*，本项目 `oneClick:false` → 该键无效，配了也只是一段死配置 |
+
+**资源自检 `build/verify-icons.mjs`（10 项，已接入 `build:win` 与 CI 门禁）**
+
+ICO 头 → 尺寸集合 → 偏移不越界不重叠 → DIB 头（40B / 32bpp / BI_RGB / height=2×width）→ 品牌色占比 ≥50% → **不含旧占位色** `#FFC169` / `#8A9099` / `#17181C` → 内容铺满 ≥90% 且四边留白对称 → `icon-256x256.png` 与 256 条目**字节一致** → yml 三个引用可解析 → `main.js` 引用可解析。
+> 🔒 断言对象是**真正随包发出去的那份资源**，不是配置字符串 —— 占位图若被回退，IC-05/IC-06 立刻失败。
+
+**实测验收（本机真实打包 + 静默安装，非推断）**
+
+| 核验对象 | 方法 | 结果 |
+|---|---|---|
+| `dist/win-unpacked/LED Ratio Tool.exe` | 解析 PE 的 `RT_GROUP_ICON` + `RT_ICON` 重组为 .ico，与 `resources/icon.ico` 比对 | ✅ 7 档齐备，**字节完全一致** |
+| `...-setup.exe`（安装包） | 同上 | ✅ **字节完全一致** |
+| `...-portable.exe`（便携版） | 同上 | ✅ **字节完全一致** |
+| 已安装 `LED Ratio Tool.exe` | 静默安装到独立目录后同上 | ✅ **字节完全一致** |
+| `Uninstall LED Ratio Tool.exe` | 同上（安装目录内生成） | ✅ **字节完全一致**（同目录生成的 `uninstallerIcon.ico` 亦一致） |
+| 桌面 / 开始菜单快捷方式 | 解析 `.lnk` 的 LinkInfo + StringData + ExtraData | ✅ 目标 = 已安装 exe，`iconLocation` **显式指向同一 exe、索引 0** —— 无独立 .ico 路径，不存在旧图标回退面 |
+| 窗口标题栏（打包版） | Win32 `BitBlt` 实截窗口 | ✅ 「橙框 + 深色内屏」品牌标 |
+| 窗口标题栏（开发版） | 同上（`electron .` 未打包运行） | ✅ 同一品牌标，**不再是 Electron 默认图标**（验证 `main.js` 的 dev 分支真实生效） |
+| 任务栏 | 实截主屏任务栏 | ✅ 运行中的实例显示品牌标 + 活动指示条 |
+| 旧占位图残留 | 旧 exe 内嵌图标重组 = `f1dda010…` / 6,268 B；新 = `0498c249…` / 103,608 B | ✅ 已全部替换；仓库内已无旧配色素材 |
+
+> 🔒 **有意未做**：`index.html` 未加 favicon。桌面版没有标签页，不需要；HTML 单文件版受「零 `link href` / 零 http(s)」自包含约束（`ACCEPTANCE.md` 已列）——加 `data:` favicon 会破坏该口径，故不加。
+> ⚠️ **图标落地同样不改变发行状态**：仍未做代码签名（P7 BLOCKED），125% / 150% 高 DPI 仍未验收。本节只证明「品牌标识在各处统一、无旧图标或占位图」，**不构成可发布结论**。
 
 ---
 
@@ -226,6 +270,7 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 7. npm run test:redlines       ← 8 处受保护业务口径
 8. npm run test:unit           ← core.js 单元测试（64 条）
 9. 构建（HTML 单文件 + 桌面资源同步 + 打包配置校验）
+9.5 品牌图标资源自检（`verify:icons` 10 项 · D-08）
 10. Electron 启动冒烟 × 10      ← TK-88
 11. 桌面 E2E 前置环境取证（工作区 / 最大可达客户区 / 当前档位）
 12. 桌面 E2E（93 条）
@@ -238,7 +283,7 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 19. 生成产物 SHA-256 清单 → 上传报告 / 截图 / CI 日志 → 汇总门禁结果
 ```
 
-> 🔵 GitHub Actions 中的实际作业共 **36 个步骤**（含 setup / checkout / 缓存与 Post 收尾），上表按「逻辑门禁」归并展示。
+> 🔵 GitHub Actions 中的实际作业共 **37 个步骤**（含 setup / checkout / 缓存与 Post 收尾），上表按「逻辑门禁」归并展示。
 > ⚠️ **视觉回归（`npm run test:visual`）不在 CI 门禁内** —— 基准是否应更新需人工裁决，故只在本地或经授权后执行。
 
 ### 5.4 关键环境约束
@@ -260,7 +305,7 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 
 | 项 | 状态 |
 |---|---|
-| CI 真实运行 | ✅ 已在 GitHub 实际运行并通过（次数以 Actions 页面为准）。`a05defd` 上 push run **#35** / pull_request run **#36** 均 **success**，36 步 0 失败；合并后 `main`（`626673f`）上 workflow_dispatch run **#37** 同样 success |
+| CI 真实运行 | ✅ 已在 GitHub 实际运行并通过（次数以 Actions 页面为准）。`a05defd` 上 push run **#35** / pull_request run **#36** 均 **success**，全部步骤 0 失败；合并后 `main`（`626673f`）上 workflow_dispatch run **#37** 同样 success |
 | Ruleset `Protect main` | ✅ 已配置 `required_status_checks`，context = **`Windows · 桌面版门禁`**（与作业名逐字节一致）；`strict = false`、`bypass_actors = []` |
 | 效果验证 | ✅ PR #1 合并前 `mergeable_state` 由 `unstable` 转为 **`clean`**，且 **已于 2026-11-02 合并进 `main`**（squash → `626673f`）—— 说明必需检查已真实生效 |
 
@@ -342,7 +387,7 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 led-ratio-tool-repo/
 ├── .github/
 │   └── workflows/
-│       └── windows.yml           ← 🔴 真正生效的 Windows CI 工作流（29 个定义步骤 → 实际作业 36 步）
+│       └── windows.yml           ← 🔴 真正生效的 Windows CI 工作流（30 个定义步骤 → 实际作业 37 步）
 ├── src/                          ← 🔒 受保护：HTML 版业务源码（桌面版从这里同步）
 ├── index.html                    ← 🔒 受保护：HTML 版入口（桌面版从这里同步）
 ├── dist/led-ratio-tool.html      ← 🔒 受保护：HTML 版正式交付物
