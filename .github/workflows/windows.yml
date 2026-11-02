@@ -619,3 +619,10 @@ jobs:
           $lines += '**权威来源**：Ruleset 的 strict / 必需审批数 / 允许的合并方式以 GitHub 实时设置为准；规则说明见仓库 `GITHUB-RULES.md`。'
           (($lines -join "`n") + "`n") | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
           Write-Host "✅ 汇总已写入 GITHUB_STEP_SUMMARY（$($summary.Count) 个门禁项）"
+
+          # 🔴 同时回显到作业日志：步骤摘要页无法通过 API 读取，日志回显让
+          #    「汇总内容是否真的正确」可以被直接核对（本次插值缺陷正是因此漏掉的）。
+          #    与写入 GITHUB_STEP_SUMMARY 的内容**同源**（同一个 $lines），不另拼一份。
+          Write-Host ''
+          Write-Host '=== 门禁汇总（与 GITHUB_STEP_SUMMARY 同源）==='
+          $lines | ForEach-Object { Write-Host $_ }
