@@ -30,11 +30,11 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | 200 组差分（DEC-15） | ✅ **完全通过**：200/200 执行，差异 **0** 条，未覆盖字段 **0**，字段级覆盖率 **100%**（43 个字段 / 6,882 条 L1 断言） |
 | 视觉回归 | ✅ **3/3 通过**（1440×900 / 1200×800 / 1024×680，阈值 0.1%） |
 | 高 DPI **100%** 档 | ✅ **21/21 通过**（`scaleFactor = 1` 实读，非模拟） |
-| Windows CI 工作流 | ✅ **已在 GitHub 实际运行 24 次**；最新 push run **#23** + pull_request run **#24**（`c9db38b`）**36 步 0 失败**。`Protect main` 规则集已配置 `required_status_checks = "Windows · 桌面版门禁"`，PR 状态 `mergeable_state = clean` |
+| Windows CI 工作流 | ✅ **截至数据截止点已在 GitHub 实际运行 24 次**；其中 push run **#23** / pull_request run **#24**（`c9db38b`）**36 步 0 失败**。`Protect main` 规则集已配置 `required_status_checks = "Windows · 桌面版门禁"`，PR 状态 `mergeable_state = clean`。之后的运行次数随每次推送递增，以 Actions 页面为准 |
 | 正式安装包 / 签名 / 完整安装链路 | ⏳ **尚待 P7 验收**。CI 中的打包步骤只产出 Preview Candidate 与尺寸报告（**不参与门禁**）；当前未发布、未签名 |
 | 高 DPI **125% / 150%** 档 | ⛔ **BLOCKED（环境未就绪）**：需人工切换系统缩放（必要时注销重登）后按 `DPI-ACCEPTANCE.md` 执行，**未用模拟手段冒充** |
 
-> 📅 **本文档数据截止：2026-11-02，分支 `feature/desktop-windows` @ `c9db38b`**。数字均取自 `desktop/test/reports/` 下的真实报告与 GitHub Actions 实际运行记录，不手工估算。
+> 📅 **本文档数据截止：2026-11-02，分支 `feature/desktop-windows` @ `c9db38b`**。数字均取自 `desktop/test/reports/` 下的真实报告与 GitHub Actions 实际运行记录，不手工估算。本文档自身的后续文档提交不计入上述测试数据。
 
 > ✅ **当前测试门禁全部通过**：桌面 E2E 93/93、HTML E2E 85/85、单元测试 64/64、安全审计 47/47、200 组差分完全通过、视觉回归 3/3、100% 缩放档 21/21。
 
@@ -238,7 +238,7 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 
 | 项 | 状态 |
 |---|---|
-| CI 真实运行 | ✅ 已在 GitHub 实际运行 **24 次**；最新 push run **#23** / pull_request run **#24**（`c9db38b`）均 **success**，36 步 0 失败 |
+| CI 真实运行 | ✅ 截至数据截止点已在 GitHub 实际运行 **24 次**；其中 push run **#23** / pull_request run **#24**（`c9db38b`）均 **success**，36 步 0 失败 |
 | Ruleset `Protect main` | ✅ 已配置 `required_status_checks`，context = **`Windows · 桌面版门禁`**（与作业名逐字节一致） |
 | 效果验证 | ✅ PR #1 的 `mergeable_state` 由 `unstable` 转为 **`clean`** —— 说明必需检查已真实生效 |
 
