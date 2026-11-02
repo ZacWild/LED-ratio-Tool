@@ -7,3 +7,8 @@
 # 干扰 CI 的可复现性判定。
 dist/led-ratio-tool.html -text
 test/baselines/led-ratio-tool.v1000.html -text
+
+# Windows 批处理入口必须保持 CRLF —— cmd.exe 对纯 LF 的 goto / label 解析不可靠，
+# 归一化为 LF 会让 dpi-run.cmd 在 cmd 下跳转失效（静默走错分支）。
+*.cmd text eol=crlf
+*.bat text eol=crlf
