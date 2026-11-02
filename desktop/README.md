@@ -31,7 +31,7 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | 200 组差分（DEC-15） | ✅ **完全通过**：200/200 执行，差异 **0** 条，未覆盖字段 **0**，字段级覆盖率 **100%**（43 个字段 / 6,882 条 L1 断言） |
 | 视觉回归 | ✅ **3/3 通过**（1440×900 / 1200×800 / 1024×680，阈值 0.1%）：三张基准已于 `b48aaa8` **按授权更新**至 UI Polish 后的实际画面，重跑差异 **0.0000%**、更新 0 项（明细见 §1.1） |
 | 高 DPI **100%** 档 | ✅ **21/21 通过**（`scaleFactor = 1` 实读，非模拟） |
-| Windows CI 工作流 | ✅ **截至数据截止点已在 GitHub 实际运行 32 次**；其中 push run **#31** / pull_request run **#32**（`b48aaa8`）**36 步 0 失败**。`Protect main` 规则集已配置 `required_status_checks = "Windows · 桌面版门禁"`，PR 状态 `mergeable_state = clean`。之后的运行次数随每次推送递增，以 Actions 页面为准 |
+| Windows CI 工作流 | ✅ **已在 GitHub 实际运行并通过**（次数与逐次结论以 Actions 页面为准，本表不写死以免每次推送即过期）。`feature/desktop-windows` 上 push run **#35** / pull_request run **#36**（`a05defd`）均 success、36 步 0 失败。`Protect main` 规则集已把 **`Windows · 桌面版门禁`** 设为 required status check；PR #1 已合并进 `main`（squash → `626673f`） |
 | 正式安装包 / 签名 / 完整安装链路 | ⏳ **尚待 P7 验收**。CI 中的打包步骤只产出 Preview Candidate 与尺寸报告（**不参与门禁**）；当前未发布、未签名 |
 | 高 DPI **125% / 150%** 档 | ⛔ **BLOCKED（环境未就绪）**：需人工切换系统缩放（必要时注销重登）后按 `DPI-ACCEPTANCE.md` 执行，**未用模拟手段冒充** |
 
@@ -252,19 +252,17 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 
 ### 5.5 Ruleset 必需状态检查（已按顺序完成配置）
 
-> 🔒 **纪律（保留）**：在 CI 尚未于本仓库成功运行过之前，禁止把任何状态检查设为 Ruleset 的必需项（required status check）。
+> ✅ **配置路径（已完成，留档）**：a. 先推送工作流文件 → b. 在 Actions 页面确认**至少一次真实的绿色运行** → c. 由项目负责人把该 job 名（`Windows · 桌面版门禁`）加入 Ruleset 的 required status checks。**三步均已完成，本条不再作为待办。**
 >
-> 理由：把一个「从未成功运行过」的检查设为 required，等于给所有后续 PR 判死刑 —— 任何人推 PR 都会因为一个从未被验证能通过的工作流而被永久阻塞。
->
-> 正确顺序：a. 先推送工作流文件 → b. 在 Actions 页面确认**至少一次真实的绿色运行** → c. 再由项目负责人把该 job 名（`Windows · 桌面版门禁`）加入 Ruleset 的 required status checks。
+> 为什么当初强调这个顺序（保留说明，避免以后再犯）：把一个「从未成功运行过」的检查设为 required，等于给所有后续 PR 判死刑 —— 任何人推 PR 都会因为一个从未被验证能通过的工作流而被永久阻塞。
 
 **当前实际状态（2026-11-02）**
 
 | 项 | 状态 |
 |---|---|
-| CI 真实运行 | ✅ 截至数据截止点已在 GitHub 实际运行 **32 次**；其中 push run **#31** / pull_request run **#32**（`b48aaa8`）均 **success**，36 步 0 失败 |
-| Ruleset `Protect main` | ✅ 已配置 `required_status_checks`，context = **`Windows · 桌面版门禁`**（与作业名逐字节一致） |
-| 效果验证 | ✅ PR #1 的 `mergeable_state` 由 `unstable` 转为 **`clean`** —— 说明必需检查已真实生效 |
+| CI 真实运行 | ✅ 已在 GitHub 实际运行并通过（次数以 Actions 页面为准）。`a05defd` 上 push run **#35** / pull_request run **#36** 均 **success**，36 步 0 失败；合并后 `main`（`626673f`）上 workflow_dispatch run **#37** 同样 success |
+| Ruleset `Protect main` | ✅ 已配置 `required_status_checks`，context = **`Windows · 桌面版门禁`**（与作业名逐字节一致）；`strict = false`、`bypass_actors = []` |
+| 效果验证 | ✅ PR #1 合并前 `mergeable_state` 由 `unstable` 转为 **`clean`**，且 **已于 2026-11-02 合并进 `main`**（squash → `626673f`）—— 说明必需检查已真实生效 |
 
 > 上述 a / b / c 三步均已完成：工作流已推送、已有多次真实绿色运行、必需检查已由项目负责人配置。
 
@@ -551,11 +549,11 @@ set ELECTRON_RUN_AS_NODE=
 
 | 项 | 实际状态 |
 |---|---|
-| 默认分支 `main` | `545bd0d` —— Revise download instructions in README |
-| 开发分支 `feature/desktop-windows` | PR #1 的 head 分支，**未合并** |
-| PR #1 | **Open** · `mergeable_state = clean` · 非草稿 · base `main` · head `feature/desktop-windows`。**提交数、变更文件数与行数随每次推送变化，本文档不复制这些计数，一律以 PR 页面为准** |
+| 默认分支 `main` | `626673f` —— PR #1 的 squash 合并提交（`feat(desktop): add Electron-based Windows desktop application`） |
+| 开发分支 `feature/desktop-windows` | `a05defd` —— PR #1 合并时的 head，**分支保留未删除**；内容已全部并入 `main` |
+| PR #1 | **Closed · merged**（2026-11-02T06:18:01Z，squash → `626673f`）。合并前 `mergeable_state = clean`，required check `Windows · 桌面版门禁` 在 head `a05defd` 上 success |
 | Tag | 仅 **1 个**：`pre-desktop`（桌面版开发起点）。**当前工作尚无正式版本 Tag** |
 | Release | **0 个** —— 未发布任何版本，与「正式安装包 / 签名尚待 P7 验收」（§一）一致 |
-| 合并动作 | ⛔ **未执行** —— 等 PR 链接 + 变更摘要 + 测试结果 + 已知问题提交后由项目负责人确认 |
+| 合并动作 | ✅ **已由项目负责人执行 Squash Merge**（`626673f`）。合并后 `main` 受 `Protect main` 保护，后续改动仍须走 PR + required check |
 
 > 🔒 上表是**抓取时快照**，不是承诺。Tag / Release / 合并状态一律以 GitHub 实时页面为准；本文档不代替 GitHub 上的真实状态。
