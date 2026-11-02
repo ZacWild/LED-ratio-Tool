@@ -30,14 +30,26 @@ const path = require('node:path');
  * 保留原有的「静默降级」语义（写入失败静默忽略，不阻断启动）。
  */
 const PERSIST_PATCH = `/* ---- desktop-adapter: persistence → IPC ---- */
+  function desktopApplySettings(data) {
+    if (!data || typeof data.tolerancePercent !== 'number') return;
+    state.tolerancePercent = data.tolerancePercent;
+    var t = document.getElementById('input-tolerance');
+    if (t) t.value = String(data.tolerancePercent);
+  }
   function desktopLoadSettings() {
     if (!window.ledApi || !window.ledApi.settingsGet) return;
     try {
       var r = window.ledApi.settingsGet();
-      if (r && r.code === 0 && r.data && typeof r.data.tolerancePercent === 'number') {
-        state.tolerancePercent = r.data.tolerancePercent;
-        var t = document.getElementById('input-tolerance');
-        if (t) t.value = String(r.data.tolerancePercent);
+      // 🔴 preload 的 settingsGet 是 ipcRenderer.invoke，返回 \u002a\u002aPromise\u002a\u002a 而不是对象。
+      //    早期实现直接判断 r.code === 0 → 判据恒为假，**持久化设置永远不生效**：
+      //    P7-5 实测 settings.json 里已是 1.75，重启后输入框仍是默认 0.5。
+      //    此处同时兼容「同步返回」与「Promise」两种形态，避免再次回归。
+      if (r && typeof r.then === 'function') {
+        r.then(function (res) {
+          if (res && res.code === 0 && res.data) desktopApplySettings(res.data);
+        }).catch(function () { /* 读取失败静默降级为默认值 */ });
+      } else if (r && r.code === 0 && r.data) {
+        desktopApplySettings(r.data);
       }
     } catch (e) { /* 静默降级为默认值 */ }
   }

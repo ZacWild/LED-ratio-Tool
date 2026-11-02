@@ -1,0 +1,211 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-02T11:10:08.573Z",
+    "version": "1.1.0",
+    "platform": "Windows_NT 10.0.26300 x64",
+    "totalMemGB": 16,
+    "displays": null
+  },
+  "results": [
+    {
+      "id": "ART-01",
+      "title": "验收对象与 P7-4 指纹一致（防调包）",
+      "pass": true,
+      "detail": "setup 732c4603ed4fe9c9… / portable 957bb99b67d82a31…（与 p7-artifacts.json 比对一致）",
+      "shaSetup": "732c4603ed4fe9c913a7b869af58df72ff68ee0e100032714a1b6fbbf8029dc2",
+      "shaPort": "957bb99b67d82a314bf1fabb2480bcc6969d4d84f7c75a51e5f958855a560be4"
+    },
+    {
+      "id": "ART-02",
+      "title": "签名状态已明确披露（未签名不得写成已签名）",
+      "pass": true,
+      "detail": "NotSigned：三处 PE 证书表为空，构建日志明确 \"no code signing certificate configured, signing is skipped\" → 属 P7 发布阻塞项",
+      "signed": false
+    },
+    {
+      "id": "INS-01",
+      "title": "静默安装到独立目录成功",
+      "pass": true,
+      "detail": "已安装到 C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Tool P7-Accept（installer exit=0）"
+    },
+    {
+      "id": "INS-02",
+      "title": "安装后的主程序与 win-unpacked 逐字节一致",
+      "pass": true,
+      "detail": "installed=c798d7f03a7ce016… unpacked=c798d7f03a7ce016…"
+    },
+    {
+      "id": "INS-03",
+      "title": "卸载器已生成",
+      "pass": true,
+      "detail": "Uninstall LED Ratio Tool.exe 存在"
+    },
+    {
+      "id": "INS-04",
+      "title": "快捷方式已创建（桌面 + 开始菜单）",
+      "pass": true,
+      "detail": "桌面=true｜开始菜单=true"
+    },
+    {
+      "id": "INS-05",
+      "title": "注册表卸载项（控制面板可见）",
+      "pass": null,
+      "detail": "SKIP：本环境禁止调用 reg.exe，改用「卸载器存在 + 控制面板项由 NSIS 保证」间接判断；注册表本身未核对"
+    },
+    {
+      "id": "RUN-01",
+      "title": "安装版启动成功并完成布局（台账实测）",
+      "pass": true,
+      "detail": "客户区=1024×681｜scaleFactor=1｜heightTier=3"
+    },
+    {
+      "id": "RUN-02",
+      "title": "核心换算正确（1920×1080 → 16:9 口径）",
+      "pass": true,
+      "detail": "UI 显示「1.7778 : 1」｜期望「1.7778 : 1」（core.fmt(1920/1080,4)=1.7778）",
+      "shown": "1.7778 : 1",
+      "expectRatio": "1.7778 : 1"
+    },
+    {
+      "id": "RUN-03",
+      "title": "第二组换算正确（3840×1080 → 32:9）",
+      "pass": true,
+      "detail": "UI 显示「3.5556 : 1」｜期望「3.5556 : 1」",
+      "shown2": "3.5556 : 1"
+    },
+    {
+      "id": "RUN-04",
+      "title": "运行期零出网请求（离线可用性的硬证据）",
+      "pass": true,
+      "detail": "已审计 6 条请求，全部为 app:/data: 内部资源",
+      "totalRequests": 6
+    },
+    {
+      "id": "RUN-05",
+      "title": "控制台零 error / 零未捕获异常",
+      "pass": true,
+      "detail": "0 条"
+    },
+    {
+      "id": "SET-01",
+      "title": "UI 改设置后立即落盘",
+      "pass": true,
+      "detail": "settings.json → tolerancePercent=1.75（输入框回读 1.75）",
+      "settings": {
+        "schemaVersion": 1,
+        "tolerancePercent": 1.75,
+        "createdAt": "2026-11-02T11:07:37.192Z",
+        "updatedAt": "2026-11-02T11:08:53.317Z"
+      }
+    },
+    {
+      "id": "SET-02",
+      "title": "settings.json 只含白名单键（无冗余字段）",
+      "pass": true,
+      "detail": "键：schemaVersion, tolerancePercent, createdAt, updatedAt",
+      "keys": [
+        "schemaVersion",
+        "tolerancePercent",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    {
+      "id": "SET-03",
+      "title": "重启后设置从磁盘读回（跨启动持久化）",
+      "pass": true,
+      "detail": "重启后输入框 = 1.75",
+      "readBack": "1.75"
+    },
+    {
+      "id": "UPG-01",
+      "title": "同版本覆盖安装成功且设置保留",
+      "pass": true,
+      "detail": "exit=0｜exe 就位=true｜tolerance=1.75"
+    },
+    {
+      "id": "UPG-02",
+      "title": "旧版本安装成功（升级基线）",
+      "pass": true,
+      "detail": "legacy exit=0｜旧版 exe sha=bcb7f35645b4b59c…"
+    },
+    {
+      "id": "UPG-03",
+      "title": "版本升级覆盖成功（主程序已换成当前版本）",
+      "pass": true,
+      "detail": "升级 exit=0｜新 exe sha=c798d7f03a7ce016…｜与 1.1.0 一致=true"
+    },
+    {
+      "id": "UPG-04",
+      "title": "升级后设置保留（未被重置）",
+      "pass": true,
+      "detail": "tolerancePercent=0.75（升级前写入 0.75）"
+    },
+    {
+      "id": "UPG-05",
+      "title": "升级后启动正常且换算正确（2560×1440 → 16:9）",
+      "pass": true,
+      "detail": "UI 显示「1.7778 : 1」｜期望「1.7778 : 1」｜输入框 2560×1440｜错误位 [\"\",\"\"]",
+      "shown": "1.7778 : 1",
+      "w3": "2560",
+      "h3": "1440"
+    },
+    {
+      "id": "UNI-01",
+      "title": "静默卸载后程序文件被清除",
+      "pass": true,
+      "detail": "uninstaller exit=0｜exe 已消失=true｜目录仍存在=false"
+    },
+    {
+      "id": "UNI-02",
+      "title": "卸载后 settings.json 保留（DEC-20）",
+      "pass": true,
+      "detail": "保留，tolerancePercent=2.5"
+    },
+    {
+      "id": "UNI-03",
+      "title": "卸载后快捷方式清除（轮询等待异步卸载完成）",
+      "pass": true,
+      "detail": "桌面快捷方式=false｜开始菜单=false（最多等待 30s）"
+    },
+    {
+      "id": "UNI-04",
+      "title": "卸载后注册表项清除",
+      "pass": null,
+      "detail": "SKIP：本环境禁止调用 reg.exe —— 未核对，不得记为通过"
+    },
+    {
+      "id": "POR-01",
+      "title": "便携版从中立目录启动成功（不依赖安装）",
+      "pass": true,
+      "detail": "副本 sha=957bb99b67d82a31…｜document.title「LED 大屏比例与视频画布换算工具」｜目录 C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Portable Neutral"
+    },
+    {
+      "id": "POR-02",
+      "title": "断网环境下核心换算仍正确（proxy 指向黑洞端口）",
+      "pass": true,
+      "detail": "1920×1200 → UI「1.6 : 1」（期望「1.6 : 1」）｜外部请求 0 条｜总请求 6 条",
+      "shown": "1.6 : 1",
+      "external": 0
+    },
+    {
+      "id": "POR-03",
+      "title": "断网未导致任何加载失败（不依赖网络）",
+      "pass": true,
+      "detail": "0 条"
+    },
+    {
+      "id": "POR-04",
+      "title": "便携版不产生安装痕迹（未创建 Programs 目录）",
+      "pass": true,
+      "detail": "Programs 目录=false（运行前=false）｜注册表：本环境禁止 reg.exe，未核对（不得视为已验证）"
+    }
+  ],
+  "summary": {
+    "total": 28,
+    "pass": 26,
+    "fail": 0,
+    "skip": 2,
+    "verdict": "PASS_WITH_SKIP"
+  }
+}

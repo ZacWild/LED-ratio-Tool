@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-02T11:06:11.999Z",
+    "version": "1.1.0",
+    "gitHead": "aa6de608d1434abe20c4bd513938ec2865c870c8",
+    "electron": "45.1.0",
+    "productName": "LED Ratio Tool",
+    "missingOptional": []
+  },
+  "artifacts": [
+    {
+      "key": "nsis",
+      "label": "NSIS 安装程序",
+      "file": "LED Ratio Tool-1.1.0-x64-setup.exe",
+      "exists": true,
+      "bytes": 121390624,
+      "sha256": "732c4603ed4fe9c913a7b869af58df72ff68ee0e100032714a1b6fbbf8029dc2",
+      "fileVersion": "1.1.0",
+      "productVersion": "1.1.0",
+      "fileDescription": "LED 屏比例换算台 —— 屏幕尺寸与视频画布比例换算工具（Windows 桌面版）",
+      "signature": {
+        "signed": false,
+        "certificateTableSize": 0,
+        "status": "NotSigned（证书表为空）"
+      }
+    },
+    {
+      "key": "portable",
+      "label": "Portable 便携版",
+      "file": "LED Ratio Tool-1.1.0-x64-portable.exe",
+      "exists": true,
+      "bytes": 110419940,
+      "sha256": "957bb99b67d82a314bf1fabb2480bcc6969d4d84f7c75a51e5f958855a560be4",
+      "fileVersion": "1.1.0",
+      "productVersion": "1.1.0",
+      "fileDescription": "LED 屏比例换算台 —— 屏幕尺寸与视频画布比例换算工具（Windows 桌面版）",
+      "signature": {
+        "signed": false,
+        "certificateTableSize": 0,
+        "status": "NotSigned（证书表为空）"
+      }
+    },
+    {
+      "key": "app",
+      "label": "应用主程序（win-unpacked）",
+      "file": "LED Ratio Tool.exe",
+      "exists": true,
+      "bytes": 249865728,
+      "sha256": "c798d7f03a7ce016cc8c7e2fd07fd52cee3938160ad1862962e5f9f9eac5c58a",
+      "fileVersion": "1.1.0",
+      "productVersion": "1.1.0.0",
+      "fileDescription": "LED Ratio Tool",
+      "signature": {
+        "signed": false,
+        "certificateTableSize": 0,
+        "status": "NotSigned（证书表为空）"
+      }
+    },
+    {
+      "key": "uninstaller",
+      "label": "卸载器（安装后生成）",
+      "exists": false
+    },
+    {
+      "key": "blockmap",
+      "label": "安装包 blockmap",
+      "file": "LED Ratio Tool-1.1.0-x64-setup.exe.blockmap",
+      "exists": true,
+      "bytes": 128241,
+      "sha256": "fe82e735a0797322829f4cf42d817788c122688434dce2e241962ea0751fb665",
+      "fileVersion": null,
+      "productVersion": null,
+      "fileDescription": null,
+      "signature": {
+        "signed": null,
+        "certificateTableSize": null,
+        "status": "不适用（非 PE）"
+      }
+    }
+  ],
+  "signatureSummary": {
+    "anySigned": false,
+    "verdict": "全部未签名（无代码签名证书）"
+  }
+}

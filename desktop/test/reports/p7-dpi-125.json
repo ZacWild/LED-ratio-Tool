@@ -1,0 +1,217 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-02T11:16:36.863Z",
+    "exe": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\dist\\win-unpacked\\LED Ratio Tool.exe",
+    "expectedPercent": 125,
+    "node": "v22.22.2",
+    "os": "Windows_NT 10.0.26300"
+  },
+  "measured": {
+    "scaleFactor": 1.25,
+    "scalePercent": 125,
+    "dpr": 1.25,
+    "screen": [
+      820,
+      615
+    ],
+    "avail": [
+      820,
+      567
+    ],
+    "ledger": {
+      "content": {
+        "width": 1024,
+        "height": 680
+      },
+      "frame": {
+        "width": 1039,
+        "height": 744
+      },
+      "delta": {
+        "width": 15,
+        "height": 64
+      },
+      "workArea": {
+        "x": 0,
+        "y": 0,
+        "width": 820,
+        "height": 567
+      },
+      "scaleFactor": 1.25,
+      "heightTier": 3,
+      "dpr": 1
+    }
+  },
+  "geometry": {
+    "overflowDoc": 0,
+    "innerWidth": 1024,
+    "innerHeight": 680,
+    "boxes": {
+      "#input-width": {
+        "w": 949,
+        "h": 36,
+        "visible": true,
+        "fontSize": "15px",
+        "text": "",
+        "inViewport": true
+      },
+      "#input-height": {
+        "w": 949,
+        "h": 36,
+        "visible": true,
+        "fontSize": "15px",
+        "text": "",
+        "inViewport": true
+      },
+      "#ratio-value": {
+        "w": 208,
+        "h": 48,
+        "visible": true,
+        "fontSize": "40px",
+        "text": "3.5000:1",
+        "inViewport": true
+      },
+      "#btn-swap": {
+        "w": 82,
+        "h": 36,
+        "visible": true,
+        "fontSize": "14px",
+        "text": "宽高互换",
+        "inViewport": true
+      },
+      "#btn-copy-resolution": {
+        "w": 105,
+        "h": 36,
+        "visible": true,
+        "fontSize": "13px",
+        "text": "⧉\n复制分辨率",
+        "inViewport": true
+      },
+      "#btn-copy-full": {
+        "w": 120,
+        "h": 36,
+        "visible": true,
+        "fontSize": "13px",
+        "text": "⧉\n复制完整参数",
+        "inViewport": true
+      }
+    },
+    "tier": "tight",
+    "layout": "stacked",
+    "stage": {
+      "display": "none",
+      "h": 0
+    },
+    "stagePanel": {
+      "display": "flex",
+      "h": 110
+    },
+    "stageOverlay": {
+      "w": 0,
+      "h": 0,
+      "visible": false,
+      "fontSize": "11px",
+      "text": "3.5 : 1",
+      "inViewport": false
+    }
+  },
+  "results": [
+    {
+      "id": "DPI-01",
+      "title": "系统缩放与期望一致（scaleFactor 来自 screen API）",
+      "pass": true,
+      "detail": "期望 125%｜ledger.scaleFactor=1.25（125%）",
+      "group": "render"
+    },
+    {
+      "id": "DPI-02",
+      "title": "渲染层 devicePixelRatio 同步（未使用页面缩放）",
+      "pass": true,
+      "detail": "期望 1.25｜dpr=1.25｜window.outerWidth/innerWidth=1.0146（≈1 表示没有 zoomFactor 缩放）",
+      "group": "render"
+    },
+    {
+      "id": "DPI-03",
+      "title": "无文档级横向溢出",
+      "pass": true,
+      "detail": "scrollWidth-clientWidth = 0（视口 1024×680，高度档位 tight，布局 stacked）",
+      "group": "render"
+    },
+    {
+      "id": "DPI-08",
+      "title": "舞台折叠符合 DEC-16（折叠时叠加标签允许不可见）",
+      "pass": true,
+      "detail": "tight 档折叠 #stage（display=none，外框 .panel--stage 仍占 110px 作行内摘要）→ #dim-ratio 不可见属设计行为",
+      "group": "render"
+    },
+    {
+      "id": "DPI-04",
+      "title": "可交互控件命中区 ≥32×32 CSS px",
+      "pass": true,
+      "detail": "input-width=949×36｜input-height=949×36｜btn-swap=82×36｜btn-copy-resolution=105×36｜btn-copy-full=120×36",
+      "group": "render"
+    },
+    {
+      "id": "DPI-05",
+      "title": "四类核心操作（输入/结果/复制）全部可见",
+      "pass": true,
+      "detail": "6 个核心控件均 visible",
+      "group": "render"
+    },
+    {
+      "id": "DPI-09",
+      "title": "窗口完整落在当前工作区内（无边缘出屏）",
+      "pass": false,
+      "detail": "窗口 1039×744 @ (0,0)｜工作区 820×567 @ (0,0)｜右侧超出 219px｜底部超出 177px｜客户区比工作区高 113px｜根因：MIN_CONTENT_W=1024 / MIN_CONTENT_H=680（DEC-07）大于当前工作区，属预存约束，须决策（缩小下限 / 允许横向滚动 / 该档改两栏）",
+      "group": "fit",
+      "overRight": 219,
+      "overBottom": 177,
+      "contentOverH": 113,
+      "win": {
+        "screenX": 0,
+        "screenY": 0,
+        "outerWidth": 1039,
+        "outerHeight": 744,
+        "innerWidth": 1024,
+        "innerHeight": 680,
+        "availWidth": 820,
+        "availHeight": 567,
+        "availLeft": 0,
+        "availTop": 0
+      }
+    },
+    {
+      "id": "DPI-06",
+      "title": "核心换算正确且结果对用户可见（1920×1080 → 16:9）",
+      "pass": true,
+      "detail": "#ratio-value 显示「1.7778:1」｜期望「1.7778:1」｜可见=true（208×48，字号 40px）",
+      "group": "render"
+    },
+    {
+      "id": "DPI-07",
+      "title": "截图已留存（供人工复核真实观感）",
+      "pass": true,
+      "detail": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\p7-dpi\\dpi-125.png（66 KB）",
+      "group": "render"
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "pass": 8,
+    "fail": 1,
+    "skip": 0,
+    "render": {
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "skip": 0
+    },
+    "fit": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1,
+      "skip": 0
+    },
+    "verdict": "FAIL"
+  }
+}
