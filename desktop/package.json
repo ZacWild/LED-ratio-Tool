@@ -25,6 +25,7 @@
     "test:dpi": "node test/dpi-acceptance.mjs",
     "test:pc": "node test/pc-verify.mjs",
     "verify:icons": "node build/verify-icons.mjs",
+    "test:fuses": "node test/fuses-verify.mjs",
     "dev": "npm run preflight && node build/sync-assets.mjs && electron .",
     "build:win": "npm run preflight && npm run verify:icons && node build/sync-assets.mjs && electron-builder --win --x64 --config build/electron-builder.yml"
   },

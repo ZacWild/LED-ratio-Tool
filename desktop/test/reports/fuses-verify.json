@@ -1,0 +1,181 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-02T09:55:59.588Z",
+    "exe": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\dist\\win-unpacked\\LED Ratio Tool.exe",
+    "exeBytes": 249865728,
+    "appAsarBytes": 356159,
+    "appAsarSha256": "a0e64f773b6be7b10583e852ff4e7492c5f54208ffc7f887c55e315d43078d96",
+    "node": "v22.22.2",
+    "platform": "win32"
+  },
+  "fuseWire": {
+    "version": 1,
+    "length": 9,
+    "states": [
+      48,
+      49,
+      48,
+      48,
+      49,
+      49,
+      48,
+      48,
+      49
+    ]
+  },
+  "fuses": {
+    "RunAsNode": false,
+    "EnableCookieEncryption": true,
+    "EnableNodeOptionsEnvironmentVariable": false,
+    "EnableNodeCliInspectArguments": false,
+    "EnableEmbeddedAsarIntegrityValidation": true,
+    "OnlyLoadAppFromAsar": true,
+    "LoadBrowserProcessSpecificV8Snapshot": false,
+    "GrantFileProtocolExtraPrivileges": false
+  },
+  "expected": {
+    "RunAsNode": false,
+    "EnableCookieEncryption": true,
+    "EnableNodeOptionsEnvironmentVariable": false,
+    "EnableNodeCliInspectArguments": false,
+    "EnableEmbeddedAsarIntegrityValidation": true,
+    "OnlyLoadAppFromAsar": true,
+    "LoadBrowserProcessSpecificV8Snapshot": false,
+    "GrantFileProtocolExtraPrivileges": false
+  },
+  "results": [
+    {
+      "id": "F-01",
+      "title": "在 exe 中定位 Fuse Wire（sentinel 存在）",
+      "ok": true,
+      "detail": "sentinel 出现 1 处",
+      "sentinelCount": 1
+    },
+    {
+      "id": "F-02",
+      "title": "Wire 头合法（version=1，长度 ≥ 8）",
+      "ok": true,
+      "detail": "version=1 length=9"
+    },
+    {
+      "id": "F-03",
+      "title": "8 个 fuse 逐项与安全目标一致",
+      "ok": true,
+      "detail": "全部一致",
+      "fuses": {
+        "RunAsNode": false,
+        "EnableCookieEncryption": true,
+        "EnableNodeOptionsEnvironmentVariable": false,
+        "EnableNodeCliInspectArguments": false,
+        "EnableEmbeddedAsarIntegrityValidation": true,
+        "OnlyLoadAppFromAsar": true,
+        "LoadBrowserProcessSpecificV8Snapshot": false,
+        "GrantFileProtocolExtraPrivileges": false
+      }
+    },
+    {
+      "id": "F-04",
+      "title": "与官方 @electron/fuses 解析结果交叉一致",
+      "ok": true,
+      "detail": "官方库解析结果与自写解析器、与安全目标三方一致"
+    },
+    {
+      "id": "F-05",
+      "title": "exe 内 ELECTRONASAR == app.asar header JSON 的 SHA-256（非整档哈希）",
+      "ok": true,
+      "detail": "嵌入值 == sha256(app.asar header JSON)（b2251cffcadbfa9d…，alg=SHA256，条目 resources\\app.asar）",
+      "asarIntegrity": [
+        {
+          "file": "resources\\app.asar",
+          "alg": "SHA256",
+          "value": "b2251cffcadbfa9d937442699749170a76d5afd47037f4cb611750c0c79bc085"
+        }
+      ],
+      "headerSha": "b2251cffcadbfa9d937442699749170a76d5afd47037f4cb611750c0c79bc085"
+    },
+    {
+      "id": "F-06",
+      "title": "相对官方 electron.exe 确实发生了 fuse 翻转",
+      "ok": true,
+      "detail": "相对官方 electron.exe 翻转了 7 个：RunAsNode(ENABLE→DISABLE)，EnableCookieEncryption(DISABLE→ENABLE)，EnableNodeOptionsEnvironmentVariable(ENABLE→DISABLE)，EnableNodeCliInspectArguments(ENABLE→DISABLE)，EnableEmbeddedAsarIntegrityValidation(DISABLE→ENABLE)，OnlyLoadAppFromAsar(DISABLE→ENABLE)，GrantFileProtocolExtraPrivileges(ENABLE→DISABLE)"
+    },
+    {
+      "id": "D-01",
+      "title": "ELECTRON_RUN_AS_NODE=1 不退化为 Node 执行器",
+      "ok": true,
+      "detail": "环境变量被忽略，仍启动了真实应用（stdout 有 [LED-VERSIONS]）",
+      "stdout": "\r\n[LED-VERSIONS] {\"node\":\"24.22.1\",\"acorn\":\"8.18.0\",\"ada\":\"4.0.0\",\"amaro\":\"1.1.11\",\"ares\":\"1.34.9\",\"brotli\":\"1.2.0\",\"cldr\":\"48.0\",\"icu\":\"78.2\",\"llhttp\":\"9.4.3\",\"merve\":\"1.2.2\",\"modules\":\"150\",\"napi\":\"10\",\"nbytes\":\"0.1.4\",\"ncrypto\":\"0.0.1\",\"nghttp2\":\"1.70.0\",\"nghttp3\":\"\",\"ngtcp2\":\"\",\"openssl\":\"0.0.0\",\"simdjson\":\"4.6.11\",\"simdutf\":\"7.7.0\",\"sqlite\":\"3.53.4\",\"tz\":\"2026e\",\"undici\":\"7.30.1\",\"unicode\":\"1"
+    },
+    {
+      "id": "D-02",
+      "title": "NODE_OPTIONS=--require 不被执行",
+      "ok": true,
+      "detail": "未生成 marker，NODE_OPTIONS 被丢弃",
+      "appStarted": true
+    },
+    {
+      "id": "D-03",
+      "title": "--inspect 不开启 Node 调试端口",
+      "ok": true,
+      "detail": "端口 9339 全程未监听",
+      "port": 9339,
+      "listening": false
+    },
+    {
+      "id": "D-04a",
+      "title": "篡改 asar header → 启动前即被拒（entry '<header>' 完整性校验）",
+      "ok": true,
+      "detail": "启动前 FATAL：Integrity check failed for asar archive entry '<header>'（退出码 2147483651）",
+      "tamperAt": 120,
+      "exitCode": 2147483651,
+      "stderr": "[36236:1102/175550.119:FATAL:electron\\shell\\common\\asar\\asar_util.cc:357] Integrity check failed for asar archive entry '<header>' (b2251cffcadbfa9d937442699749170a76d5afd47037f4cb611750c0c79bc085 vs 40223fb69a6a8dbf638d8132c23f89b517bd203a5bfa38ad24bf9d5247fdefa9, 3833 bytes)\r\n"
+    },
+    {
+      "id": "D-04b",
+      "title": "篡改主进程脚本（Node 读取路径）→ 启动前即被拒（per-file hash 校验）",
+      "ok": true,
+      "detail": "启动前被拒：ASAR Integrity Violation（main/csp.js@0，退出码 1）",
+      "tamperAt": 3852,
+      "file": "main/csp.js",
+      "exitCode": 1,
+      "stderr": "ASAR Integrity Violation: got a hash mismatch (4bb5d678adb8e4b59f1562c29c3c74cd72e2013ca520981c879644c7e066c28e vs 432cb2d015f05f46b4ab252a970dce6ce7ae3c8546a7b96408ba16589d6864fc)\n"
+    },
+    {
+      "id": "D-04c",
+      "title": "篡改渲染资源末块 → 必须被检测并非零退出（允许已启动后 FATAL，见边界说明）",
+      "ok": true,
+      "detail": "已检测但未阻断启动：应用先启动，读取 renderer/styles.css 到损坏块后 FATAL（退出码 2147483651）—— Chromium 侧为流式 block 校验，错误时点在 stream end",
+      "tamperAt": 356158,
+      "file": "renderer/styles.css",
+      "started": true,
+      "exitCode": 2147483651,
+      "stderr": "[29612:1102/175551.020:FATAL:electron\\shell\\browser\\net\\asar\\asar_file_validator.cc:129] Failed to validate block while ending ASAR file stream: 0\r\n"
+    },
+    {
+      "id": "D-05",
+      "title": "app.asar 与 resources/app/ 并存时只加载 asar",
+      "ok": true,
+      "detail": "加载的是 asar 版，目录版被忽略",
+      "stdout": "\r\n[LED-VERSIONS] {\"node\":\"24.22.1\",\"acorn\":\"8.18.0\",\"ada\":\"4.0.0\",\"amaro\":\"1.1.11\",\"ares\":\"1.34.9\",\"brotli\":\"1.2.0\",\"cldr\":\"48.0\",\"icu\":\"78.2\",\"llhttp\":\"9.4.3\",\"merve\":\"1.2.2\",\"modules\":\"150\",\"napi\":\"10\",\"nbytes\":\"0.1.4\",\"ncrypto\":\"0.0.1\",\"nghttp2\":\"1.70.0\",\"nghttp3\":\"\",\"ngtcp2\":\"\",\"openssl\":\"0.0.0\""
+    },
+    {
+      "id": "D-06",
+      "title": "onlyLoadAppFromAsar：asar 缺失时不回落到 resources/app/",
+      "ok": true,
+      "detail": "既未加载目录版也未启动，符合「只认 asar」",
+      "exitCode": 1
+    },
+    {
+      "id": "R-01",
+      "title": "破坏性用例后产物已完整还原",
+      "ok": true,
+      "detail": "resources/ 已还原，app.asar SHA-256 与原始一致（a0e64f773b6be7b1…）"
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "pass": 15,
+    "fail": 0,
+    "verdict": "PASS"
+  }
+}
