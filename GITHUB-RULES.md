@@ -41,9 +41,14 @@
 
 ### 关于 CI 的诚实说明
 
-> **本项目目前没有 GitHub Actions 工作流。**
-> 所有测试检查目前都**只在本地执行**。本地测试通过 **不等于** GitHub Actions 检查通过。
-> 后续如需服务端 CI，由项目负责人决定是否引入。
+> **本项目已有 GitHub Actions 工作流，且已作为合并门禁生效。**
+> 工作流位于仓库根 `.github/workflows/windows.yml`（作业名 `Windows · 桌面版门禁`），
+> 已由 `Protect main` 规则集设为 **required status check**：`main` 的合并必须看到
+> 该作业在 PR 最新 Head 提交上 success。
+>
+> ⚠️ 但「CI 全绿」仍 **不等于** 可以发布：打包验收是报告项（`continue-on-error`，
+> 不参与门禁），代码签名、Fuses 发行包验证、125%/150% 高 DPI 均属 P7 未完成项。
+> 发布放行权属项目负责人（DEC-05）。
 
 ---
 
