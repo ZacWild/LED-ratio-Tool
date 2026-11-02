@@ -27,16 +27,28 @@
    N-6     遮罩：自绘模态需与背景分离
    ========================================================================== */
 :root {
-  --scrollbar-track: transparent;
-  --scrollbar-thumb: #4A5058;
-  --scrollbar-thumb-hover: #6E747E;
+  /* UI Polish（2026-11-02）：轨道由 transparent 改为「略深于面板」的凹槽，
+     滑块与悬停态同步降亮度 —— 原 #4A5058 在 #1B1D21 面板上偏亮、成片时抢视线。 */
+  --scrollbar-track: #17191D;
+  --scrollbar-thumb: #3C424B;
+  --scrollbar-thumb-hover: #59616D;
   --drag-handle: #3A3E45;
   --drag-handle-hover: #F0A832;
   --scrim: rgba(10, 10, 12, 0.62);
 }
 
 /* ==========================================================================
-   滚动条（缺陷 6 · D-03 §4.7.11）
+   滚动条（缺陷 6 · D-03 §4.7.11｜UI Polish 2026-11-02 重做）
+   --------------------------------------------------------------------------
+   🔴 根因：原规则同时声明了标准属性 `scrollbar-width: thin` 与 `::-webkit-scrollbar`。
+      Chromium 121+ 起，只要出现 `scrollbar-width`，就**改用平台原生滚动条**
+      并忽略 `::-webkit-scrollbar` 的着色 —— 实测审计（UI Polish）
+      面板与比例列表渲出的都是 Windows 浅色滚动条（浅灰滑块 + 近白轨道），
+      在 #1B1D21 面板上成片刺眼，正是「突兀的浅色滚动条」的来源。
+   ✅ 修法：删除 `scrollbar-width: thin`，让 `::-webkit-scrollbar` 成为唯一真源。
+      宽度仍取 10px（与原生 thin 实测同宽）→ **不产生任何布局位移**。
+   🔒 不得改为 `display:none` / `scrollbar-width:none` / `overflow:hidden`：
+      滚动条必须保留**可发现性与可拖动性**，滚轮、拖拽、键盘滚动行为不变。
    ========================================================================== */
 ::-webkit-scrollbar {
   width: 10px;
@@ -44,13 +56,20 @@
 }
 ::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
+  border-radius: var(--radius-sm);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  /* 2px 透明边框 + padding-box 裁切 → 视觉滑块 6px，可拖动热区仍为整条 10px */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  background-color: var(--scrollbar-thumb);
   border-radius: var(--radius-sm);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background-color: var(--scrollbar-thumb-hover);
+}
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-thumb-hover);
 }
 ::-webkit-scrollbar-corner {
   background: var(--scrollbar-track);
@@ -61,7 +80,7 @@
 .table-wrap,
 .modal__body,
 .status-bar__scroll {
-  scrollbar-width: thin;
+  /* 🔒 只保留 gutter，**不要**再加 scrollbar-width（见上方根因说明） */
   scrollbar-gutter: stable;
 }
 
@@ -1028,3 +1047,82 @@ html[data-height-tier='tight'] .status-bar {
        那是 `::after` 扩展区被相邻按钮互相覆盖所致，已由实体 32×32 修复。
    TC-DP-10 已同步修正测量方法：先 scrollIntoView 再逐像素扫描。
    ========================================================================== */
+
+/* ==========================================================================
+   UI Polish（2026-11-02）· 分段控件单行化
+   --------------------------------------------------------------------------
+   🔴 缺陷（审计实测，A 栏内容盒 276px）：
+     · 「目标比例来源」三项各 89px，文本「以屏幕实际比例 / 以选中标准比例」
+       需 91px → 折成两行，第二行**溢出 28px 高的琥珀选中块**；
+     · 「目标画布模式」四项各 67px，可用内宽 51px，文本「常用规格」52px
+       → 差 1px 折行，四个按钮全变两行。
+   即：不是"字太大"，而是 `flex: 1` 均分 + 左右各 8px 内边距把可用宽压到
+   比文本窄 1~2px。
+   ✅ 修法（不缩字号、不裁切）：
+     · 这三组改为 `flex: 1 1 auto` —— 基准宽取内容宽，剩余空间再均分，
+       长标签不再被强行压到短标签的同等宽度；
+     · 左右内边距 8px → 4px（--space-1），每组腾出 8px；
+     · `white-space: nowrap` 保证不折行；容器 `flex-wrap: wrap` 兜底 ——
+       万一将来出现更窄的容器（A 栏可拖拽变窄），整块换行也不会裁字。
+   🔒 不加在本文件作用于 `.segmented__item` 的通配规则上：
+      `.unit-segment` 依赖 `flex: 0 0 auto` 保持"内容多宽就多宽"，
+      app.css 后加载会覆盖它 —— 故按具体类名限定。
+   ========================================================================== */
+.panel--input .segmented {
+  height: auto;          /* 由内容撑高：单行 = 28 + 上下 padding 4 = 32px（与原来一致） */
+  min-height: 32px;
+  flex-wrap: wrap;       /* 极窄容器兜底：换行而非裁切/重叠 */
+  row-gap: 2px;
+}
+
+.panel--input .segmented__item.ratio-source-segment,
+.panel--input .segmented__item.canvas-mode-segment,
+.panel--input .segmented__item.prefer-segment {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  padding-left: var(--space-1);
+  padding-right: var(--space-1);
+}
+
+/* ==========================================================================
+   UI Polish（2026-11-02）· 折叠组标题与折叠按钮对齐
+   --------------------------------------------------------------------------
+   🔴 缺陷（审计实测）：`.group__toggle` 是 32px 高的右浮动按钮，
+      而 `.group__label` 行高只有 18px → 芯片中心比标签文字中心**低 7px**；
+      浮动元素不参与父盒高度，32px 按钮还溢出 group 盒 14px，
+      与下一个折叠组标签发生 2px 重叠。
+   ✅ 修法：只在**含折叠按钮的分组**里把标签行高提到 32px（与按钮同高），
+      文字与芯片同时垂直居中（芯片 ::before inset 6px → 6~26px，中心 16px）；
+      浮动元素因此落在 32px 行盒之内，不再溢出、不再压到下一组。
+   🔒 用 `:has()` 精确限定，普通分组标签仍保持 12/18 的紧凑行高，
+      不让整栏密度变松。
+   ========================================================================== */
+.group:has(> .group__toggle) > .group__label {
+  line-height: 32px;
+  margin-bottom: var(--space-1);   /* 行高 +14px，下边距 -4px，整组净增 10px */
+}
+
+/* ==========================================================================
+   UI Polish（2026-11-02）· 比例列表与滚动区的关系
+   --------------------------------------------------------------------------
+   首/末行原本紧贴卡片边框（1px 仅为边框本身），滚动到底部时最后一行与
+   卡片下沿糊在一起；上下各留 4px 后，行与卡片边缘有明确呼吸位。
+   （行高、行数、滚动量不变，只增加可视留白。）
+   ========================================================================== */
+.list--scroll {
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+
+/* ==========================================================================
+   UI Polish（2026-11-02）· 内外层滚动不串扰
+   --------------------------------------------------------------------------
+   比例列表、匹配表、模态正文都在面板内部再滚动。默认 scroll-chaining 会让
+   内层滚到尽头后把滚动"甩"给外层面板 —— 表现为「滚列表，整块面板跟着跳」。
+   `contain` 让内层到边界即停，滚轮/拖拽/键盘滚动本身不受影响。
+   ========================================================================== */
+.list--scroll,
+.table-wrap,
+.modal__body {
+  overscroll-behavior: contain;
+}
