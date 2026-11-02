@@ -529,7 +529,7 @@ set ELECTRON_RUN_AS_NODE=
 |---|---|
 | 默认分支 `main` | `545bd0d` —— Revise download instructions in README |
 | 开发分支 `feature/desktop-windows` | PR #1 的 head 分支，**未合并** |
-| PR #1 | **Open** · `mergeable_state = clean` · 非草稿 · base `main`；抓取时为 34 次提交 / 105 个变更文件（+258,983 / −22）。**提交数随每次推送递增，以 PR 页面为准** |
+| PR #1 | **Open** · `mergeable_state = clean` · 非草稿 · base `main` · head `feature/desktop-windows`。**提交数、变更文件数与行数随每次推送变化，本文档不复制这些计数，一律以 PR 页面为准** |
 | Tag | 仅 **1 个**：`pre-desktop`（桌面版开发起点）。**当前工作尚无正式版本 Tag** |
 | Release | **0 个** —— 未发布任何版本，与「正式安装包 / 签名尚待 P7 验收」（§一）一致 |
 | 合并动作 | ⛔ **未执行** —— 等 PR 链接 + 变更摘要 + 测试结果 + 已知问题提交后由项目负责人确认 |
