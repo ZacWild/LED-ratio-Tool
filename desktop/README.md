@@ -54,7 +54,7 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | 优化项 | 关键做法 | 实测结果 |
 |---|---|---|
 | **自绘滚动条** | 根因不是配色，而是同一选择器同时写了 `scrollbar-width: thin` 与 `::-webkit-scrollbar` —— Chromium 121+ 只要见到前者就**改用平台原生滚动条并忽略 webkit 着色**。删掉 `scrollbar-width`，让 `::-webkit-scrollbar` 成为唯一真源：轨道 `#17191D`、滑块 `#3C424B`、悬停/按下 `#59616D`，2px 透明边框 + `padding-box` 裁切 | 命中区 **10px**、视觉滑块 **6px**（两侧各 2px 透明）；四类滚动容器（`.list--scroll` 三个实例 / `.table-wrap` 两个 / `.modal__body`）**几何 0 差异**；滚轮、拖滑块、`PageDown` / `End`、悬停提亮全部正常；**未**使用 `display:none` / `scrollbar-width:none` / `overflow:hidden`，可发现性保留 |
-| **分段按钮单行化** | 不是字太大，而是 `flex:1` 均分 + 左右各 8px 内边距把可用宽压到比文本窄 1~2px（「以选中标准比例」需 91px 只分到 89px、「常用规格」需 52px 只剩 51px）。三组 `__item` 改 `flex:1 1 auto`、左右内边距 8→4px、`white-space:nowrap`；容器保留 `flex-wrap` 兜底（极窄时不裁字） | 三档验收尺寸下 **100% 单行**：容器高度恒 **32px**（若折行会变 66px），项内 `scrollWidth ≤ clientWidth` 无裁切；字号与命中区（视觉 28 + 上下各 4px 透明 = 36）均未变 |
+| **分段按钮单行化** | 不是字太大，而是 `flex:1` 均分 + 左右各 8px 内边距把可用宽压到比文本窄 1~2px（「以选中标准比例」需 91px 只分到 89px、「常用规格」需 52px 只剩 51px）。三组 `__item` 改 `flex:1 1 auto`、左右内边距 8→4px、`white-space:nowrap`；容器保留 `flex-wrap` 兜底（极窄时不裁字） | 三档验收尺寸下 **100% 单行**：容器高度恒 **32px**（= 单行 28 + 上下 padding 4；折成两行会升到 62px），项内 `scrollWidth ≤ clientWidth` 无裁切；字号与命中区（视觉 28 + 上下各 4px 透明 = 36）均未变 |
 | **滚动区域与信息密度** | `.list--scroll` 上下各 4px 留白（末行不再与卡片下沿糊在一起）；含折叠按钮的分组标签行高 18→32px 与芯片同高（原先芯片中心低 7px、32px 浮动按钮溢出组盒 14px 并压到下一组 2px）；列表 / 表格 / 模态正文加 `overscroll-behavior: contain` | 芯片与标签对齐、不再压到下一组；内层滚到底不再带动外层面板（滚轮 Δ180 时面板 Δ0）；客户区尺寸与面板高度**零变化** |
 
 **视觉基准（三张，已按授权更新）**
