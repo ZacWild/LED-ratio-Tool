@@ -1,8 +1,38 @@
 {
   "meta": {
-    "generatedAt": "2026-11-02T11:06:11.999Z",
+    "generatedAt": "2026-11-02T15:39:23.326Z",
     "version": "1.1.0",
-    "gitHead": "aa6de608d1434abe20c4bd513938ec2865c870c8",
+    "gitHead": "e0c5fc188a0f0e7e079375bb30444ff834218167",
+    "provenance": {
+      "status": "MATCH",
+      "asar": "dist\\win-unpacked\\resources\\app.asar",
+      "files": [
+        {
+          "file": "renderer/app.js",
+          "asarSha256": "ae7d1d1bd0d34a9fa0e30623cff9a1be8ecbbaab954f8e481de38478b4a3ec94",
+          "worktreeSha256": "ae7d1d1bd0d34a9fa0e30623cff9a1be8ecbbaab954f8e481de38478b4a3ec94",
+          "match": true
+        },
+        {
+          "file": "renderer/core.js",
+          "asarSha256": "dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26",
+          "worktreeSha256": "dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26",
+          "match": true
+        },
+        {
+          "file": "main/main.js",
+          "asarSha256": "f99edf16fb46679a04d013ce62578036dfa4e19ec0aa22b33489f7e491ebb9ae",
+          "worktreeSha256": "f99edf16fb46679a04d013ce62578036dfa4e19ec0aa22b33489f7e491ebb9ae",
+          "match": true
+        },
+        {
+          "file": "preload/preload.js",
+          "asarSha256": "befcbb807fb90556419515660a1201105a78359d913dedb6a55e8ab084975135",
+          "worktreeSha256": "befcbb807fb90556419515660a1201105a78359d913dedb6a55e8ab084975135",
+          "match": true
+        }
+      ]
+    },
     "electron": "45.1.0",
     "productName": "LED Ratio Tool",
     "missingOptional": []

@@ -24,6 +24,9 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DESKTOP = path.join(__dirname, '..');
@@ -171,6 +174,53 @@ function gitHead() {
   return (r.stdout || '').trim();
 }
 
+/**
+ * 🔴 归因校验（PROV）：产物到底是哪个源码构建的？
+ *    `git rev-parse HEAD` 只能说明"采集指纹时 HEAD 指向哪"，**不能**说明
+ *    "产物由它构建" —— 若打包时工作区是脏的（本轮就是这样：HEAD=aa6de60，
+ *    但 SET-03 修复尚未提交），光记 HEAD 会把产物错标成旧提交。
+ *    所以直接把 asar 里的源码文件与工作区同路径文件做 SHA-256 比对：
+ *    一致 = 产物确实由当前工作区内容构建；不一致 = 明确报出，不猜。
+ *    @electron/asar 由打包工具链自带；解析不到时记 SKIP，不假装通过。
+ */
+function verifyProvenance() {
+  const asarPath = path.join(DESKTOP, 'dist', 'win-unpacked', 'resources', 'app.asar');
+  const files = ['renderer/app.js', 'renderer/core.js', 'main/main.js', 'preload/preload.js'];
+  if (!fs.existsSync(asarPath)) {
+    return { status: 'SKIP', reason: 'dist/win-unpacked/resources/app.asar 不存在（先打包）', files: [] };
+  }
+  let asar;
+  try {
+    asar = require('@electron/asar');
+  } catch {
+    return { status: 'SKIP', reason: '无法解析 @electron/asar（工具链未安装）', files: [] };
+  }
+  const out = [];
+  for (const rel of files) {
+    const diskPath = path.join(DESKTOP, rel);
+    if (!fs.existsSync(diskPath)) {
+      out.push({ file: rel, status: 'MISSING_LOCAL' });
+      continue;
+    }
+    let packed;
+    try {
+      packed = asar.extractFile(asarPath, rel);
+    } catch {
+      out.push({ file: rel, status: 'NOT_IN_ASAR' });
+      continue;
+    }
+    const a = crypto.createHash('sha256').update(packed).digest('hex');
+    const b = crypto.createHash('sha256').update(fs.readFileSync(diskPath)).digest('hex');
+    out.push({ file: rel, asarSha256: a, worktreeSha256: b, match: a === b });
+  }
+  const judged = out.filter((r) => typeof r.match === 'boolean');
+  return {
+    status: judged.length && judged.every((r) => r.match) ? 'MATCH' : 'MISMATCH',
+    asar: path.relative(DESKTOP, asarPath),
+    files: out,
+  };
+}
+
 async function main() {
   console.log('=== P7-4 正式产物指纹 ===\n');
   console.log(`版本号（package.json）= ${V}`);
@@ -235,11 +285,14 @@ async function main() {
     console.log(`  ${r.sha256}`);
   }
 
+  const provenance = verifyProvenance();
+
   const report = {
     meta: {
       generatedAt: new Date().toISOString(),
       version: V,
       gitHead: gitHead(),
+      provenance,
       electron: (() => {
         try {
           return JSON.parse(fs.readFileSync(path.join(DESKTOP, 'node_modules', 'electron', 'package.json'), 'utf8')).version;
@@ -263,6 +316,13 @@ async function main() {
   fs.writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
   console.log(`\n📄 ${out}`);
   console.log(`🔏 签名结论：${report.signatureSummary.verdict}`);
+  if (provenance.status === 'MATCH') {
+    console.log(`🔗 归因：asar 内源码与工作区 ${provenance.files.filter((f) => f.match).length}/${provenance.files.filter((f) => typeof f.match === 'boolean').length} 个文件逐字节一致（产物确由当前源码构建）`);
+  } else if (provenance.status === 'MISMATCH') {
+    console.log('🔴 归因：产物内源码与工作区不一致，见 report.meta.provenance.files —— 不得把 gitHead 当作构建提交');
+  } else {
+    console.log(`⏭️ 归因：${provenance.status}（${provenance.reason}）`);
+  }
 }
 
 main().catch((e) => {
