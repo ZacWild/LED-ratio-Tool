@@ -31,20 +31,21 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | 200 组差分（DEC-15） | ✅ **完全通过**：200/200 执行，差异 **0** 条，未覆盖字段 **0**，字段级覆盖率 **100%**（43 个字段 / 6,882 条 L1 断言） |
 | 视觉回归 | ✅ **3/3 通过**（1440×900 / 1200×800 / 1024×680，阈值 0.1%）：三张基准已于 `b48aaa8` **按授权更新**至 UI Polish 后的实际画面，重跑差异 **0.0000%**、更新 0 项（明细见 §1.1） |
 | 高 DPI **100%** 档 | ✅ **21/21 通过**（`scaleFactor = 1` 实读，非模拟） |
-| Windows CI 工作流 | ✅ **已在 GitHub 实际运行并通过**（次数与逐次结论以 Actions 页面为准，本表不写死以免每次推送即过期）。`Protect main` 规则集已把 **`Windows · 桌面版门禁`** 设为 required status check；PR #1（→ `626673f`）、PR #2（→ `a1dc1ae`）均在该门禁下合并。本轮 D-08 图标改动的 required check 结果以 **PR #3** 页面实时状态为准 |
+| Windows CI 工作流 | ✅ **已在 GitHub 实际运行并通过**（次数与逐次结论以 Actions 页面为准，本表不写死以免每次推送即过期）。`Protect main` 规则集已把 **`Windows · 桌面版门禁`** 设为 required status check；PR #1（→ `626673f`）、PR #2（→ `a1dc1ae`）均在该门禁下合并。本轮 D-08 图标 + P7-2 安全实证的 required check 结果以 **PR #3** 页面实时状态为准 |
 | **品牌图标（D-08 最终 LOGO）** | ✅ **已完成**（`cc9be31`）：最终 LOGO → `icon.ico` 7 档（16~128 = BMP，256 = PNG）+ `icon-256x256.png`，旧占位图已删除。exe / 安装包 / 便携版 / 已安装程序 / 卸载器 / 快捷方式 / 标题栏 / 任务栏 **八处实测同源**（前五处与 png 为**逐字节一致**，快捷方式为 .lnk 字段核对，标题栏与任务栏为实截核对），并新增 `verify:icons` 10 项自检进入 CI 门禁。详见 §1.2 |
+| **Electron 安全配置实体验证（P7-2）** | ✅ **已完成**（`76e893b`）：拿最终产物验证，不读配置。Fuse Wire `010011001` 8 项全部符合安全目标、与官方 `@electron/fuses` 三方一致、相对官方 `electron.exe` 翻转 7 个；`ELECTRON_RUN_AS_NODE=1` / `NODE_OPTIONS` / `--inspect` 三项运行时攻击全部无效；asar 不放行目录回落；三种篡改位置分别验证并披露覆盖范围边界。`test:fuses` 15/15，已进 CI 条件门禁。详见 §1.3 |
 | 正式安装包 / 签名 / 完整安装链路 | ⏳ **尚待 P7 验收**。CI 中的打包步骤只产出 Preview Candidate 与尺寸报告（**不参与门禁**）；当前未发布、未签名 |
 | 高 DPI **125% / 150%** 档 | ⛔ **BLOCKED（环境未就绪）**：需人工切换系统缩放（必要时注销重登）后按 `DPI-ACCEPTANCE.md` 执行，**未用模拟手段冒充** |
 
-> 📅 **本文档数据截止：2026-11-02，分支 `feature/desktop-windows` @ `cc9be31`**。数字均取自 `desktop/test/reports/` 下的真实报告与 GitHub Actions 实际运行记录，不手工估算。本文档自身的后续文档提交不计入上述测试数据。
+> 📅 **本文档数据截止：2026-11-02，分支 `feature/desktop-windows` @ `76e893b`**。数字均取自 `desktop/test/reports/` 下的真实报告与 GitHub Actions 实际运行记录，不手工估算。本文档自身的后续文档提交不计入上述测试数据。
 
-> ✅ **当前测试门禁全部通过**：桌面 E2E 93/93、HTML E2E 85/85、单元测试 64/64、安全审计 47/47、200 组差分完全通过、视觉回归 3/3、100% 缩放档 21/21、图标自检 10/10。
+> ✅ **当前测试门禁全部通过**：桌面 E2E 93/93、HTML E2E 85/85、单元测试 64/64、安全审计 47/47、200 组差分完全通过、视觉回归 3/3、100% 缩放档 21/21、图标自检 10/10、**最终产物安全实证 15/15**。
 
 > ⚠️ **但本工程仍不是可交付版本。**
 > ① **125% / 150% 高 DPI 未验收** —— BLOCKED，需人工切换系统缩放；
 > ② **正式安装包、代码签名与完整安装链路尚待 P7 验收**（图标已就位，但**签名仍缺失**）；
 > ③ 产品验收与发布放行权属项目负责人（DEC-05）—— **测试通过 ≠ 可以发布**。
-> ④ **UI Polish 与品牌图标均不改变发行状态** —— UI Polish 只动 `renderer/app.css`；图标只替换资源与打包入口，两者都不产出签名安装包，也不覆盖 ①②。
+> ④ **UI Polish、品牌图标与 P7-2 安全实证均不改变发行状态** —— UI Polish 只动 `renderer/app.css`；图标只替换资源与打包入口；P7-2 只证明「这版二进制的 fuse/ASAR 配置符合预期」，**它无法替代代码签名**（签名缺失意味着「产物未被替换」仍无法背书）。三者都不产出签名安装包，也不覆盖 ①②。
 
 > 📋 **设计与实现对照**见 [`DESIGN-ALIGNMENT.md`](DESIGN-ALIGNMENT.md) —— 逐条记录 P3 设计基线在桌面版的落地位置、差异、待裁决项（TK-140 ~ TK-150）。
 
@@ -112,6 +113,96 @@ ICO 头 → 尺寸集合 → 偏移不越界不重叠 → DIB 头（40B / 32bpp 
 
 > 🔒 **有意未做**：`index.html` 未加 favicon。桌面版没有标签页，不需要；HTML 单文件版受「零 `link href` / 零 http(s)」自包含约束（`ACCEPTANCE.md` 已列）——加 `data:` favicon 会破坏该口径，故不加。
 > ⚠️ **图标落地同样不改变发行状态**：仍未做代码签名（P7 BLOCKED），125% / 150% 高 DPI 仍未验收。本节只证明「品牌标识在各处统一、无旧图标或占位图」，**不构成可发布结论**。
+
+### 1.3 P7-2 · Electron 安全配置实体验证（拿最终产物验证）
+
+> 验收口径来自任务原文：**「拿最终产物验证，而不是仅凭配置文件认定安全配置已经生效。」**
+> 因此本节所有结论都来自 `dist/win-unpacked/LED Ratio Tool.exe` 这个 249,865,728 B 的二进制本身，以及**把它真的跑起来**的可观测行为。`build/electron-builder.yml` 里的 `electronFuses` 段只作为「安全目标表」的来源，**不作为证据**。
+>
+> 一键复现：`npm run test:fuses` → 15/15。报告：`test/reports/fuses-verify.json`。
+
+**① 静态：从二进制里把 Fuse Wire 读出来**
+
+Electron 的 fuse 不是配置项，而是 exe 里的一段固定结构：`SENTINEL(32B) + [version][length][N×state]`，state 只有 `48='0'`（DISABLE）/ `49='1'`（ENABLE）/ `114='r'`（REMOVED）/ `144`（INHERIT）。
+
+| 项 | 实测 |
+|---|---|
+| sentinel 位置 | `202514712`，**全文件唯一一处** |
+| wire 头 | `version = 1`、`length = 9`（第 9 位属新增 fuse，`@electron/fuses@1.8.0` 未覆盖） |
+| wire 原文 | `010011001` |
+| 交叉核对 | 自写解析器 ≡ 官方 `@electron/fuses` 读数 ≡ 安全目标表，**三方一致** |
+| 相对官方 `electron.exe` | **翻转了 7 个**（仅 `LoadBrowserProcessSpecificV8Snapshot` 未变，因其官方默认已是 DISABLE） |
+
+| # | fuse | 安全目标 | 二进制实测 | 判定 |
+|---|---|---|---|---|
+| 0 | `RunAsNode` | 关 | DISABLE | ✅ |
+| 1 | `EnableCookieEncryption` | 开 | ENABLE | ✅ |
+| 2 | `EnableNodeOptionsEnvironmentVariable` | 关 | DISABLE | ✅ |
+| 3 | `EnableNodeCliInspectArguments` | 关 | DISABLE | ✅ |
+| 4 | `EnableEmbeddedAsarIntegrityValidation` | 开 | ENABLE | ✅ |
+| 5 | `OnlyLoadAppFromAsar` | 开 | ENABLE | ✅ |
+| 6 | `LoadBrowserProcessSpecificV8Snapshot` | 关 | DISABLE | ✅ |
+| 7 | `GrantFileProtocolExtraPrivileges` | 关 | DISABLE | ✅ |
+
+**② 动态：把进程跑起来，用行为证明「关」是真关**
+
+每一条都是真实 spawn 进程，不读配置、不 mock。
+
+| 编号 | 攻击动作 | 实测结果 |
+|---|---|---|
+| D-01 | `ELECTRON_RUN_AS_NODE=1` + `-e "console.log('NODE_MODE_ACTIVE')"` | 脚本**未被执行**；stdout 出现真实应用启动日志 `[LED-VERSIONS]` —— 环境变量被忽略，未退化为 Node 执行器 |
+| D-02 | `NODE_OPTIONS=--require <marker.cjs>` | marker 文件**未生成**，`NODE_OPTIONS` 被丢弃 |
+| D-03 | `--inspect=9339` | 端口 9339 **全程未 LISTEN**，无 `Debugger listening` 输出 |
+| D-05 | 放一个 `resources/app/`（内含打印 `EVIL_APP_LOADED` 的恶意 `main.js`）与 `app.asar` 并存 | 加载的是 asar 版，`resources/app/` 被忽略 |
+| D-06 | 移走 `app.asar`，只留 `resources/app/` | **既未加载目录版、也未启动** —— 不回落 |
+| R-01 | 破坏性用例跑完 | `app.asar` SHA-256 回到 `a0e64f77…`，与原始**逐字节一致** |
+
+**③ `ELECTRONASAR` 摘要的口径（这里曾经判错，记下来）**
+
+exe 的 PE 资源里有 `type="INTEGRITY", id="ELECTRONASAR"`，内容是 **JSON 数组**：
+
+```json
+[{ "file": "resources\\app.asar", "alg": "SHA256", "value": "b2251cff…" }]
+```
+
+**`value` 是 asar header JSON 字符串的 SHA-256，不是整档文件的哈希。** 整档哈希是 `a0e64f77…`，拿它去比必然「不一致」——首跑就是这么误判的。现在的断言是 `sha256(header JSON) == value`，实测 `b2251cffcadbfa9d…` 完全吻合。
+
+**④ ASAR 完整性校验的实测覆盖范围（受控实验，四个位置各试一次）**
+
+这一条最值得记：**「完整性校验生效」不是一句话，它取决于篡改落在哪里、以及由谁去读**。
+
+| 篡改位置 | 启动是否被阻断 | Electron 实际报错 | 退出码 |
+|---|---|---|---|
+| header 内的 `integrity.hash`（改 1 个十六进制字符，JSON 仍合法） | ✅ **启动前阻断** | `asar_util.cc:357 Integrity check failed for asar archive entry '<header>'` | `0x80000003` |
+| payload 首文件 `main/csp.js` 首字节 | ✅ **启动前阻断** | `ASAR Integrity Violation: got a hash mismatch` | 1 |
+| `renderer/core.js` 内部偏移 +5000 | ⚠️ **应用先启动，随后 FATAL** | `asar_file_validator.cc:129 Failed to validate block while ending ASAR file stream` | `0x80000003` |
+| `renderer/styles.css` 末字节 | ⚠️ **应用先启动，随后 FATAL** | 同上 | `0x80000003` |
+
+结论（**这也是本节的边界披露**）：Electron 对 asar 的校验有两条路径 ——
+
+- **Node 侧 `fs` 读取**：asar 库按 header 里 per-file 的 `integrity.blocks` 做同步哈希校验，失败即阻断 `require`。所以改主进程脚本 = 起不来。
+- **Chromium 网络层读取**（`file://` 加载渲染资源）：`asar_file_validator` 按 block 流式校验，错误在「读到损坏块并结束该文件流」时抛出。所以改渲染资源 = 进程已经起来了一部分、打印了启动日志，然后 FATAL 崩溃。
+
+也就是说：**完整性校验确实覆盖 payload 内容（不是只覆盖 header），但渲染资源的篡改不保证在进程启动前被拦截。** 它绝不会静默通过，只是失败的时点晚于启动。D-04c 的断言因此写成「**必须被检测且非零退出**」而不是「必须启动失败」—— 把边界写进断言，而不是用错误的断言掩盖它。
+
+**⑤ 本轮修掉的三处口径错误（都由首跑实测暴露，不是推测）**
+
+| # | 错误 | 真因 | 修正 |
+|---|---|---|---|
+| 1 | F-05 报「嵌入摘要与实测不一致」 | 拿**整档** SHA-256 去比；且 PE 资源是**数组**不是对象 | 改为 `sha256(header JSON) == value`，按数组解析 |
+| 2 | D-04 报「篡改后仍正常启动」 | 篡改点选在 `Math.floor(len/2)`，落在**渲染 payload**；而该路径是流式校验、错误时点在 stream end | 拆成 D-04a/b/c 三个位置，分别对应三种真实机制 |
+| 3 | D-04c 一开始报「无任何校验报错」 | asar header 里 `offset`/`size` 是**字符串**（asar 为规避大文件精度问题），`payloadStart + offset` 变成字符串拼接 → 篡改下标算成天文数字 → **写入空操作** | `Number()` 归一，并新增自检：**篡改必须真的改变字节**，否则直接抛错，杜绝空操作骗绿 |
+
+**⑥ CI 口径**
+
+新增步骤「P7-2 Fuses 实体验证（产物在则必过）」：
+
+- **不**塞进 `continue-on-error` 的打包步骤——那等于「验证失败也是绿」，正是 P7-2 要消灭的东西；
+- **不**设为无条件门禁——它的输入是打包产物，而打包本身不门禁（联网下载 NSIS/7zip 受网络波动影响）；
+- 因此口径写死为：**产物存在时它必须通过（失败即红）；产物缺失时记 SKIP 并在 Step Summary 明示，绝不记 PASS。**
+
+> 🔒 **本节能证明什么**：这版二进制的 8 个 fuse 与安全目标一致、`RunAsNode`/`NODE_OPTIONS`/`--inspect` 在运行时确实无效、asar 不放行目录回落、篡改会被检测。
+> ⛔ **本节不能证明什么**：**代码签名仍然缺失**（P7 尚未完成），因此「产物未被替换」这一属性无法由本节背书；ASAR 校验保护的是「构建后未被改动」，不是「产物来自可信发布者」。签名与 125%/150% DPI 依旧是发行阻塞项。
 
 ---
 
@@ -191,6 +282,7 @@ npm run dev          # ③ 启动桌面版（= preflight + sync + electron .）
 | `npm run test:differential` | **200 组差分**（DEC-15 三层期望源） | 0 = 完全通过 / 1 = 有差异 / 2 = **有条件通过** / 3 = 环境阻塞 |
 | `npm run test:golden` | L2 黄金向量独立套件（22 向量：21 执行 + 1 不适用） | 0 / 1 |
 | `npm run test:dpi` | 真实系统 DPI 验收（`--expect=100/125/150`） | 0 = 通过 / 1 = 失败 / 3 = 环境不匹配 |
+| `npm run test:fuses` | **P7-2 最终产物安全实证（15 项）**：Fuse Wire 静态读取 + 运行时攻击 + ASAR 篡改三路径 + onlyLoadAppFromAsar。⚠️ 需要先 `npm run build:win` 产出 `dist/win-unpacked` | 0 = 全通过 / 1 = 有失败 / 3 = 环境阻塞（产物缺失） |
 | `npm run test:visual` | 视觉回归（3 档，阈值 0.1%）。⚠️ **未纳入 CI 门禁**，本地/授权后手动执行 | 0 = 通过 / 1 = 超阈值 |
 | `npm run evidence:p4a` | P4-A 的 9 项证据采集 | 0 / 1 / 2 |
 | `npm run evidence:p4b` | P4-B 的 26 项证据采集 | 0 / 1 / 2 |
@@ -280,10 +372,11 @@ node test/smoke-launch.mjs --runs=10 --json=test/reports/smoke.json
 16. 200 组差分（DEC-15）
 17. 真实 DPI 验收（100% 档，21 项）
 18. 打包 + Preview Candidate 产物验收（**只出报告，不参与门禁**）
+18.5 P7-2 Fuses 实体验证（`test:fuses` 15 项 · **产物在则必过，产物缺失记 SKIP**）
 19. 生成产物 SHA-256 清单 → 上传报告 / 截图 / CI 日志 → 汇总门禁结果
 ```
 
-> 🔵 GitHub Actions 中的实际作业共 **37 个步骤**（含 setup / checkout / 缓存与 Post 收尾），上表按「逻辑门禁」归并展示。
+> 🔵 GitHub Actions 中的实际作业步骤数**随门禁项增减而变**（本轮新增 18.5 后为 **38**），上表按「逻辑门禁」归并展示；以 Actions 页面该次运行的实际步骤为准，本表不写死数字。
 > ⚠️ **视觉回归（`npm run test:visual`）不在 CI 门禁内** —— 基准是否应更新需人工裁决，故只在本地或经授权后执行。
 
 ### 5.4 关键环境约束
@@ -424,6 +517,7 @@ led-ratio-tool-repo/
     │   └── electron-builder.yml  打包配置（P7 使用）
     └── test/
         ├── security-audit.cjs    47 项安全静态审计
+        ├── fuses-verify.mjs      P7-2 最终产物安全实证（Fuse Wire / ASAR 完整性 / onlyLoadAppFromAsar）
         ├── smoke-launch.mjs      Electron 启动冒烟（参数化次数，TK-88）
         ├── desktop-suite.mjs     桌面专项 E2E（93 条用例）
         ├── differential-200.mjs  200 组差分执行器（DEC-15）
@@ -571,6 +665,8 @@ set ELECTRON_RUN_AS_NODE=
 | CSP | `default-src 'none'` + `connect-src 'none'` + `script-src 'self'`（无 unsafe-eval/inline），唯一来源 `main/csp.js` |
 | 网络 | 运行时出网计数 = 0 |
 | 禁用项 | 自动更新 / 系统托盘 / 账号云同步 / 遥测崩溃上报 —— 四层反向核验 |
+| Electron Fuses（二进制级） | 8 个 fuse 从 exe 实际读出（`010011001`）：`RunAsNode` / `NODE_OPTIONS` / CLI Inspect 全关，`CookieEncryption` / ASAR 完整性 / `onlyLoadAppFromAsar` 全开。**验证对象是产物不是配置**，见 §1.3 |
+| 打包完整性 | `ELECTRONASAR` 内嵌 header 哈希 + asar 自身 per-file `integrity.blocks`；三种篡改位置实测均被检测（覆盖边界见 §1.3 ④） |
 
 上表每一项都有对应的机器检查：实现位置为 `main/csp.js`（CSP 唯一来源）、`preload/preload.js`（8 方法冻结暴露）、`main/ipc.js`（8 个 handler 唯一注册处）、`main/main.js`（协议与安全拦截），检查项的唯一来源是 `desktop/test/security-audit.cjs`。执行 `npm run audit:security` → **47/47 通过**（最新记录见 [`DESIGN-ALIGNMENT.md`](DESIGN-ALIGNMENT.md)）。
 
@@ -598,7 +694,7 @@ set ELECTRON_RUN_AS_NODE=
 | 开发分支 `feature/desktop-windows` | `cc9be31`（D-08 品牌图标）—— **分支保留未删除**，作为后续改动的提交入口 |
 | PR #1 | **Closed · merged**（2026-11-02T06:18:01Z，squash → `626673f`）。合并前 `mergeable_state = clean`，required check `Windows · 桌面版门禁` 在 head `a05defd` 上 success |
 | PR #2 | **Closed · merged**（2026-11-02T08:19:35Z，squash → `a1dc1ae`）。内容：Actions 升级 Node 24 / 汇总脚本插值修复 / 过期 Ruleset 说明校正 |
-| PR #3 | **Open**（base `main`）：D-08 品牌图标落地。head 提交与 required check 结果以 PR 页面实时状态为准，**本文件不复刻** |
+| PR #3 | **Open**（base `main`）：D-08 品牌图标落地 + **P7-2 最终产物安全实证**（同一分支追加，PR 自动更新）。head 提交与 required check 结果以 PR 页面实时状态为准，**本文件不复刻** |
 | Tag | 仅 **1 个**：`pre-desktop`（桌面版开发起点）。**当前工作尚无正式版本 Tag** |
 | Release | **0 个** —— 未发布任何版本，与「正式安装包 / 签名尚待 P7 验收」（§一）一致 |
 | 合并动作 | ✅ **已由项目负责人执行 Squash Merge**（`626673f`、`a1dc1ae`）。合并后 `main` 受 `Protect main` 保护，后续改动仍须走 PR + required check |
