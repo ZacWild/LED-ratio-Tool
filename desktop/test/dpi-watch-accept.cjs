@@ -11,7 +11,7 @@
  *    ② 轮询兜底（默认 2s 一次）—— 某些驱动下事件不触发，但轮询必然收敛；
  *    ③ **所有显示器**都达到目标 scaleFactor 时，自动依次执行：
  *        - `node test/p7-dpi.mjs --port=<port>`      → 写 `test/reports/p7-dpi-<pct>.json`
- *        - `electron test/probe-dpi-multidisplay.cjs` → 写 `test/reports/probe-dpi-multidisplay-<pct>.json`
+ *        - `electron test/probes/probe-dpi-multidisplay.cjs` → 写 `test/reports/probe-dpi-multidisplay-<pct>.json`
  *      并落一份 signal 文件记录两个子进程的退出码。
  *
  * 🔴 纪律：
@@ -116,7 +116,7 @@ async function accept() {
 
   // ② 多显示器四边核验
   log('▶ 执行 probe-dpi-multidisplay.cjs');
-  const r2 = await run(process.execPath, [path.join(HERE, 'probe-dpi-multidisplay.cjs')],
+  const r2 = await run(process.execPath, [path.join(HERE, 'probes', 'probe-dpi-multidisplay.cjs')],
     { logFile: path.join(HERE, 'reports', 'dpi-watch-multidisplay.log') });
   log(`   多屏核验退出码 = ${r2.code}`);
 

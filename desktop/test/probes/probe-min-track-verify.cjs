@@ -18,7 +18,7 @@
 const path = require('path');
 const { spawn } = require('child_process');
 
-const DESKTOP = path.resolve(__dirname, '..');
+const DESKTOP = path.resolve(__dirname, '..', '..');
 
 function cleanEnv() {
   const env = { ...process.env };

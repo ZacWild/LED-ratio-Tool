@@ -884,7 +884,7 @@ QA 复核 §11.1.1 时发现三项表述与实测不符，本节记录更正过�
 | 可滚动量 | 1408 | 1368 | **+40** |
 | 内容视口（clientH − stickyH） | 519 | 559 | **−40** |
 
-**复现方式**（脚本均为一次性核验工具，**不随仓库交付**）：两态 DOM 度量用 `probe-panel-height.mjs`；
+**复现方式**（脚本均为一次性核验工具，**不随仓库交付** —— 下列脚本名均属当时的工作区临时文件，**仓库内不存在、也无法从仓库复现**）：两态 DOM 度量用 `probe-panel-height.mjs`；
 基准逐像素分解用 `recalc-baseline.mjs` + `region-verify.mjs` + `row-exact.mjs`（旧 blob `cf8c02f3` → 新 blob `dc6dd1e7`）。
 产物全部落于工作区 `<workspace>/qa-audit/`（含 `recalc/*.json`），**未写入仓库**。
 
@@ -937,7 +937,7 @@ QA 复核 §11.1.1 时发现三项表述与实测不符，本节记录更正过�
 | 业务红线守卫 | **PASS**（core.js 哈希锁 `dd49a782…` 未变；app.js 8 处口径通过） |
 | 安全静态审计 | **47/47 PASS** |
 | 视觉回归 | **3/3 PASS**（0.0214% / 0.0289% / 0.0000%；TK-161 落地时 1200×800 曾出现 11.5825%，经授权 `--accept` 更新为唯一变更基准，复跑更新 0 项） |
-| 高 DPI 验收（TK-148） | **100% 21/21 PASS**；**125% / 150% = BLOCKED（环境未就绪）**，需人工切换系统缩放并（必要时）注销重登；验收指引 `desktop/DPI-ACCEPTANCE.md`、入口 `desktop/test/dpi-run.cmd`。**未用任何模拟手段冒充** |
+| 高 DPI 验收（TK-148） | **100% 21/21 PASS**；**125% / 150% 均已实测 PASS**（经系统设置 UI 真实切换，主屏 + 副屏双屏四边核验全 0 溢出，见 `test/reports/p7-dpi-125.json` / `p7-dpi-150.json` 与 `probe-dpi-multidisplay-*.json`）。历史上「125% / 150% = BLOCKED（环境未就绪）」的结论已被推翻：设置 UI 走 DisplayConfig 实时路径，无需注销重登。**未用任何模拟手段冒充** |
 | 资源同步 | `sync-assets --check-only` **无漂移** |
 | Differential 200 / Golden Vector | **未重跑**：`src/core.js` 哈希与起始提交一致，输入未变；按预算约束不重复全量，**不记为通过** |
 | 正式打包（electron-builder / 签名 / 安装包冒烟） | **未执行**（不在 RC 收尾范围，属正式发行验收） |
@@ -1018,7 +1018,7 @@ QA 复核 §11.1.1 时发现三项表述与实测不符，本节记录更正过�
 | `main/main.js` | 窗口创建改为六阶段两阶段初始化；新增 `pickTargetDisplay` / `measureFrameDelta` / `planWindowBounds` / `calibrateMinimumContentSize` / `applyContentSizeWithConvergence`；台账字段扩充 | 方案 A 主体；台账需记录 display / bounds / contentBounds / delta / workArea / scaleFactor / heightTier / 预算 / 收敛 / 四边溢出 |
 | `test/p7-dpi.mjs` | DPI-09 改四边核验；`rec()` 扩四态；报告新增 `windowGeometry` 段；退出码 0/1/3 | 判据强化要求 |
 | `test/window-bounds-geometry.test.mjs` | **新增**（20/20 PASS） | 任务要求的独立几何测试 |
-| `test/probe-frame-delta.cjs` / `probe-min-size.cjs` / `probe-min-visible.cjs` / `probe-win-limit.cjs` / `probe-window-budget.cjs` | **新增**（5 个探针） | 取证用：增量构成 / min track 口径 / 隐藏态可见性 / 裁剪口径 / 收敛与多显示器定位 |
+| `test/probes/probe-frame-delta.cjs` / `test/probes/probe-min-size.cjs` / `test/probes/probe-min-visible.cjs` / `test/probes/probe-win-limit.cjs` / `test/probes/probe-window-budget.cjs` | **新增**（5 个探针） | 取证用：增量构成 / min track 口径 / 隐藏态可见性 / 裁剪口径 / 收敛与多显示器定位 |
 | `test/security-audit.cjs` | `mainSource` 列表加入 `main/window-bounds.js` | 避免 SEC-01a 出现审计盲区 |
 
 > 🔒 **未改动**：`src/core.js`、`src/app.js`、`appId`、`APP_DIR_NAME`、IPC 通道、用户数据目录、渲染层布局与高度档位判定、品牌栏与实时分辨率、菜单栏与快捷键与状态栏。
@@ -1027,9 +1027,9 @@ QA 复核 §11.1.1 时发现三项表述与实测不符，本节记录更正过�
 
 | 编号 | 事项 | 优先级 | 状态 |
 |---|---|---|---|
-| **TK-177** | 渲染层 `needH = minH + 65×sf` 的线性外推在 125% 下不精确（实测 125% 增量 15×64） | 不阻塞 | 待 125%/150% 实测数据齐备后随高度档位基线复核 |
+| **TK-177** | 渲染层 `needH = minH + 65×sf` 的线性外推在 125% 下不精确（实测 125% 增量 15×64、150% 增量 15×63） | 不阻塞 | 三档实测数据已齐备（100% 16×65 / 125% 15×64 / 150% 15×63），可随高度档位基线复核；当前窗口预算已改为运行时实测 frameDelta，不依赖该外推 |
 | **TK-145** | 原「仅改台账」的处置判断有误（26 DIP 是真实产品缺陷，非台账偏差） | — | ✅ **本轮关闭**（已由方案 A 修正） |
-| **TK-178** | 150% 档真实 DPI 验收 | 阻塞发布 | ⛔ 本环境不可达（需交互式会话切缩放 + 注销重登），已如实记 BLOCKED |
+| **TK-178** | 150% 档真实 DPI 验收 | ~~阻塞发布~~ | ✅ **已关闭（2026-11-03）**：经系统设置 UI 切至真实 150%，双屏 `scaleFactor=1.5` / `dpr=1.5`，单屏渲染 8/8 通过、DPI-09 PASS，双屏独立四边核验 2/2 PASS；证据 `test/reports/p7-dpi-150.json`、`probe-dpi-multidisplay-150.json`。历史 `p7-dpi-150-blocked.json` 原样保留作取证 |
 | **TK-180** | 125% 下精确 1024×680 客户区**平台量化不可达**（best = 1024×682），`TC-DP-04` 判据 `|got−680|≤1` 不满足 | 不阻塞 | ⛔ 记 **BLOCKED**（平台取整，非产品缺陷）；**未改判据让它变绿**，随 §12.6 标定落地后仅余此一项 |
 | **TK-181** | `frameDelta`（`getBounds()` − `getContentBounds()`）**不可**用于换算 min track | — | ✅ **本轮关闭**（已由实测标定替代，见 §12.6） |
 
@@ -1044,15 +1044,15 @@ QA 复核 §11.1.1 时发现三项表述与实测不符，本节记录更正过�
 | 步骤 | 手段 | 结果 |
 |---|---|---|
 | ① | `git show HEAD:desktop/main/main.js` 还原 + 同套 TC-DP | HEAD **10/10** vs 新版 **7/10** → 确认由本轮改动引入 |
-| ② | `probe-tcdp-regression.cjs`（主屏 ↔ 副屏） | 偏差恒定 **+2 / +8**，与显示器无关 |
-| ③ | `probe-min-track-calibrate.cjs` | `frameDelta` **15×64** ≠ 实际换算 **12×63** → 根因 |
-| ④ | `probe-dip-rounding.cjs` | 125% 下「请求 H → 回读 H′」几乎全 **+1** → 系统取整，非产品缺陷 |
+| ② | `test/probes/probe-tcdp-regression.cjs`（主屏 ↔ 副屏） | 偏差恒定 **+2 / +8**，与显示器无关 |
+| ③ | `test/probes/probe-min-track-calibrate.cjs` | `frameDelta` **15×64** ≠ 实际换算 **12×63** → 根因 |
+| ④ | `test/probes/probe-dip-rounding.cjs` | 125% 下「请求 H → 回读 H′」几乎全 **+1** → 系统取整，非产品缺陷 |
 
 **修法**：`main/window-bounds.js` 新增纯函数 `calibrateMinTrack()`（**分轴判定**），`main/main.js` 的 `calibrateMinimumContentSize()` 改为**实测标定 + 迭代收敛（≤4 轮）**：设初值 → `setMinimumSize` → `setSize(1,1)` 压到下限 → 回读 `getContentBounds()` → 按超出量下调 → **任一轴已达标即停止**（避免为追另一轴精确值而破坏已达标的轴、进而破坏 DEC-07）。
 
 **实测收敛轨迹（125%）**：轮1 `(1039,744)` → 下限 `1026×682` → 下调 `(1037,742)` → 轮2 下限 **`1024×682`**（宽度达标、高度 ≥680）→ 分轴停止。
 
-**修后验证**：`probe-min-track-verify.cjs` **5/5 PASS**、几何单测 **24/24 PASS**、安全审计 **47/47 PASS**、窗口四边溢出全 **0**。
+**修后验证**：`test/probes/probe-min-track-verify.cjs` **5/5 PASS**、几何单测 **24/24 PASS**、安全审计 **47/47 PASS**、窗口四边溢出全 **0**。
 
 > 🔒 **未改动 DEC-07 / DEC-09 / DEC-14 / DEC-16**；`MIN_CONTENT_W=1024` / `MIN_CONTENT_H=680` / `TARGET_W=1440` / `TARGET_H=900` / `EDGE_MARGIN=32` / `useContentSize:true` / 原生菜单栏配置**全部保留**；`src/core.js`、`src/app.js`、appId / IPC / 用户数据目录**未触碰**。
 >

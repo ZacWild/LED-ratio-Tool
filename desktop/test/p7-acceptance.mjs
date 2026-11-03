@@ -600,7 +600,7 @@ async function main() {
 
       // UNI-04：注册表卸载项**真实核对**。
       // 🔴 NSIS 助手式卸载器是**异步**的：主进程先退出，_iu.exe 继续删文件/快捷方式/注册表。
-      //    实测（test/probe-uninstall-registry.cjs）：卸载项在 4~8s 内被清除。
+      //    实测（test/probes/probe-uninstall-registry.cjs）：卸载项在 4~8s 内被清除。
       //    因此必须**轮询等待**，一次性快照会把「还没来得及删」误判成「没删」。
       const uni04Timeline = [];
       let uni04Gone = false;

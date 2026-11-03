@@ -15,8 +15,8 @@
  *    · 全程只读注册表 + 跑安装/卸载器，不改产品代码。
  *
  * 用法：
- *   node_modules/electron/dist/electron.exe test/probe-uninstall-registry.cjs
- *   node test/probe-uninstall-registry.cjs --setup=<setup.exe> [--legacy=<old.exe>]
+ *   node_modules/electron/dist/electron.exe test/probes/probe-uninstall-registry.cjs
+ *   node test/probes/probe-uninstall-registry.cjs --setup=<setup.exe> [--legacy=<old.exe>]
  * 输出：stdout 一行 [PROBE-UNINSTALL-REG] {json}
  * ============================================================================
  */
@@ -34,7 +34,7 @@ const argOf = (n) => {
   return hit ? hit.split('=')[1] : null;
 };
 
-const DESKTOP = path.join(__dirname, '..');
+const DESKTOP = path.join(__dirname, '..', '..');
 const SETUP = argOf('setup') || path.join(DESKTOP, 'dist', 'LED Ratio Tool-1.1.0-x64-setup.exe');
 const LEGACY = argOf('legacy') || null;
 const INSTALL_DIR = path.join(os.tmpdir(), 'LED Ratio Tool RegProbe');

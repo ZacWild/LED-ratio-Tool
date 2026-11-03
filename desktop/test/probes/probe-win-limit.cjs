@@ -16,7 +16,7 @@
  *   E5 min=1024/680，请求 1440×900       → 正常尺寸是否受影响
  *   E6 min=1024/680 + autoHideMenuBar=false，逐步 setContentSize 逼近边界
  *
- * 用法：node_modules/electron/dist/electron.exe test/probe-win-limit.cjs
+ * 用法：node_modules/electron/dist/electron.exe test/probes/probe-win-limit.cjs
  */
 'use strict';
 

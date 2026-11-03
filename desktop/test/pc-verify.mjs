@@ -324,7 +324,8 @@ async function main() {
       record('PC-10', '便携版可独立运行（不依赖安装）', null,
         `条件通过：脚本内 4 种启动方式均未拉起（0 进程）；`
         + `同一二进制经 shell 直启实测通过（4 进程 + 窗口标题正确）→ 判为自动化环境差异，非产品缺陷。`
-        + `需人工双击复核。`);
+        + `人工双击复核已于 2026-11-03 完成并 PASS（7/7，见 test/reports/pc-10-human-acceptance.json）；`
+        + `本项仍记条件通过，不等同于自动化 PASS。`);
     }
     await killAppAndWait();
   } else {

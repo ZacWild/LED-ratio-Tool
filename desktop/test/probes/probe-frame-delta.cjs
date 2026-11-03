@@ -16,7 +16,7 @@
  * 🔴 坐标体系纪律：Electron 的 screen/bounds/workArea **一律是 DIP（逻辑像素）**，
  *    本探针不把任何返回值再乘 scaleFactor；只在「物理像素」一栏单独标注推算值。
  *
- * 用法：node_modules/electron/dist/electron.exe test/probe-frame-delta.cjs
+ * 用法：node_modules/electron/dist/electron.exe test/probes/probe-frame-delta.cjs
  * 输出：stdout 一行 [PROBE-FRAME] {json}
  */
 'use strict';

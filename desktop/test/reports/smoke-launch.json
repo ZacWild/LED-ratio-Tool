@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-03T04:01:18.515Z",
+    "generatedAt": "2026-11-03T09:05:35.992Z",
     "tool": "desktop/test/smoke-launch.mjs",
     "purpose": "TK-88 · app:// ERR_FAILED(-2) 偶发竞态 · 连续启动冒烟",
     "runs": 10,
@@ -25,7 +25,7 @@
     {
       "index": 1,
       "ok": true,
-      "durationMs": 2278,
+      "durationMs": 2612,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -167,7 +167,7 @@
     {
       "index": 2,
       "ok": true,
-      "durationMs": 1831,
+      "durationMs": 1734,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -309,7 +309,7 @@
     {
       "index": 3,
       "ok": true,
-      "durationMs": 1806,
+      "durationMs": 1821,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -451,7 +451,7 @@
     {
       "index": 4,
       "ok": true,
-      "durationMs": 1824,
+      "durationMs": 1717,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -525,12 +525,12 @@
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/app.css",
+          "url": "app://bundle/core.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/core.js",
+          "url": "app://bundle/app.css",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
@@ -559,13 +559,13 @@
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/app.css",
+          "url": "app://bundle/core.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/core.js",
+          "url": "app://bundle/app.css",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
@@ -593,7 +593,7 @@
     {
       "index": 5,
       "ok": true,
-      "durationMs": 1798,
+      "durationMs": 1716,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -735,7 +735,7 @@
     {
       "index": 6,
       "ok": true,
-      "durationMs": 1792,
+      "durationMs": 1751,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -877,7 +877,7 @@
     {
       "index": 7,
       "ok": true,
-      "durationMs": 1803,
+      "durationMs": 1725,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -961,12 +961,12 @@
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/desktop-ui.js",
+          "url": "app://bundle/app.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/app.js",
+          "url": "app://bundle/desktop-ui.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         }
@@ -997,13 +997,13 @@
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/desktop-ui.js",
+          "url": "app://bundle/app.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/app.js",
+          "url": "app://bundle/desktop-ui.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
@@ -1019,7 +1019,7 @@
     {
       "index": 8,
       "ok": true,
-      "durationMs": 1811,
+      "durationMs": 1706,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -1103,12 +1103,12 @@
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/desktop-ui.js",
+          "url": "app://bundle/app.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/app.js",
+          "url": "app://bundle/desktop-ui.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         }
@@ -1139,13 +1139,13 @@
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/desktop-ui.js",
+          "url": "app://bundle/app.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/app.js",
+          "url": "app://bundle/desktop-ui.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
@@ -1161,7 +1161,7 @@
     {
       "index": 9,
       "ok": true,
-      "durationMs": 1782,
+      "durationMs": 1693,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
@@ -1230,12 +1230,12 @@
       "failedLoads": [],
       "responses": [
         {
-          "url": "app://bundle/styles.css",
+          "url": "app://bundle/app.css",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/app.css",
+          "url": "app://bundle/styles.css",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
@@ -1245,12 +1245,12 @@
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/app.js",
+          "url": "app://bundle/desktop-ui.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/desktop-ui.js",
+          "url": "app://bundle/app.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         }
@@ -1263,13 +1263,13 @@
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/styles.css",
+          "url": "app://bundle/app.css",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/app.css",
+          "url": "app://bundle/styles.css",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
@@ -1281,13 +1281,13 @@
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/app.js",
+          "url": "app://bundle/desktop-ui.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/desktop-ui.js",
+          "url": "app://bundle/app.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
@@ -1303,7 +1303,7 @@
     {
       "index": 10,
       "ok": true,
-      "durationMs": 1721,
+      "durationMs": 1715,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",

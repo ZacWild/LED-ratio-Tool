@@ -1,0 +1,137 @@
+{
+  "meta": {
+    "id": "PC-10-HUMAN",
+    "title": "PC-10 便携版人工双击验收（真机、真人操作）",
+    "generatedAt": "2026-11-03T07:40:39.000Z",
+    "localTime": "2026-11-03 15:40 (GMT+8)",
+    "operator": "项目负责人（人工双击，非脚本）",
+    "method": "Windows 文件资源管理器直接双击 Portable EXE",
+    "humanTestReportedAt": "2026-11-03 下午，由项目负责人口头报告结果（未提供精确到分钟的时刻，本文件不编造该时刻）",
+    "version": "1.1.0",
+    "product": "LED Ratio Tool",
+    "note": "本文件记录的是人工双击验收结果，与自动化脚本结果分开保存，二者不互相替代。"
+  },
+  "target": {
+    "file": "LED Ratio Tool-1.1.0-x64-portable.exe",
+    "windowsAbsolutePath": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\dist\\LED Ratio Tool-1.1.0-x64-portable.exe",
+    "folder": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\dist",
+    "bytes": 110436477,
+    "lastWriteTime": "2026-11-03 11:37:54",
+    "sha256Measured": "d50012112a9d9ad959b7165b8d83895ba70dc0b5e08ab2c87aaba6bd27d482bd",
+    "sha256Expected": "d50012112a9d9ad959b7165b8d83895ba70dc0b5e08ab2c87aaba6bd27d482bd",
+    "sha256Match": true,
+    "hashCommand": "Get-FileHash -LiteralPath <path> -Algorithm SHA256",
+    "fileVersion": "1.1.0",
+    "productVersion": "1.1.0",
+    "productName": "LED Ratio Tool",
+    "signatureStatus": "NotSigned",
+    "signatureNote": "首发不签名口径（ART-02 Owner Accepted），非本次文件异常"
+  },
+  "crossCheck": {
+    "againstSha256Sums": {
+      "file": "desktop/test/reports/SHA256SUMS.txt",
+      "recorded": "d50012112a9d9ad959b7165b8d83895ba70dc0b5e08ab2c87aaba6bd27d482bd",
+      "match": true
+    },
+    "againstArtifactLedger": {
+      "file": "desktop/test/reports/p7-artifacts.json",
+      "artifactsKey": "portable",
+      "recordedSha256": "d50012112a9d9ad959b7165b8d83895ba70dc0b5e08ab2c87aaba6bd27d482bd",
+      "recordedBytes": 110436477,
+      "match": true
+    },
+    "rejectedSiblings": [
+      {
+        "path": "desktop/dist/_pre-dpi09/LED Ratio Tool-1.1.0-x64-portable.exe",
+        "bytes": 110426428,
+        "sha256": "dbce57ba3dafce9a49a10146320e36653ee388c7b1cf8e2a11a6ea8b1b7ee5a1",
+        "reason": "历史回滚副本，哈希与最终候选不符"
+      },
+      {
+        "path": "desktop/dist/_pre-dpi09-b/LED Ratio Tool-1.1.0-x64-portable.exe",
+        "bytes": 110431813,
+        "sha256": "d5291092f3eaaa21943b45237003bf044e6af5be1ca3066a52c91d5ffa322415",
+        "reason": "历史回滚副本，哈希与最终候选不符"
+      },
+      {
+        "path": "desktop/dist/_pre-mintrack-fix/LED Ratio Tool-1.1.0-x64-portable.exe",
+        "bytes": 110432307,
+        "sha256": "608004b01ea01435f759c553c9b270a9ebd8e01ca0650092f429c6849656125f",
+        "reason": "历史回滚副本，哈希与最终候选不符"
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "PC-10-M01",
+      "title": "Windows 文件资源管理器直接双击 Portable EXE",
+      "pass": true,
+      "actual": "双击即启动，操作方式为资源管理器双击（非命令行、非脚本）"
+    },
+    {
+      "id": "PC-10-M02",
+      "title": "正常进入 LED Ratio Tool 主程序",
+      "pass": true,
+      "actual": "主程序正常显示并进入可交互状态"
+    },
+    {
+      "id": "PC-10-M03",
+      "title": "无需安装向导",
+      "pass": true,
+      "actual": "未出现 NSIS 安装向导、未出现安装路径选择页"
+    },
+    {
+      "id": "PC-10-M04",
+      "title": "窗口标题正确",
+      "pass": true,
+      "actual": "窗口标题为「LED Ratio Tool」"
+    },
+    {
+      "id": "PC-10-M05",
+      "title": "无弹窗、无报错、无白屏",
+      "pass": true,
+      "actual": "启动与操作过程中未出现错误弹窗、异常提示或空白渲染"
+    },
+    {
+      "id": "PC-10-M06",
+      "title": "换算正确：1920×1080 → 1.7778:1",
+      "pass": true,
+      "actual": "界面显示 1.7778:1",
+      "expected": "1.7778:1",
+      "coreCrossCheck": "core.js computeRatio(1920,1080).decimal = 1.7778（reduced 16:9，exact=true）"
+    },
+    {
+      "id": "PC-10-M07",
+      "title": "换算正确：3840×1080 → 3.5556:1",
+      "pass": true,
+      "actual": "界面显示 3.5556:1",
+      "expected": "3.5556:1",
+      "coreCrossCheck": "core.js computeRatio(3840,1080).decimal = 3.5556（reduced 32:9）"
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "pass": 7,
+    "fail": 0,
+    "skip": 0,
+    "verdict": "PASS",
+    "scope": "人工双击验收（真人操作、真实桌面会话）"
+  },
+  "separationOfConcerns": {
+    "automationResult": {
+      "file": "desktop/test/reports/pc-verify.json",
+      "generatedAt": "2026-11-01T15:14:52.704Z",
+      "pc10Pass": null,
+      "pc10Status": "条件通过（脚本内 4 种启动方式均未拉起；判为自动化环境差异）",
+      "artifactBatch": "旧批次（portable 110307738 B）",
+      "statement": "该文件记录的是 2026-11-01 旧产物批次上、由 node 子进程自动拉起便携版的结果；本次未改写其判定，自动化启动失败仍保留为「条件通过 / null」，不得读成自动化 PASS。"
+    },
+    "humanResult": {
+      "file": "desktop/test/reports/pc-10-human-acceptance.json",
+      "pc10Pass": true,
+      "artifactBatch": "最终候选（portable 110436477 B / d5001211…）",
+      "statement": "人工双击在本机真实桌面会话下完成，7/7 PASS，证明便携版可零安装独立运行且换算正确。"
+    },
+    "conclusion": "自动化环境差异属实且未被掩盖；人工路径已独立闭环。两种测试方式结论并存，不合并、不互相替换。"
+  }
+}

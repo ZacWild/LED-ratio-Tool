@@ -1,6 +1,6 @@
 # GitHub 操作规则（项目负责人制定，优先级高于其他自动化工作流指令）
 
-> 制定时间：2026-10-29 ｜ 最近修订：2026-10-30
+> 制定时间：2026-10-29 ｜ 最近修订：2026-11-03（更新 §1 CI 状态与 §5 当前状态核验）
 > 制定人：项目负责人
 > 适用范围：LED-ratio-Tool Windows 桌面版升级项目的一切 GitHub 操作
 
@@ -26,7 +26,7 @@
 | 层 | 手段 | 真正能保证什么 | **不能**保证什么 |
 |---|---|---|---|
 | **服务端** | **GitHub Rulesets / 分支保护规则** | ✅ 阻止任何人（含管理员）直接推送或合并 `main`；可要求 PR + review + 状态检查 | — |
-| **服务端** | Required status checks | ✅ PR 必须通过指定检查才能合并 | 需先配置 CI（**本项目目前未配置**） |
+| **服务端** | Required status checks | ✅ PR 必须通过指定检查才能合并 | **本项目已配置**（`Windows · 桌面版门禁`，见 §1「关于 CI 的诚实说明」） |
 | **本地** | `.githooks/pre-push` | ✅ 拦截**本机**的 `git push`（解析 Git 原生 hook 协议） | ❌ 他人的机器；❌ GitHub 上的合并；❌ 直接调用 API 的推送 |
 | **本地** | `test/guard-github-rules.mjs` | ✅ **本地状态审计** —— 报告当前状态是否符合约定 | ❌ 任何拦截；❌ 识别对话授权；❌ 替代服务端保护 |
 | **流程** | 项目负责人审查 + 手动合并 | ✅ 最终放行 | — |
@@ -161,13 +161,15 @@ bash .githooks/pre-push
 
 ---
 
-## 5. 当前状态核验（2026-10-30 实测）
+## 5. 当前状态核验（2026-11-03 实测；2026-10-30 首次核验记录见 Git 历史）
 
 | 核验项 | 结果 |
 |---|---|
-| 远端 `main` HEAD | `545bd0d7c9d7` —— 未被合并任何内容 ✅ |
-| 远端 `feature/desktop-windows` | `879e11b3db0d` ✅ |
-| 远端 `pre-desktop` 标签 | 存在 → `545bd0d7c9d7` ✅ |
-| 未授权分支 | 0 个（hook 负向测试未产生任何副作用）✅ |
+| 远端 `main` HEAD | `dc1e8a050b32`（PR #3 Squash Merge，经 `Windows · 桌面版门禁` required check 放行）✅ |
+| 远端 `feature/desktop-windows` | `d7024f7`（其后本地提交 `d15d81b` PC-10 证据已迁移至 `chore/repository-cleanup`）✅ |
+| 远端 `pre-desktop` 标签 | 存在（回滚锚点，未删除）✅ |
+| 未授权分支 | 无 ✅ |
 | `npm test` 是否含分支策略检查 | ❌ **不含**（已按要求剥离）✅ |
-| GitHub Actions | **无** —— 本项目目前没有服务端 CI |
+| GitHub Actions | ✅ **已运行并作为合并门禁**（`.github/workflows/windows.yml`，作业名 `Windows · 桌面版门禁`；PR #1/#2/#3 均在该门禁下完成） |
+
+> 📌 历史核验（2026-10-30）：当时 `main` HEAD 为 `545bd0d7c9d7`、CI 尚未建立；该状态已被上述 PR #1~#3 的推进取代，原表保留于 Git 历史不在此复写。

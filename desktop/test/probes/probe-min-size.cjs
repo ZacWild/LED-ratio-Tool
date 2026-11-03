@@ -9,7 +9,7 @@
  *   ② setContentSize 到低于 minWidth 时 Electron 的实际行为（截断还是允许）
  *   ③ 用户手动把窗口拖到最小时，真实客户区是多少（DEC-07 的实际下限）
  *
- * 用法：node_modules/electron/dist/electron.exe test/probe-min-size.cjs
+ * 用法：node_modules/electron/dist/electron.exe test/probes/probe-min-size.cjs
  */
 'use strict';
 
