@@ -170,7 +170,7 @@ const EDGE_MARGIN = 32;
 
 **问题**：`autoHideMenuBar: false` 配置下，实测外框增量高度 = **65 DIP**，而旧公式按 **39 DIP** 计算，差 **26 DIP**。
 
-**排查与实测结论**（`desktop/test/probe-frame-delta.cjs` / `probe-min-size.cjs` / `probe-min-visible.cjs` / `probe-win-limit.cjs` 四个探针）：
+**排查与实测结论**（`desktop/test/probes/probe-frame-delta.cjs` / `test/probes/probe-min-size.cjs` / `test/probes/probe-min-visible.cjs` / `test/probes/probe-win-limit.cjs` 四个探针）：
 
 | # | 排查项 | 实测结果 | 结论 |
 |---|---|---|---|
@@ -303,9 +303,9 @@ y = workArea.y + round((workArea.height - frameH) / 2);
 | 步骤 | 手段 | 实测结果 | 结论 |
 |---|---|---|---|
 | ① 改前 / 改后对照 | `git show HEAD:desktop/main/main.js` 临时还原 + 跑同一套 TC-DP | HEAD 版 **10/10**；本轮新版 **7/10** | 确认由本轮改动引入，非环境波动 |
-| ② 移屏对照 | `probe-tcdp-regression.cjs`（主屏 ↔ 副屏移动取样） | 偏差**恒定 +2 / +8**，与所在显示器无关 | 排除「多屏 / 混合缩放」假设 |
-| ③ min track 口径对照 | `probe-min-track-calibrate.cjs`（C1~C6） | `frameDelta` = **15×64**；「min track → 客户区下限」实际换算 = **12×63** | **根因**：两口径不相等，差 3×1 |
-| ④ DIP 取整验证 | `probe-dip-rounding.cjs` | 125% 下「请求 H → 回读 H′」几乎全为 **+1**（600→601、680→681、784→785、900→901；679→679、675→675、683→683） | 属**系统取整**，非产品缺陷 |
+| ② 移屏对照 | `test/probes/probe-tcdp-regression.cjs`（主屏 ↔ 副屏移动取样） | 偏差**恒定 +2 / +8**，与所在显示器无关 | 排除「多屏 / 混合缩放」假设 |
+| ③ min track 口径对照 | `test/probes/probe-min-track-calibrate.cjs`（C1~C6） | `frameDelta` = **15×64**；「min track → 客户区下限」实际换算 = **12×63** | **根因**：两口径不相等，差 3×1 |
+| ④ DIP 取整验证 | `test/probes/probe-dip-rounding.cjs` | 125% 下「请求 H → 回读 H′」几乎全为 **+1**（600→601、680→681、784→785、900→901；679→679、675→675、683→683） | 属**系统取整**，非产品缺陷 |
 
 **根因**：Windows 11 存在**不可见缩放边框**（resize border）—— 它**计入** min track、但**不计入** `getBounds()`。因此用 `frameDelta` 换算 min track 会把客户区下限**顶高**：
 
@@ -316,7 +316,7 @@ setMinimumSize(1024 + 16, 680 + 65)  = (1040, 745)   // 用 frameDelta 换算
   → TC-DP-04 判 BLOCKED
 ```
 
-`probe-min-track-legal.cjs` 另经 49 个候选 min track 组合验证**全部合法不抛错**，排除「参数非法」假设；`probe-min-track-search2.cjs` 的 2D 扫描（1034~1039 × 738~745）确认 **125% 下不存在能命中精确 1024×680 的组合**，best = **1024×682**。
+`test/probes/probe-min-track-legal.cjs` 另经 49 个候选 min track 组合验证**全部合法不抛错**，排除「参数非法」假设；`test/probes/probe-min-track-search2.cjs` 的 2D 扫描（1034~1039 × 738~745）确认 **125% 下不存在能命中精确 1024×680 的组合**，best = **1024×682**。
 
 ### 3.9.2 修法：实测标定 + 迭代收敛 + 分轴停止
 
@@ -350,7 +350,7 @@ setMinimumSize(1024 + 16, 680 + 65)  = (1040, 745)   // 用 frameDelta 换算
 
 | 验证项 | 结果 |
 |---|---|
-| `probe-min-track-verify.cjs`（5 条判据） | **5/5 PASS**（下限 1024×682、宽度 1024 命中、1024 档请求宽度命中、高度 ≥680、1440×900 命中） |
+| `test/probes/probe-min-track-verify.cjs`（5 条判据） | **5/5 PASS**（下限 1024×682、宽度 1024 命中、1024 档请求宽度命中、高度 ≥680、1440×900 命中） |
 | `test/window-bounds-geometry.test.mjs` | **24/24 PASS**（新增 GEO-13~16 覆盖标定逻辑） |
 | `test/security-audit.cjs` | **47/47 PASS** |
 | 窗口四边溢出 | `left/top/right/bottom` 全 **0** |
@@ -358,7 +358,7 @@ setMinimumSize(1024 + 16, 680 + 65)  = (1040, 745)   // 用 frameDelta 换算
 ### 3.9.5 多显示器核验（2026-11-03 · 双屏真 125% · 本轮新增）
 
 > **补的缺口**：`test/p7-dpi.mjs` 只核验**鼠标所在的那一块屏**。机器上有多块屏时，主屏通过**不能**推出副屏也通过 —— 而任务书明确要求覆盖「主屏 / 副屏 / 负坐标 / 任务栏缩减 / 混合缩放」。
-> 探针：`test/probe-dpi-multidisplay.cjs`（真实 `BrowserWindow` + 产品 `window-bounds.js` 算法 + 真实 `getBounds()` 回读；每块屏**独立判定**，任一失败即整体 FAIL）。
+> 探针：`test/probes/probe-dpi-multidisplay.cjs`（真实 `BrowserWindow` + 产品 `window-bounds.js` 算法 + 真实 `getBounds()` 回读；每块屏**独立判定**，任一失败即整体 FAIL）。
 
 **实测环境**：两块 `LEN P27q-10`，**均为真 125%**（用户经「设置 → 系统 → 显示 → 缩放」切换并已实时生效）｜主屏 `id=3036494085`｜副屏 `id=1897915132`（右置，x 偏移 2048）｜鼠标位于主屏 `(1697, 536)`。
 

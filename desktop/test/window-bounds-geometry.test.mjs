@@ -13,7 +13,7 @@
  *
  * 🔴 数据性质声明（重要）：
  *    本文件的 frameDelta 为**实测值或明确标注的保守外推值**：
- *      · 100% → 16×65  实测（test/probe-frame-delta.cjs）
+ *      · 100% → 16×65  实测（test/probes/probe-frame-delta.cjs）
  *      · 125% → 15×64  实测（任务书实测表）
  *      · 150% → 20×80  **保守外推**（Windows 边框/菜单栏并非线性缩放，
  *                       真实值必须在 150% 真实环境实测 —— 本文件不冒充实测）
@@ -282,7 +282,7 @@ t('GEO-10-位置夹紧', '外框大于工作区时，位置被夹到工作区内
 });
 
 t('GEO-11-最小 track 换算', 'min track 必须用**外框口径**下发（客户区 + 实测增量）', () => {
-  // 🔴 实测陷阱（test/probe-min-visible.cjs）：
+  // 🔴 实测陷阱（test/probes/probe-min-visible.cjs）：
   //   · 构造参数 minWidth/minHeight = 客户区口径，Chromium 自动加边框(16/39) → getMinimumSize()=[1040,719]
   //     而客户区 = 外框 − (16,65) → 声明 680 实际只保证客户区 ≥ 654（DEC-07 失守）
   //   · setMinimumSize(w,h) = 外框口径且**不**自动加边框 → 传客户区数字会把下限调低
@@ -300,7 +300,7 @@ t('GEO-11-最小 track 换算', 'min track 必须用**外框口径**下发（客
 });
 
 t('GEO-13-min track 标定（顶高时下调）', '实测下限被顶高时，按超出量**下调** min track', () => {
-  // 🔴 实测事实（test/probe-min-track-calibrate.cjs / probe-min-track-search2.cjs）：
+  // 🔴 实测事实（test/probes/probe-min-track-calibrate.cjs / probe-min-track-search2.cjs）：
   //   「min track → 客户区下限」的换算量 ≠ frameDelta（125% 下前者 12×63、后者 15×64，
   //   差额是 Windows 11 不可见缩放边框）⇒ 按 frameDelta 下发会把下限顶高。
   //   实测：setMinimumSize(1039,744) → 下限 1026×682（宽度顶高 2px）。

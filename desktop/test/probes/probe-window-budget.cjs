@@ -10,7 +10,7 @@
  *   ⑤ 多显示器（含第二块屏 x=2560、负坐标情形）的位置处理
  *   ⑥ 菜单栏/标题栏差值构成（w1 创建顺序 vs w3 的差异归因）
  *
- * 用法：node_modules/electron/dist/electron.exe test/probe-window-budget.cjs
+ * 用法：node_modules/electron/dist/electron.exe test/probes/probe-window-budget.cjs
  */
 'use strict';
 

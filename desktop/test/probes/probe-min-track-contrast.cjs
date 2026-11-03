@@ -23,7 +23,7 @@
 
 const path = require('path');
 
-const DESKTOP = path.resolve(__dirname, '..');
+const DESKTOP = path.resolve(__dirname, '..', '..');
 
 function cleanEnv() {
   const env = { ...process.env };

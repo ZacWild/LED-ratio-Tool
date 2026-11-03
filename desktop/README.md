@@ -487,9 +487,9 @@ exe 的 PE 资源里有 `type="INTEGRITY", id="ELECTRONASAR"`，内容是 **JSON
 | 步骤 | 手段 | 结论 |
 |---|---|---|
 | ① | 改前/改后对照（`git show HEAD:desktop/main/main.js`） | 差异确实来自新代码，**不是环境问题** |
-| ② | 移屏对照探针（`probe-tcdp-regression.cjs`） | 同一窗口在两块屏间移动，`setContentSize` 往返偏差**恒定 +2/+8**，与屏无关 → 排除 DPI 因素 |
-| ③ | min track 口径对照探针（`probe-min-track-calibrate.cjs`） | `setMinimumSize(M)` 的**「M → 客户区下限」换算量 = 12×63**，而 `frameDelta` = **15×64** → **两者不是同一套口径** |
-| ④ | DIP 取整验证探针（`probe-dip-rounding.cjs`） | 125% 下「请求 H → 回读 H′」映射表：几乎所有值 **+1**（680→681），这是 **DIP→物理像素的系统取整**，非产品缺陷 |
+| ② | 移屏对照探针（`test/probes/probe-tcdp-regression.cjs`） | 同一窗口在两块屏间移动，`setContentSize` 往返偏差**恒定 +2/+8**，与屏无关 → 排除 DPI 因素 |
+| ③ | min track 口径对照探针（`test/probes/probe-min-track-calibrate.cjs`） | `setMinimumSize(M)` 的**「M → 客户区下限」换算量 = 12×63**，而 `frameDelta` = **15×64** → **两者不是同一套口径** |
+| ④ | DIP 取整验证探针（`test/probes/probe-dip-rounding.cjs`） | 125% 下「请求 H → 回读 H′」映射表：几乎所有值 **+1**（680→681），这是 **DIP→物理像素的系统取整**，非产品缺陷 |
 
 **根因**：Windows 11 存在**不可见缩放边框**（resize border）——它**计入** min track、但**不计入** `getBounds()`。因此
 
@@ -522,7 +522,7 @@ exe 的 PE 资源里有 `type="INTEGRITY", id="ELECTRONASAR"`，内容是 **JSON
 | `setContentSize(1440, 900)` 回读 | ✅ 1440×901（+1 为系统取整） |
 | 窗口四边溢出 | ✅ 全 0 |
 
-> 📌 **平台量化的如实披露**：125% 下「请求 680 高」**恒回读 681 或 682**（`probe-dip-rounding.cjs` 实测映射表），因此**精确的 1024×680 客户区在 125% 下不可达**。这是 Windows 的 DIP→物理像素取整（680×1.25=850 需向上取整到 8px 网格），**不是产品缺陷**，也不通过放宽判据掩盖。100% 档下该问题不存在（增量 16×65 整除）。
+> 📌 **平台量化的如实披露**：125% 下「请求 680 高」**恒回读 681 或 682**（`test/probes/probe-dip-rounding.cjs` 实测映射表），因此**精确的 1024×680 客户区在 125% 下不可达**。这是 Windows 的 DIP→物理像素取整（680×1.25=850 需向上取整到 8px 网格），**不是产品缺陷**，也不通过放宽判据掩盖。100% 档下该问题不存在（增量 16×65 整除）。
 >
 > 本轮新增几何单测 **GEO-13 ~ GEO-16**（标定的下调 / 停止 / 安全下界 / 双轴未达标四种语义），几何单测总数 20 → **24**。
 
@@ -587,7 +587,7 @@ exe 的 PE 资源里有 `type="INTEGRITY", id="ELECTRONASAR"`，内容是 **JSON
 
 #### 1.7.3.1 多显示器核验（2026-11-03 · 双屏真 125% · 本轮新增）
 
-> `test/p7-dpi.mjs` 只核验**鼠标所在的那一块屏**；主屏通过**不能**推出副屏也通过。探针 `test/probe-dpi-multidisplay.cjs` 用**真实 `BrowserWindow` + 产品 `window-bounds.js` 算法 + 真实 `getBounds()` 回读**，对**每块屏独立判定**。
+> `test/p7-dpi.mjs` 只核验**鼠标所在的那一块屏**；主屏通过**不能**推出副屏也通过。探针 `test/probes/probe-dpi-multidisplay.cjs` 用**真实 `BrowserWindow` + 产品 `window-bounds.js` 算法 + 真实 `getBounds()` 回读**，对**每块屏独立判定**。
 
 **125% 档（双屏真 125%）**：
 

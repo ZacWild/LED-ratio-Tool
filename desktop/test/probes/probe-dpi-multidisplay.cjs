@@ -20,7 +20,7 @@
  *    故中途 `destroy()` 再新建窗口既无必要、又会卡住 Electron 主进程。
  *
  * 用法：
- *   node test/probe-dpi-multidisplay.cjs
+ *   node test/probes/probe-dpi-multidisplay.cjs
  *   产物：test/reports/probe-dpi-multidisplay.json
  */
 
@@ -30,8 +30,8 @@ const { app, BrowserWindow, screen } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
-const REPO = path.join(__dirname, '..');
-const OUT = path.join(__dirname, 'reports', 'probe-dpi-multidisplay.json');
+const REPO = path.join(__dirname, '..', '..');
+const OUT = path.join(__dirname, '..', 'reports', 'probe-dpi-multidisplay.json');
 const wb = require(path.join(REPO, 'main', 'window-bounds.js'));
 
 /** 等一拍，让 setPosition / setContentSize 的异步生效落地 */
@@ -135,7 +135,7 @@ function settle(ms = 300) {
   // 🔴 输出文件按**实测档位**命名，避免不同档位互相覆盖
   //    （100% / 125% / 150% 各留一份独立证据）。
   const pct = Math.round((primary.scaleFactor || 1) * 100);
-  const OUT_BY_PCT = path.join(__dirname, 'reports', `probe-dpi-multidisplay-${pct}.json`);
+  const OUT_BY_PCT = path.join(__dirname, '..', 'reports', `probe-dpi-multidisplay-${pct}.json`);
 
   const report = {
     meta: {

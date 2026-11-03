@@ -11,7 +11,7 @@
  *      · 若显示态 delta 仍是 39   → 用户实际最小客户区 = 706，方案 A 的校准会把下限
  *                                   误调到 706（比 DEC-07 更严），必须改用显示态校准。
  *
- * 用法：node_modules/electron/dist/electron.exe test/probe-min-visible.cjs
+ * 用法：node_modules/electron/dist/electron.exe test/probes/probe-min-visible.cjs
  */
 'use strict';
 
