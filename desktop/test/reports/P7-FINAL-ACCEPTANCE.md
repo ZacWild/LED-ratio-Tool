@@ -2,11 +2,13 @@
 
 > 版本标记：**P7 Final Acceptance（最终发行验收）**
 > 仓库：`ZacWild/LED-ratio-Tool` ｜ PR：**#3（保持 Open，不合并）**
-> HEAD：`a8afd73c810faf47cda13a7bdf254e9c47d93a65`（分支 `feature/desktop-windows`）
+> **产物构建提交**：`89470b5967f2b36f7950e2d62e4489370a3152f6`（分支 `feature/desktop-windows`，PR #3 保持 Open）
 > 版本：`1.1.0` ｜ 产品名：`LED Ratio Tool` ｜ 首发签名策略：**NotSigned（不采购、不配置证书）**
 > 生成时间：2026-11-03 ｜ 验收对象：本机干净重建的最终产物（非旧产物复制）
 
-> 📌 **HEAD 口径说明（避免误读）**：本次产物是在 HEAD `a8afd73` 之上、**叠加工作区未提交改动**（P7-DPI-09 方案 A 实现）打包的。`p7-artifacts.json` 的 `provenance.status = MATCH`（asar 内 `renderer/app.js` / `core.js` / `main/main.js` / `preload/preload.js` 与**当前工作区**逐字节一致 4/4）→ 因此「产物 = 当前工作区代码」这一条是**被实测证明的**，而不是靠 gitHead 推断。下方 §1.1~§1.6 保留的是**上一版产物（HEAD `30b21ab`）**的记录，重打包后相应数值已在 §1.7 更新。
+> 📌 **HEAD 口径说明（避免误读）**：本次产物由 **提交 `89470b5`**（P7-DPI-09 方案 A + min track 实测标定）对应的工作区源码打包，`p7-artifacts.json` 的 `gitHead` 与 `provenance.status = MATCH`（asar 内 `renderer/app.js` / `core.js` / `main/main.js` / `preload/preload.js` 与**当前工作区**逐字节一致 4/4）**双向对齐** → 「产物 = 该提交代码」是被实测证明的，而不是靠 gitHead 推断。
+> 后续**仅文档 / 报告口径对齐**的提交不改动任何产品代码或产物字节，因此 `gitHead` 仍指向 `89470b5`（= **产物构建提交**，而非「最新提交」）是正确语义。
+> 下方 §1.1~§1.6 保留的是**上一版产物（HEAD `30b21ab`）**的历史记录，重打包后相应数值已在 §1.7 更新。
 
 ---
 
@@ -17,7 +19,7 @@
 | 证据链 | 干净重建 NSIS + Portable | exit 0（NSIS 115.77MB / Portable 105.31MB） | ✅ PASS |
 | 证据链 | 最终 EXE 元数据（ProductName/FileDescription/FileVersion） | 三处 FileVersion=1.1.0，FileDescription 已统一为 LED Ratio Tool | ✅ PASS |
 | 证据链 | 四产物图标与品牌 LOGO 一致 | 4/4 命中（7 档，128px 灰度 100%、炭灰 78.7%、白 18.5%、橙 0%） | ✅ PASS |
-| 证据链 | p7-artifacts（gitHead / Provenance / SHA-256） | gitHead=`a8afd73`，provenance MATCH 4/4（asar == 当前工作区） | ✅ PASS |
+| 证据链 | p7-artifacts（gitHead / Provenance / SHA-256） | gitHead=`89470b5`，provenance MATCH 4/4（asar == 当前工作区） | ✅ PASS |
 | 证据链 | p7-acceptance 的 POR-01 document.title | 「LED Ratio Tool」 | ✅ PASS |
 | 证据链 | Fuses / ASAR 16 项实体验证 | 16/16 通过（针对重建产物，SHA-256 `d35d9361…`，R-01 还原 = `6a451eb4…`） | ✅ PASS |
 | 证据链 | 最终 SHA256SUMS | 5 产物 + app.asar 清单已生成（两端逐字节一致） | ✅ PASS |
@@ -31,7 +33,7 @@
 | 人工验收 | 注册表卸载项（INS-05 / UNI-04） | **已补测**（2026-11-03）：改走 PowerShell 注册表提供程序，INS-05 / UNI-04 实测通过 | ✅ **PASS** |
 | 人工验收 | 真版本升级（UPG-02~05） | **已补测**（2026-11-03）：以 `dist-legacy/LED Ratio Tool-1.0.0-x64-setup.exe` 为 `--legacy` 真跑 1.0.0 → 1.1.0 覆盖升级 | ✅ **PASS** |
 
-**总判定：PASS（28/28，0 跳过）+ Owner Accepted（NotSigned）**。0 项 FAIL，0 项 BLOCKED 伪装成已完成；所有报告对应同一最终产物（HEAD=`a8afd73` + 工作区 P7-DPI-09 改动，provenance MATCH 4/4）与可追溯 SHA-256。
+**总判定：PASS（28/28，0 跳过）+ Owner Accepted（NotSigned）**。0 项 FAIL，0 项 BLOCKED 伪装成已完成；所有报告对应同一最终产物（**产物构建提交 = `89470b5`**，provenance MATCH 4/4）与可追溯 SHA-256。
 
 > 🆕 **2026-11-03 补测说明**：上一版记录为「PASS_WITH_SKIP（22 通过 / 6 跳过）」，其中 6 项 SKIP（INS-05、UNI-04、UPG-02~05）的跳过理由是「本环境禁止调用 `reg.exe`」「缺 `--legacy=<旧版本>`」。本轮按项目负责人要求补做：
 > - **INS-05 / UNI-04**：改用 **PowerShell 的 Microsoft.Win32 注册表提供程序**（标准 .NET API，非 `reg.exe` 脚本绕过）真实读取消载项 → 两项均 PASS；
@@ -62,7 +64,7 @@
 - 源 `resources/icon.ico` 自检 `verify-icons.mjs` 10/10 通过（IC-01~IC-10），`electron-builder.yml` 三处 icon 配置指向同一文件（IC-09）。
 
 ### 1.4 p7-artifacts 证据链重跑
-- `gitHead = a8afd73c810faf47cda13a7bdf254e9c47d93a65`
+- `gitHead = 89470b5967f2b36f7950e2d62e4489370a3152f6`
 - `provenance.status = MATCH`（asar 内 renderer/app.js / core.js / main/main.js / preload/preload.js 与工作区逐字节一致，4/4）
 - 签名：三处 PE 证书表 Size=0 → **NotSigned**（如实记录）
 

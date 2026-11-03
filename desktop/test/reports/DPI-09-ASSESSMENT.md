@@ -2,7 +2,7 @@
 
 > **文档性质**：本文档 = **第一段（技术评估，原样保留）** + **第二段（负责人裁决：方案 A 正式采用）** + **第三段（实施结果与实测取证）**。
 > 评估稿结论**未被推翻**，方案 A 与评估稿 §6 推荐方向一致；本轮新增的是**落地实施**与**实测取证**。
-> 关联基线 HEAD：`a8afd73c810faf47cda13a7bdf254e9c47d93a65`（P7 Final Acceptance）｜分支 `feature/desktop-windows`｜产品 `LED Ratio Tool` 1.1.0
+> 关联基线 HEAD：`89470b5967f2b36f7950e2d62e4489370a3152f6`（P7-DPI-09 方案 A + min track 实测标定）｜分支 `feature/desktop-windows`｜产品 `LED Ratio Tool` 1.1.0
 > 第一段原评估稿撰写于 HEAD `30b21ab605db190e2b2545be2a7351edceaa8dd2`，其中「本评估不落地任何修改」的声明**仅对第一段有效**，自第二段起失效。
 
 ---
@@ -171,9 +171,9 @@ const EDGE_MARGIN = 32;
 
 # 第三段｜实施结果与实测取证
 
-> 实施日期：2026-11-03｜实现基线：`a8afd73` 之后的新提交（见 §3.8 提交清单）
+> 实施日期：2026-11-03｜实现基线：**`89470b5`**（`fix(desktop): P7-DPI-09 方案 A + min track 实测标定`，分支 `feature/desktop-windows`）
 > 新增模块：`desktop/main/window-bounds.js`（零依赖纯函数，几何单测直接复用）
-> 改动文件：`desktop/main/main.js`（窗口创建与台账）、`desktop/main/window-bounds.js`（新增）、`desktop/test/p7-dpi.mjs`（DPI-09 四边核验 + 四态判定）、`desktop/test/window-bounds-geometry.test.mjs`（新增几何单测 20/20）、`desktop/test/security-audit.cjs`（纳入新模块审计范围）、文档若干。
+> 改动文件：`desktop/main/main.js`（窗口创建与台账 + min track 实测标定）、`desktop/main/window-bounds.js`（新增）、`desktop/test/p7-dpi.mjs`（DPI-09 四边核验 + 四态判定）、`desktop/test/window-bounds-geometry.test.mjs`（新增几何单测 24/24）、`desktop/test/security-audit.cjs`（纳入新模块审计范围）、`desktop/test/desktop-suite.mjs`（TC-DP-04 阻塞文案改为按实际档位动态判定）、取证探针 15 个、文档若干。
 
 ## 3.1 26 DIP 高度差异的完整解释（任务 §二 强制项）
 

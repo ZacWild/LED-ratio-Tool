@@ -289,7 +289,7 @@ exe 的 PE 资源里有 `type="INTEGRITY", id="ELECTRONASAR"`，内容是 **JSON
 | 项 | 实测结论 |
 |---|---|
 | **UPG-02** 旧版本安装 | legacy 包 `dist-legacy/LED Ratio Tool-1.0.0-x64-setup.exe`（FileVersion **1.0.0**）静默安装 **exit=0**，装后主程序 FileVersion=**1.0.0**（与当前 1.1.0 不同 → 确为旧版本，断言非空转） |
-| **UPG-03** 覆盖升级 | 新版 setup **exit=0**，版本由 **1.0.0 → 1.1.0**；装后 exe SHA-256 `9df22ca4…` 与 `win-unpacked/LED Ratio Tool.exe` **逐字节一致** |
+| **UPG-03** 覆盖升级 | 新版 setup **exit=0**，版本由 **1.0.0 → 1.1.0**；装后 exe SHA-256 `d35d9361…` 与 `win-unpacked/LED Ratio Tool.exe` **逐字节一致** |
 | **UPG-04** 设置保留 | 升级前写入 `tolerancePercent=0.75`，升级后读回仍为 **0.75**（未被安装过程重置） |
 | **UPG-05** 升级后启动与换算 | 升级后正常启动，2560×1440 → UI 显示「**1.7778 : 1**」，错误位 `["",""]`（无校验告警） |
 
@@ -395,7 +395,7 @@ exe 的 PE 资源里有 `type="INTEGRITY", id="ELECTRONASAR"`，内容是 **JSON
 ### 1.7 P7-DPI-09 Remediation · 高 DPI 窗口边界修正（方案 A）
 
 > 任务：`P7-DPI-09 Remediation`｜实施方案：**A｜动态计算窗口边界，纳入原生非客户区实际占用**
-> 基线：`a8afd73`（P7 Final Acceptance）｜分支 `feature/desktop-windows`｜产品 `LED Ratio Tool` 1.1.0
+> 基线：`89470b5`（P7-DPI-09 方案 A + min track 实测标定）｜分支 `feature/desktop-windows`｜产品 `LED Ratio Tool` 1.1.0
 > 完整评估与裁决记录：[`test/reports/DPI-09-ASSESSMENT.md`](test/reports/DPI-09-ASSESSMENT.md)（三段式：评估 → 裁决 → 实施结果）
 
 #### 1.7.1 26 DIP 差异的根因（实测闭环）

@@ -974,7 +974,7 @@ QA 复核 §11.1.1 时发现三项表述与实测不符，本节记录更正过�
 ## 12. P7-DPI-09 Remediation · 高 DPI 窗口边界修正（2026-11-03 · 方案 A）
 
 > 任务编号：`P7-DPI-09 Remediation`｜实施方案：**A｜动态计算窗口边界，纳入原生非客户区实际占用**
-> 基线 HEAD：`a8afd73`（P7 Final Acceptance）｜分支 `feature/desktop-windows`
+> 基线 HEAD：`89470b5`（P7-DPI-09 方案 A + min track 实测标定）｜分支 `feature/desktop-windows`
 > 完整三段式记录：[`test/reports/DPI-09-ASSESSMENT.md`](test/reports/DPI-09-ASSESSMENT.md)
 
 ### 12.1 决策记录：DEC-07（最小客户区 1024×680）
