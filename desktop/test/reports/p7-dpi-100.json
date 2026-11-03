@@ -1,8 +1,8 @@
 {
   "meta": {
-    "generatedAt": "2026-11-03T01:46:38.105Z",
+    "generatedAt": "2026-11-03T05:11:51.942Z",
     "exe": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\dist\\win-unpacked\\LED Ratio Tool.exe",
-    "expectedPercent": 100,
+    "expectedPercent": null,
     "node": "v22.22.2",
     "os": "Windows_NT 10.0.26300"
   },
@@ -16,7 +16,7 @@
     ],
     "avail": [
       2560,
-      1392
+      1408
     ],
     "ledger": {
       "display": {
@@ -30,21 +30,21 @@
         },
         "workArea": {
           "x": 0,
-          "y": 0,
+          "y": 32,
           "width": 2560,
-          "height": 1392
+          "height": 1408
         },
         "scaleFactor": 1
       },
       "bounds": {
         "x": 552,
-        "y": 214,
+        "y": 254,
         "width": 1456,
         "height": 965
       },
       "contentBounds": {
         "x": 560,
-        "y": 271,
+        "y": 311,
         "width": 1440,
         "height": 900
       },
@@ -62,9 +62,9 @@
       },
       "workArea": {
         "x": 0,
-        "y": 0,
+        "y": 32,
         "width": 2560,
-        "height": 1392
+        "height": 1408
       },
       "scaleFactor": 1,
       "heightTier": 1,
@@ -78,9 +78,9 @@
       },
       "edges": {
         "left": 552,
-        "top": 214,
+        "top": 254,
         "right": 2008,
-        "bottom": 1179
+        "bottom": 1219
       },
       "plan": {
         "display": {
@@ -94,21 +94,21 @@
           },
           "workArea": {
             "x": 0,
-            "y": 0,
+            "y": 32,
             "width": 2560,
-            "height": 1392
+            "height": 1408
           },
           "scaleFactor": 1
         },
         "bounds": {
           "x": 552,
-          "y": 214,
+          "y": 254,
           "width": 1456,
           "height": 965
         },
         "contentBounds": {
           "x": 560,
-          "y": 271,
+          "y": 311,
           "width": 1440,
           "height": 900
         },
@@ -122,9 +122,9 @@
         },
         "workArea": {
           "x": 0,
-          "y": 0,
+          "y": 32,
           "width": 2560,
-          "height": 1392
+          "height": 1408
         },
         "scaleFactor": 1,
         "heightTier": 1,
@@ -137,16 +137,16 @@
         },
         "edges": {
           "left": 552,
-          "top": 214,
+          "top": 254,
           "right": 2008,
-          "bottom": 1179
+          "bottom": 1219
         },
         "budget": {
           "fitsMinimum": true,
           "exceedsMinimum": false,
           "clampedToMinimum": false,
           "maxContentWidth": 2512,
-          "maxContentHeight": 1295,
+          "maxContentHeight": 1311,
           "shortfall": {
             "width": 0,
             "height": 0
@@ -162,16 +162,15 @@
         },
         "minCalibration": {
           "ok": true,
+          "converged": true,
           "trace": [
             {
-              "step": "setMinimumSize(外框口径)",
+              "round": 1,
+              "step": "setMinimumSize(外框口径)+实测下限",
               "minTrack": {
                 "minWidth": 1040,
                 "minHeight": 745
-              }
-            },
-            {
-              "step": "实测最小客户区",
+              },
               "actualMinContent": {
                 "width": 1024,
                 "height": 680
@@ -287,21 +286,21 @@
       },
       "workArea": {
         "x": 0,
-        "y": 0,
+        "y": 32,
         "width": 2560,
-        "height": 1392
+        "height": 1408
       },
       "scaleFactor": 1
     },
     "bounds": {
       "x": 552,
-      "y": 214,
+      "y": 254,
       "width": 1456,
       "height": 965
     },
     "contentBounds": {
       "x": 560,
-      "y": 271,
+      "y": 311,
       "width": 1440,
       "height": 900
     },
@@ -312,19 +311,19 @@
     "devicePixelRatio": 1,
     "position": {
       "x": 552,
-      "y": 214
+      "y": 254
     },
     "edges": {
       "left": 552,
-      "top": 214,
+      "top": 254,
       "right": 2008,
-      "bottom": 1179
+      "bottom": 1219
     },
     "workAreaEdges": {
       "left": 0,
-      "top": 0,
+      "top": 32,
       "right": 2560,
-      "bottom": 1392
+      "bottom": 1440
     },
     "fourEdgeOverflow": {
       "left": 0,
@@ -338,7 +337,7 @@
       "exceedsMinimum": false,
       "clampedToMinimum": false,
       "maxContentWidth": 2512,
-      "maxContentHeight": 1295,
+      "maxContentHeight": 1311,
       "shortfall": {
         "width": 0,
         "height": 0
@@ -354,16 +353,15 @@
     },
     "minCalibration": {
       "ok": true,
+      "converged": true,
       "trace": [
         {
-          "step": "setMinimumSize(外框口径)",
+          "round": 1,
+          "step": "setMinimumSize(外框口径)+实测下限",
           "minTrack": {
             "minWidth": 1040,
             "minHeight": 745
-          }
-        },
-        {
-          "step": "实测最小客户区",
+          },
           "actualMinContent": {
             "width": 1024,
             "height": 680
@@ -394,28 +392,21 @@
     "heightTier": 1,
     "renderLayerGeometry": {
       "screenX": 552,
-      "screenY": 214,
+      "screenY": 254,
       "outerWidth": 1456,
       "outerHeight": 965,
       "innerWidth": 1440,
       "innerHeight": 900,
       "availWidth": 2560,
-      "availHeight": 1392
+      "availHeight": 1408
     }
   },
   "results": [
     {
       "id": "DPI-01",
-      "title": "系统缩放与期望一致（scaleFactor 来自 screen API）",
-      "pass": true,
-      "detail": "期望 100%｜ledger.scaleFactor=1（100%）",
-      "group": "render"
-    },
-    {
-      "id": "DPI-02",
-      "title": "渲染层 devicePixelRatio 同步（未使用页面缩放）",
-      "pass": true,
-      "detail": "期望 1｜dpr=1｜window.outerWidth/innerWidth=1.0111（≈1 表示没有 zoomFactor 缩放）",
+      "title": "系统缩放（按实测记录，不作判定）",
+      "pass": null,
+      "detail": "实测 100%（scaleFactor=1）",
       "group": "render"
     },
     {
@@ -450,7 +441,7 @@
       "id": "DPI-09",
       "title": "窗口完整落在当前工作区内（四边核验）",
       "pass": true,
-      "detail": "外框 getBounds() 1456×965 @(552,214)｜工作区 workArea 2560×1392 @(0,0)｜客户区 getContentBounds() 1440×900｜实测非客户区 16×65｜四边溢出 左0/上0/右0/下0｜显示器 id=3036494085 sf=1",
+      "detail": "外框 getBounds() 1456×965 @(552,254)｜工作区 workArea 2560×1408 @(0,32)｜客户区 getContentBounds() 1440×900｜实测非客户区 16×65｜四边溢出 左0/上0/右0/下0｜显示器 id=3036494085 sf=1",
       "group": "fit",
       "status": "PASS",
       "overflow": {
@@ -461,15 +452,15 @@
       },
       "edges": {
         "left": 552,
-        "top": 214,
+        "top": 254,
         "right": 2008,
-        "bottom": 1179
+        "bottom": 1219
       },
       "workAreaEdges": {
         "left": 0,
-        "top": 0,
+        "top": 32,
         "right": 2560,
-        "bottom": 1392
+        "bottom": 1440
       }
     },
     {
@@ -488,17 +479,17 @@
     }
   ],
   "summary": {
-    "total": 9,
-    "pass": 9,
+    "total": 8,
+    "pass": 7,
     "fail": 0,
     "blocked": 0,
-    "skip": 0,
+    "skip": 1,
     "render": {
-      "total": 8,
-      "pass": 8,
+      "total": 7,
+      "pass": 6,
       "fail": 0,
       "blocked": 0,
-      "skip": 0
+      "skip": 1
     },
     "fit": {
       "total": 1,

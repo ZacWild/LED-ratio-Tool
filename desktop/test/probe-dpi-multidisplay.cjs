@@ -132,6 +132,11 @@ function settle(ms = 300) {
     (r) => r.overflow.left === 0 && r.overflow.top === 0 && r.overflow.right === 0 && r.overflow.bottom === 0
   );
 
+  // 🔴 输出文件按**实测档位**命名，避免不同档位互相覆盖
+  //    （100% / 125% / 150% 各留一份独立证据）。
+  const pct = Math.round((primary.scaleFactor || 1) * 100);
+  const OUT_BY_PCT = path.join(__dirname, 'reports', `probe-dpi-multidisplay-${pct}.json`);
+
   const report = {
     meta: {
       generatedAt: new Date().toISOString(),
@@ -140,6 +145,7 @@ function settle(ms = 300) {
       platform: `${process.platform} ${process.arch}`,
       note: '坐标系 = DIP（Electron 原生口径），不乘 scaleFactor',
       method: '真实 BrowserWindow + 产品 window-bounds.js 算法 + 真实 getBounds() 回读',
+      measuredPercent: pct,
     },
     env: {
       displayCount: displays.length,
@@ -161,8 +167,8 @@ function settle(ms = 300) {
     results,
   };
 
-  fs.mkdirSync(path.dirname(OUT), { recursive: true });
-  fs.writeFileSync(OUT, JSON.stringify(report, null, 2));
+  fs.mkdirSync(path.dirname(OUT_BY_PCT), { recursive: true });
+  fs.writeFileSync(OUT_BY_PCT, JSON.stringify(report, null, 2));
 
   app.exit(fail === 0 && allOverflowZero ? 0 : 1);
 })().catch((e) => {
