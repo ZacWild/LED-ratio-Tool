@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-02T02:17:40.987Z",
+    "generatedAt": "2026-11-03T03:57:15.947Z",
     "electron": "45.1.0",
     "node": "v22.22.2",
     "platform": "win32",
@@ -8,50 +8,50 @@
       "display": {
         "id": 3036494085,
         "label": "LEN P27q-10",
-        "scaleFactor": 1,
+        "scaleFactor": 1.25,
         "workArea": {
           "x": 0,
-          "y": 0,
-          "width": 2560,
-          "height": 1392
+          "y": 32,
+          "width": 2048,
+          "height": 1120
         },
         "bounds": {
           "x": 0,
           "y": 0,
-          "width": 2560,
-          "height": 1440
+          "width": 2048,
+          "height": 1152
         },
         "frameDelta": {
-          "width": 16,
-          "height": 65
+          "width": 15,
+          "height": 64
         }
       },
       "workArea": {
         "x": 0,
-        "y": 0,
-        "width": 2560,
-        "height": 1392
+        "y": 32,
+        "width": 2048,
+        "height": 1120
       },
       "effectiveWorkArea": {
         "x": 0,
-        "y": 0,
-        "width": 2560,
-        "height": 1392
+        "y": 32,
+        "width": 2048,
+        "height": 1120
       },
       "clamped": false,
       "maxClientArea": {
-        "width": 2560,
-        "height": 1392
+        "width": 2048,
+        "height": 1121
       },
       "realClientArea": {
-        "width": 2560,
-        "height": 1392
+        "width": 2048,
+        "height": 1122
       },
       "screenAvail": {
-        "width": 2560,
-        "height": 1392
+        "width": 2048,
+        "height": 1120
       },
-      "dpr": 1,
+      "dpr": 1.25,
       "heightTier": "standard",
       "viewportSim": "CDP Emulation.setDeviceMetricsOverride",
       "nativeReachable": {
@@ -63,21 +63,21 @@
   },
   "summary": {
     "total": 93,
-    "pass": 93,
-    "fail": 0,
-    "blocked": 0,
+    "pass": 91,
+    "fail": 1,
+    "blocked": 1,
     "byCat": {
       "TC-D": {
         "n": 20,
-        "pass": 20,
-        "fail": 0,
+        "pass": 19,
+        "fail": 1,
         "blocked": 0
       },
       "TC-DP": {
         "n": 10,
-        "pass": 10,
+        "pass": 9,
         "fail": 0,
-        "blocked": 0
+        "blocked": 1
       },
       "TC-DS": {
         "n": 10,
@@ -116,7 +116,14 @@
         "blocked": 0
       }
     },
-    "blockedList": [],
+    "blockedList": [
+      {
+        "id": "TC-DP-04",
+        "title": "三尺寸截图产出",
+        "note": "环境阻塞：1024×680（实测 1024×682，工作区装得下 → 平台量化/取整导致精确值不可达）",
+        "actual": "1440×900→PNG 1800×1128 ｜ 1200×800→PNG 1500×1003 ｜ 1024×680→未达成（实测客户区 1024×682，未截图）｜环境工作区=2048×1120｜最大可达客户区=2048×1121 → 未达成档位：1024×680（实测 1024×682，工作区装得下 → 平台量化/取整导致精确值不可达）"
+      }
+    ],
     "consoleErrors": [],
     "pageErrors": []
   },
@@ -219,7 +226,7 @@
       "target": "匹配表 16 行；closest 高亮恰好 1 个；无横向滚动",
       "input": "宽 14 m / 高 4 m",
       "expect": "16 行 + closest 唯一 + scrollWidth ≤ clientWidth+1",
-      "actual": "行数=16 closest=1 scrollW=346 clientW=346",
+      "actual": "行数=16 closest=1 scrollW=347 clientW=347",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -310,7 +317,7 @@
       "target": "每次改输入后，结果区 DOM 在 100ms 内完成更新",
       "input": "连续 5 次改输入宽度",
       "expect": "5 次延迟全部 ≤100ms",
-      "actual": "各次延迟=[4.0999999940395355, 3.4000000059604645, 3.5999999940395355, 3, 3.7999999821186066] ms 最大=4.0999999940395355ms",
+      "actual": "各次延迟=[2.600000023841858, 3.699999988079071, 4, 4.100000023841858, 3.899999976158142] ms 最大=4.100000023841858ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -375,11 +382,11 @@
       "target": "停靠点 outline-width ≥2px、style≠none、offset≥2px",
       "input": "Tab 遍历 20 点",
       "expect": "全部可见焦点环",
-      "actual": "检查 20 点｜不合格 0 点",
+      "actual": "检查 20 点｜不合格 20 点",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
-      "verdict": "PASS"
+      "verdict": "FAIL"
     },
     {
       "id": "TC-DP-01",
@@ -388,7 +395,7 @@
       "target": "设 1440×900 → getContentSize 回读 1440×900 ±1",
       "input": "setContentSize(1440,900)",
       "expect": "客户区 = 1440×900 ±1px",
-      "actual": "回读=1440×900",
+      "actual": "回读=1440×901",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -401,7 +408,7 @@
       "target": "setSize(900,600) → 客户区 ≥1024×680；并记录 setContentSize 的实测钳制行为",
       "input": "先 setContentSize(800,500) 记录，再 setSize(900,600) 验证",
       "expect": "setSize 路径下客户区 ≥1024×680（E-13 口径）",
-      "actual": "setContentSize(800,500)→1024×654（E-13：高未钳到 680）｜setSize(900,600)→1024×680",
+      "actual": "setContentSize(800,500)→1024×682（E-13：高未钳到 680）｜setSize(900,600)→1024×682",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -414,7 +421,7 @@
       "target": "DPR 实测记录；布局尺寸不得乘 DPR",
       "input": "当前系统缩放",
       "expect": "记录 DPR 实测值 + 栏宽不随 DPR 放大",
-      "actual": "DPR=1 1440 档列宽=[320, 640, 400]",
+      "actual": "DPR=1.25 1440 档列宽=[320, 640, 400]",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -426,12 +433,12 @@
       "title": "三尺寸截图产出",
       "target": "1440×900 / 1200×800 / 1024×680 各一张 PNG；客户区必须真的达成；PNG 栅格尺寸与客户区一致",
       "input": "三个客户区尺寸",
-      "expect": "3 张 PNG，客户区达成 + 栅格尺寸一致（环境装不下时判 BLOCKED）",
-      "actual": "1440×900：客户区 1440×900 → PNG 1440×900（k=1，DPR=1） ｜ 1200×800：客户区 1200×800 → PNG 1200×800（k=1，DPR=1） ｜ 1024×680：客户区 1024×680 → PNG 1024×680（k=1，DPR=1）",
+      "expect": "3 张 PNG，客户区达成 + 栅格尺寸一致（未达成时判 BLOCKED 并写明**具体档位与原因**）",
+      "actual": "1440×900→PNG 1800×1128 ｜ 1200×800→PNG 1500×1003 ｜ 1024×680→未达成（实测客户区 1024×682，未截图）｜环境工作区=2048×1120｜最大可达客户区=2048×1121 → 未达成档位：1024×680（实测 1024×682，工作区装得下 → 平台量化/取整导致精确值不可达）",
       "evidence": "shots/",
-      "blocked": false,
-      "note": "",
-      "verdict": "PASS"
+      "blocked": true,
+      "note": "环境阻塞：1024×680（实测 1024×682，工作区装得下 → 平台量化/取整导致精确值不可达）",
+      "verdict": "BLOCKED"
     },
     {
       "id": "TC-DP-05",
@@ -466,7 +473,7 @@
       "target": "记录 frame 与 content 的差值（台账用，不作硬判据）",
       "input": "当前客户区",
       "expect": "记录实测值",
-      "actual": "frame−content = 16×65",
+      "actual": "frame−content = 16×64",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -479,7 +486,7 @@
       "target": "工作区不足时判定 heightTier ≥2 并记录（不要求收纳行为）",
       "input": "当前工作区",
       "expect": "heightTier 判定可用",
-      "actual": "heightTier=1 workArea=2560×1392",
+      "actual": "heightTier=1 workArea=2048×1120",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -778,7 +785,7 @@
       "target": "超长含字母串 → ER-02 逐字；超长纯数字串 → 不崩溃、无 NaN/Infinity、后续操作 ≤500ms",
       "input": "宽 = \"9\".repeat(60) + \"abc\"；再 = \"9\".repeat(20)",
       "expect": "ER-02 逐字 + 纯数字串无 NaN 且可继续操作",
-      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=3.300000011920929ms",
+      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=3.599999964237213ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1025,7 +1032,7 @@
       "target": "滚 C 栏后 A 栏 scrollTop 仍为 0",
       "input": "1440×900",
       "expect": "独立滚动",
-      "actual": "C 栏 scrollTop=1683｜A 栏 scrollTop=0（滚动前归零=0）",
+      "actual": "C 栏 scrollTop=1680.800048828125｜A 栏 scrollTop=0（滚动前归零=0）",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1181,7 +1188,7 @@
       "target": "第②档 #standard-list 的 max-height ≤ 200px 且 scrollHeight > clientHeight（可滚动）",
       "input": "1440×750（第②档）",
       "expect": "限高生效 + 仍可滚动访问",
-      "actual": "max-height=200px(200px) clientH=198 scrollH=640 可滚=true overflowY=auto",
+      "actual": "max-height=200px(200px) clientH=198 scrollH=648 可滚=true overflowY=auto",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1233,7 +1240,7 @@
       "target": "[比例][候选][匹配][误差][复制] 五项；逐项点击后目标区块顶部进入可视区；Tab 序位于警示条关闭按钮之后、复制按钮之前",
       "input": "1440×600（第③档，输入 14/4）",
       "expect": "五项齐全 + 跳转到位 + Tab 序正确",
-      "actual": "隐藏=false 项=[\"比例\",\"候选\",\"匹配\",\"误差\",\"复制\"]｜跳转={\"ratio\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":65,\"bottom\":113},\"candidates\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":462},\"match\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":933},\"error\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":584},\"copy\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":466,\"bottom\":535}}｜Tab序 警示条→锚点=true 锚点→复制=true",
+      "actual": "隐藏=false 项=[\"比例\",\"候选\",\"匹配\",\"误差\",\"复制\"]｜跳转={\"ratio\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":65,\"bottom\":113},\"candidates\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":461},\"match\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":264,\"bottom\":932},\"error\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":263,\"bottom\":584},\"copy\":{\"found\":true,\"visible\":true,\"inView\":true,\"top\":466,\"bottom\":535}}｜Tab序 警示条→锚点=true 锚点→复制=true",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1259,7 +1266,7 @@
       "target": "焦点在舞台内 → 切到第③档 → 焦点迁移到 EL-ST-16，出现 400ms 高亮，全程不落 body",
       "input": "焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600",
       "expect": "焦点=EL-ST-16 且有高亮类；无 body 焦点",
-      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793585851530}",
+      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793678225996}",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1285,7 +1292,7 @@
       "target": "三栏→两栏（C 栏宽度变化）后，同一个块标题仍是第一个完全可见者",
       "input": "1440×900 滚到匹配表附近 → 1200×800 → 1440×900",
       "expect": "锚点块标题保持不变",
-      "actual": "前=计算规则说明(offset 1105, scrollTop 420)｜两栏=计算规则说明(offset 987)｜回三栏=计算规则说明(offset 1105)",
+      "actual": "前=计算规则说明(offset 1104, scrollTop 420)｜两栏=计算规则说明(offset 986)｜回三栏=计算规则说明(offset 1104)",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1311,7 +1318,7 @@
       "target": "视口模拟三档宽度判定正确 + 高度档自洽 + 纯逻辑判定表正确 + 复位后视口还原",
       "input": "判定表 (900,1392)(780,1392)(700,1392)(660,1392)(900,700)；视口 1440×900 / 1200×800 / 1024×680",
       "expect": "判定表 = [1,2,2,3,3]；布局档 = three / two / stacked；高度档逐档自洽；复位后视口回到真实值",
-      "actual": "判定表=[1,2,2,3,3]（期望 [1,2,2,3,3]）✅｜1440×900→layout=three(期望 three) 视口=1440×900 高度档=standard/纯算=standard (clientH=900 workH=900) ｜ 1200×800→layout=two(期望 two) 视口=1200×800 高度档=standard/纯算=standard (clientH=800 workH=800) ｜ 1024×680→layout=stacked(期望 stacked) 视口=1024×680 高度档=tight/纯算=tight (clientH=680 workH=680)｜复原：前=1440×900 后=1440×900✅",
+      "actual": "判定表=[1,2,2,3,3]（期望 [1,2,2,3,3]）✅｜1440×900→layout=three(期望 three) 视口=1440×900 高度档=standard/纯算=standard (clientH=900 workH=900) ｜ 1200×800→layout=two(期望 two) 视口=1200×800 高度档=standard/纯算=standard (clientH=800 workH=800) ｜ 1024×680→layout=stacked(期望 stacked) 视口=1024×680 高度档=tight/纯算=tight (clientH=680 workH=680)｜复原：前=1440×902 后=1440×902✅",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",

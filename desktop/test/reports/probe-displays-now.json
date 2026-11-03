@@ -1,0 +1,38 @@
+[
+  {
+    "id": 3036494085,
+    "label": "LEN P27q-10",
+    "scaleFactor": 1.25,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 2048,
+      "height": 1152
+    },
+    "workArea": {
+      "x": 0,
+      "y": 32,
+      "width": 2048,
+      "height": 1120
+    },
+    "internal": false
+  },
+  {
+    "id": 1897915132,
+    "label": "LEN P27q-10",
+    "scaleFactor": 1.25,
+    "bounds": {
+      "x": 2048,
+      "y": 0,
+      "width": 2048,
+      "height": 1152
+    },
+    "workArea": {
+      "x": 2048,
+      "y": 32,
+      "width": 2048,
+      "height": 1120
+    },
+    "internal": false
+  }
+]

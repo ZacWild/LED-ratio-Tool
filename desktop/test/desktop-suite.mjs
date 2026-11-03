@@ -652,10 +652,11 @@ T({
   //    **≠通过**）；② PNG 的栅格尺寸必须与该客户区一致（缩放系数 k = 1 或 DPR）。
   target: '1440×900 / 1200×800 / 1024×680 各一张 PNG；客户区必须真的达成；PNG 栅格尺寸与客户区一致',
   input: '三个客户区尺寸',
-  expect: '3 张 PNG，客户区达成 + 栅格尺寸一致（环境装不下时判 BLOCKED）',
+  expect: '3 张 PNG，客户区达成 + 栅格尺寸一致（未达成时判 BLOCKED 并写明**具体档位与原因**）',
   fn: async (ctx) => {
     const out = [];
     const rows = [];
+    const notAchieved = [];
     let blocked = false;
     let hardFail = null;
     for (const s of [[1440, 900], [1200, 800], [1024, 680]]) {
@@ -664,6 +665,7 @@ T({
       if (!achieved) {
         blocked = true;
         out.push(`${s[0]}×${s[1]}→未达成（实测客户区 ${got.width}×${got.height}，未截图）`);
+        notAchieved.push({ target: `${s[0]}×${s[1]}`, got: `${got.width}×${got.height}` });
         continue;
       }
       const f = await ctx.screenshot(`desktop-suite-${s[0]}x${s[1]}.png`);
@@ -684,12 +686,21 @@ T({
       return { actual: `${hardFail}｜环境工作区=${work ? work.width + '×' + work.height : '未知'}`, pass: false, evidence: 'shots/' };
     }
     if (blocked) {
+      // 🔒 阻塞原因必须**按实际未达成档位**判定，不得硬编码：
+      //    ① 工作区确实装不下 → 环境资源限制；
+      //    ② 工作区装得下但精确值差几 DIP → Windows 平台量化（DIP→物理像素取整 / 不可见缩放边框）。
+      const detail = notAchieved.map((x) => {
+        const tw = parseInt(x.target, 10);
+        const th = parseInt(x.target.split('×')[1], 10);
+        const fits = max.width >= tw && max.height >= th;
+        return `${x.target}（实测 ${x.got}，${fits ? '工作区装得下 → 平台量化/取整导致精确值不可达' : '工作区装不下'}）`;
+      }).join('；');
       return {
         actual: `${out.join(' ｜ ')}｜环境工作区=${work ? work.width + '×' + work.height : '未知'}`
-          + `｜最大可达客户区=${max.width}×${max.height} → 环境装不下全部三档客户区，截图未按目标尺寸产出`,
+          + `｜最大可达客户区=${max.width}×${max.height} → 未达成档位：${detail}`,
         pass: false,
         blocked: true,
-        note: '环境阻塞：工作区装不下 1440×900 / 1200×800 客户区',
+        note: `环境阻塞：${detail}`,
         evidence: 'shots/',
       };
     }

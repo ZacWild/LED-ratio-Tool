@@ -60,15 +60,25 @@ const panelRatioText = (v) => Core.fmt(v, 4) + ':1';
 
 const results = [];
 let failures = 0;
+let blocked = 0;
 // group: 'render' = 该 DPI 下渲染/布局是否正确；'fit' = 窗口尺寸策略是否让内容可达。
 // 分开统计是为了让结论可读：渲染全绿而尺寸策略失败，与"渲染就错"不是一回事。
+//
+// 🔴 四态严格区分（P7-DPI-09 Remediation 强化）：
+//   true       → PASS     实际窗口完整处于工作区
+//   false      → FAIL     环境满足产品最小窗口要求，窗口仍然出屏
+//   'blocked'  → BLOCKED  当前工作区连产品最小窗口都容纳不了（环境限制，不算通过也不算失败）
+//   null       → SKIP     本项**没有实际执行**（数据缺失 / 流程未走到）—— 不得与 BLOCKED 混用
 function rec(id, title, ok, detail, extra = {}) {
   const group = extra.group || 'render';
   delete extra.group;
-  results.push({ id, title, pass: ok === null ? null : !!ok, detail: detail || '', group, ...extra });
-  console.log(`  ${ok === null ? '⏭️' : ok ? '✅' : '❌'} ${id}  ${title}`);
+  const pass = ok === null ? null : ok === 'blocked' ? 'blocked' : !!ok;
+  results.push({ id, title, pass, detail: detail || '', group, ...extra });
+  const mark = pass === null ? '⏭️' : pass === 'blocked' ? '🚧' : pass ? '✅' : '❌';
+  console.log(`  ${mark} ${id}  ${title}`);
   if (detail) console.log(`        ${detail}`);
-  if (ok === false) failures++;
+  if (pass === false) failures++;
+  if (pass === 'blocked') blocked++;
 }
 
 class Cdp {
@@ -161,6 +171,9 @@ async function main() {
       innerHeight: window.innerHeight,
       screenWidth: s.width, screenHeight: s.height,
       availWidth: s.availWidth, availHeight: s.availHeight,
+      availLeft: s.availLeft, availTop: s.availTop,
+      screenX: window.screenX, screenY: window.screenY,
+      outerWidth: window.outerWidth, outerHeight: window.outerHeight,
       zoomFactor: (window.outerWidth && window.innerWidth) ? window.outerWidth / window.innerWidth : null
     };
   `);
@@ -256,30 +269,87 @@ async function main() {
   rec('DPI-05', '四类核心操作（输入/结果/复制）全部可见', hidden.length === 0,
     hidden.length ? `不可见：${hidden.map(([k]) => k).join('，')}` : `${Object.keys(geom.boxes).length} 个核心控件均 visible`);
 
-  // ---- 窗口是否完整落在工作区内（真机 DPI 下的"看得见"才算达标）----
-  // 触发条件：main.js 的 MIN_CONTENT_W=1024 / MIN_CONTENT_H=680（DEC-07）**优先于**
-  // 工作区收敛 `min(work.width - EDGE_MARGIN)` —— 当 物理宽 / 缩放比 < 1024 时，
-  // 窗口必然比工作区大，右边缘/底边（复制按钮、状态栏）会跑到屏幕外。
-  const win = await cdp.eval(`
-    return {
-      screenX: window.screenX, screenY: window.screenY,
-      outerWidth: window.outerWidth, outerHeight: window.outerHeight,
-      innerWidth: window.innerWidth, innerHeight: window.innerHeight,
-      availWidth: window.screen.availWidth, availHeight: window.screen.availHeight,
-      availLeft: window.screen.availLeft, availTop: window.screen.availTop
+  // ---- 窗口几何：四边核验（DPI-09 · 方案 A 强化版）----
+  // 🔴 判据（任务书 §五，唯一口径）：
+  //     用**最终真实窗口外框**（主进程 BrowserWindow.getBounds()）与
+  //     **真实工作区矩形**（display.workArea）核对四条边，四项全满足才算 PASS：
+  //         window.left   >= workArea.left
+  //         window.top    >= workArea.top
+  //         window.right  <= workArea.right
+  //         window.bottom <= workArea.bottom
+  //    绝不能只看客户区宽高，也不能只检查右侧和底部。
+  //
+  // 🔴 状态区分：
+  //     PASS    → 四边全部满足
+  //     FAIL    → 环境满足产品最小窗口要求（budget.fitsMinimum=true），窗口仍然出屏
+  //     BLOCKED → 当前工作区连产品最小窗口都容纳不了（budget.fitsMinimum=false）
+  //     SKIP    → 主进程台账缺几何字段，本项**没有实际执行**
+  const winGeo = (() => {
+    if (!ledger) return null;
+    const g = {
+      display: ledger.display || null,
+      bounds: ledger.bounds || null,
+      contentBounds: ledger.contentBounds || null,
+      delta: ledger.delta || null,
+      overflowFromLedger: ledger.overflow || null,
+      fitsFromLedger: ledger.fitsWorkArea,
+      budget: (ledger.plan && ledger.plan.budget) || null,
+      minCalibration: (ledger.plan && ledger.plan.minCalibration) || null,
+      convergence: (ledger.plan && ledger.plan.convergence) || null,
+      heightTier: ledger.heightTier,
     };
-  `);
-  const availLeft = win.availLeft == null ? 0 : win.availLeft;
-  const availTop = win.availTop == null ? 0 : win.availTop;
-  const overRight = (win.screenX + win.outerWidth) - (availLeft + win.availWidth);
-  const overBottom = (win.screenY + win.outerHeight) - (availTop + win.availHeight);
-  const fits = overRight <= 1 && overBottom <= 1 && win.screenX >= availLeft - 1 && win.screenY >= availTop - 1;
-  const contentOverH = win.innerHeight - win.availHeight;
-  rec('DPI-09', '窗口完整落在当前工作区内（无边缘出屏）', fits,
-    `窗口 ${win.outerWidth}×${win.outerHeight} @ (${win.screenX},${win.screenY})｜工作区 ${win.availWidth}×${win.availHeight} @ (${availLeft},${availTop})` +
-    `｜右侧超出 ${overRight}px｜底部超出 ${overBottom}px｜客户区比工作区高 ${contentOverH}px` +
-    (fits ? '' : '｜根因：MIN_CONTENT_W=1024 / MIN_CONTENT_H=680（DEC-07）大于当前工作区，属预存约束，须决策（缩小下限 / 允许横向滚动 / 该档改两栏）'),
-    { overRight, overBottom, contentOverH, win, group: 'fit' });
+    if (!g.display || !g.display.workArea || !g.bounds) return g;
+    const wa = g.display.workArea;
+    const b = g.bounds;
+    const edges = { left: b.x, top: b.y, right: b.x + b.width, bottom: b.y + b.height };
+    const workEdges = { left: wa.x, top: wa.y, right: wa.x + wa.width, bottom: wa.y + wa.height };
+    const overflow = {
+      left: Math.max(0, workEdges.left - edges.left),
+      top: Math.max(0, workEdges.top - edges.top),
+      right: Math.max(0, edges.right - workEdges.right),
+      bottom: Math.max(0, edges.bottom - workEdges.bottom),
+    };
+    g.edges = edges;
+    g.workAreaEdges = workEdges;
+    g.overflow = overflow;
+    g.fits = overflow.left === 0 && overflow.top === 0 && overflow.right === 0 && overflow.bottom === 0;
+    return g;
+  })();
+
+  if (!winGeo || !winGeo.bounds || !winGeo.display) {
+    // 🚫 SKIP：本项没有实际执行 —— 与 BLOCKED 严格区分
+    rec('DPI-09', '窗口完整落在当前工作区内（四边核验）', null,
+      'SKIP：主进程台账缺少窗口几何字段（display.workArea / getBounds），本项未实际执行；不得与 BLOCKED 混用',
+      { group: 'fit', status: 'SKIP' });
+  } else {
+    const wa = winGeo.display.workArea;
+    const b = winGeo.bounds;
+    const ov = winGeo.overflow;
+    const fitsMin = winGeo.budget ? winGeo.budget.fitsMinimum : null;
+    const detail =
+      `外框 getBounds() ${b.width}×${b.height} @(${b.x},${b.y})｜工作区 workArea ${wa.width}×${wa.height} @(${wa.x},${wa.y})` +
+      `｜客户区 getContentBounds() ${winGeo.contentBounds ? winGeo.contentBounds.width + '×' + winGeo.contentBounds.height : '—'}` +
+      `｜实测非客户区 ${winGeo.delta ? winGeo.delta.width + '×' + winGeo.delta.height : '—'}` +
+      `｜四边溢出 左${ov.left}/上${ov.top}/右${ov.right}/下${ov.bottom}` +
+      `｜显示器 id=${winGeo.display.id} sf=${winGeo.display.scaleFactor}` +
+      (fitsMin === false
+        ? `｜BLOCKED 原因：当前工作区装不下产品最小窗口（最低需 ${winGeo.budget.requiredWorkArea.width}×${winGeo.budget.requiredWorkArea.height}，` +
+          `实际 ${wa.width}×${wa.height}，差距 ${winGeo.budget.shortfall.width}×${winGeo.budget.shortfall.height}）`
+        : '');
+
+    if (winGeo.fits) {
+      rec('DPI-09', '窗口完整落在当前工作区内（四边核验）', true, detail,
+        { group: 'fit', status: 'PASS', overflow: ov, edges: winGeo.edges, workAreaEdges: winGeo.workAreaEdges });
+    } else if (fitsMin === false) {
+      // 🚧 环境限制：工作区装不下最小窗口 → BLOCKED，不算 PASS 也不算 FAIL
+      rec('DPI-09', '窗口完整落在当前工作区内（四边核验）', 'blocked', detail,
+        { group: 'fit', status: 'BLOCKED', overflow: ov, edges: winGeo.edges, workAreaEdges: winGeo.workAreaEdges,
+          requiredWorkArea: winGeo.budget.requiredWorkArea, shortfall: winGeo.budget.shortfall });
+    } else {
+      rec('DPI-09', '窗口完整落在当前工作区内（四边核验）', false, detail,
+        { group: 'fit', status: 'FAIL', overflow: ov, edges: winGeo.edges, workAreaEdges: winGeo.workAreaEdges });
+    }
+  }
 
   // ---- 该 DPI 下核心换算仍正确 ----
   const setInput = async (sel, val) => cdp.eval(`
@@ -330,6 +400,7 @@ async function main() {
       total: rs.length,
       pass: rs.filter((r) => r.pass === true).length,
       fail: rs.filter((r) => r.pass === false).length,
+      blocked: rs.filter((r) => r.pass === 'blocked').length,
       skip: rs.filter((r) => r.pass === null).length,
     };
   };
@@ -343,16 +414,44 @@ async function main() {
     },
     measured: { scaleFactor: scaleFromLedger, scalePercent: scalePct, dpr: sys.dpr, screen: [sys.screenWidth, sys.screenHeight], avail: [sys.availWidth, sys.availHeight], ledger },
     geometry: geom,
+    // 🔴 窗口几何全量证据（任务书 §五「每次测试必须记录」）：
+    //    显示器 id/bounds/workArea/scaleFactor、getBounds、getContentBounds、
+    //    实测非客户区宽高、devicePixelRatio、窗口最终位置与完整外框、四边溢出量。
+    windowGeometry: {
+      display: winGeo ? winGeo.display : null,
+      bounds: winGeo ? winGeo.bounds : null,
+      contentBounds: winGeo ? winGeo.contentBounds : null,
+      measuredFrameDelta: winGeo ? winGeo.delta : null,
+      devicePixelRatio: sys.dpr,
+      position: winGeo && winGeo.bounds ? { x: winGeo.bounds.x, y: winGeo.bounds.y } : null,
+      edges: winGeo ? winGeo.edges || null : null,
+      workAreaEdges: winGeo ? winGeo.workAreaEdges || null : null,
+      fourEdgeOverflow: winGeo ? winGeo.overflow || null : null,
+      fits: winGeo ? winGeo.fits : null,
+      budget: winGeo ? winGeo.budget : null,
+      minCalibration: winGeo ? winGeo.minCalibration : null,
+      convergence: winGeo ? winGeo.convergence : null,
+      heightTier: winGeo ? winGeo.heightTier : null,
+      renderLayerGeometry: {
+        // 渲染层自报（与主进程真实外框并列留证，便于交叉核对两个口径）
+        screenX: sys.screenX, screenY: sys.screenY,
+        outerWidth: sys.outerWidth, outerHeight: sys.outerHeight,
+        innerWidth: sys.innerWidth, innerHeight: sys.innerHeight,
+        availWidth: sys.availWidth, availHeight: sys.availHeight,
+      },
+    },
     results,
     summary: {
       total: results.length,
       pass: results.filter((r) => r.pass === true).length,
       fail: failures,
+      blocked,
       skip: results.filter((r) => r.pass === null).length,
       // 两组分开：渲染正确性 / 窗口可达性
       render: byGroup('render'),
       fit: byGroup('fit'),
-      verdict: failures ? 'FAIL' : 'PASS',
+      // 🔴 判定：FAIL > BLOCKED > PASS（三态不合并、不笼统）
+      verdict: failures ? 'FAIL' : blocked ? 'BLOCKED' : 'PASS',
     },
   };
   fs.mkdirSync(REPORTS, { recursive: true });
@@ -360,12 +459,14 @@ async function main() {
   fs.writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
 
   console.log('');
-  console.log(`  检查项 = ${report.summary.total} ｜ 通过 ${report.summary.pass} ｜ 失败 ${report.summary.fail}`);
+  console.log(`  检查项 = ${report.summary.total} ｜ 通过 ${report.summary.pass} ｜ 失败 ${report.summary.fail} ｜ 阻塞 ${report.summary.blocked} ｜ 跳过 ${report.summary.skip}`);
   console.log(`  · 渲染正确性（DPI-01~08）: ${report.summary.render.pass}/${report.summary.render.total} 通过`);
-  console.log(`  · 窗口可达性（DPI-09）  : ${report.summary.fit.pass}/${report.summary.fit.total} 通过`);
+  console.log(`  · 窗口可达性（DPI-09）  : ${report.summary.fit.pass}/${report.summary.fit.total} 通过` +
+    (report.summary.fit.blocked ? `（阻塞 ${report.summary.fit.blocked}）` : ''));
   console.log(`  判定 = ${report.summary.verdict}（该档 ${scalePct}%）`);
   console.log(`  📄 ${out}`);
-  process.exit(failures ? 1 : 0);
+  // 退出码：0 = 该档全部通过；1 = 有 FAIL；3 = 环境阻塞（工作区装不下最小窗口）
+  process.exit(failures ? 1 : blocked ? 3 : 0);
 }
 
 main().catch((e) => {

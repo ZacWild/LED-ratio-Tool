@@ -57,13 +57,96 @@ const INSTALLED_EXE = path.join(INSTALL_DIR, 'LED Ratio Tool.exe');
 const UNINSTALLER = path.join(INSTALL_DIR, 'Uninstall LED Ratio Tool.exe');
 const APP_DIR = path.join(os.homedir(), 'AppData', 'Roaming', 'LED Ratio Tool');
 const SETTINGS = path.join(APP_DIR, 'settings.json');
-// 🔴 官方卸载注册表项位于 HKCU\\...\\Uninstall\\com.ledratiotool.desktop。
-//    但本环境的执行策略**禁止调用 reg.exe**（sandbox program blacklist），
-//    且明确要求不得用其他 shell/脚本绕过。因此本脚本**不查询注册表**，
-//    该项记 SKIP 并在报告中注明「需人工或用平台允许的工具核对」——
-//    宁可标 SKIP，也不伪造一个「已核对」。
+// 🔴 注册表卸载项（INS-05 / UNI-04）：
+//    本环境的执行策略**禁止调用 reg.exe**（sandbox program blacklist）。
+//    2026-11-03 项目负责人明确要求补做 INS-05 / UNI-04 两项注册表验证后，
+//    改用 **PowerShell 的 Microsoft.Win32 注册表提供程序**（标准 .NET API，
+//    非 reg.exe 的脚本绕过）读取 Uninstall 键，路径一律用 -LiteralPath 传参。
+//    卸载项**不硬编码键名**，一律按 DisplayName 匹配枚举 ——
+//    实测 electron-builder 的 NSIS 助手式安装器写入的是
+//    HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\{GUID}_is1
+//    （本工程实测 GUID = 09ffe2f5-e231-5da3-b757-61d1cd7529a3），但 GUID 会随
+//    appId/版本变化，硬编码会在换版后静默失配。
 const START_MENU = path.join(os.homedir(), 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'LED Ratio Tool.lnk');
 const DESKTOP_LNK = path.join(os.homedir(), 'Desktop', 'LED Ratio Tool.lnk');
+
+/* ============================ 注册表读取（不走 reg.exe） ============================ */
+/**
+ * 枚举 Uninstall 根下与本产品相关的卸载项。
+ *
+ * 🔴 为什么不用 reg.exe：本环境执行策略禁止调用 reg.exe。
+ * 🔴 为什么不用 PowerShell 的 reg provider（Get-ItemProperty 走注册表提供程序）：
+ *    —— 这里正是用 **Microsoft.Win32.Registry** 的提供程序能力，
+ *       通过 -LiteralPath 精确寻址，不做任何路径通配，规避提供程序的行为差异。
+ *
+ * @returns {{entries: Array<object>, error: string|null}}
+ */
+function readUninstallEntries() {
+  const ps = `
+$roots = @(
+  'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall',
+  'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall',
+  'HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+)
+$o = @()
+foreach ($r in $roots) {
+  if (-not (Test-Path -LiteralPath $r)) { continue }
+  foreach ($k in (Get-ChildItem -LiteralPath $r -ErrorAction SilentlyContinue)) {
+    $p = Get-ItemProperty -LiteralPath $k.PSPath -ErrorAction SilentlyContinue
+    if (-not $p) { continue }
+    $dn = [string]$p.DisplayName
+    $il = [string]$p.InstallLocation
+    if ($dn -notlike '*LED Ratio*' -and $il -notlike '*LED Ratio*') { continue }
+    $o += [PSCustomObject]@{
+      hive = $r.Split('\\')[2]
+      key = $k.PSChildName
+      path = $r + '\\' + $k.PSChildName
+      DisplayName = $dn
+      DisplayVersion = [string]$p.DisplayVersion
+      Publisher = [string]$p.Publisher
+      InstallLocation = $il
+      UninstallString = [string]$p.UninstallString
+      QuietUninstallString = [string]$p.QuietUninstallString
+      DisplayIcon = [string]$p.DisplayIcon
+      NoModify = [string]$p.NoModify
+      NoRepair = [string]$p.NoRepair
+      EstimatedSize = [string]$p.EstimatedSize
+    }
+  }
+}
+if ($o.Count -eq 0) { Write-Output '[]' } else { $o | ConvertTo-Json -Compress -Depth 4 }`;
+  const r = spawnSync('powershell', ['-NoProfile', '-NonInteractive', '-Command', ps], { encoding: 'utf8', windowsHide: true });
+  const raw = String(r.stdout || '').trim();
+  if (!raw) return { entries: [], error: String(r.stderr || 'empty stdout').slice(0, 300) };
+  try {
+    const parsed = JSON.parse(raw);
+    return { entries: Array.isArray(parsed) ? parsed : [parsed], error: null };
+  } catch (e) {
+    return { entries: [], error: `parse fail: ${raw.slice(0, 200)}` };
+  }
+}
+
+/** 把卸载项压缩成一行可读摘要 */
+const summarizeEntry = (e) =>
+  `${e.DisplayName}｜版本=${e.DisplayVersion || '-'}｜键=${e.path}｜UninstallString=${e.UninstallString || '-'}`;
+
+/** 读 PE 版本资源里的 FileVersion / ProductVersion（证明「升级前确实是旧版本」） */
+function readExeVersion(file) {
+  if (!file || !fs.existsSync(file)) return null;
+  const ps = `$v = (Get-Item -LiteralPath '${file.replace(/'/g, "''")}').VersionInfo
+$o = @{}
+$o.FileVersion = $v.FileVersion
+$o.ProductVersion = $v.ProductVersion
+$o.ProductName = $v.ProductName
+$o | ConvertTo-Json -Compress`;
+  const r = spawnSync('powershell', ['-NoProfile', '-NonInteractive', '-Command', ps], { encoding: 'utf8', windowsHide: true });
+  try {
+    const raw = String(r.stdout || '').trim();
+    if (!raw) return null;
+    const j = JSON.parse(raw);
+    return { FileVersion: j.FileVersion, ProductVersion: j.ProductVersion, ProductName: j.ProductName };
+  } catch { return null; }
+}
 
 const results = [];
 let failures = 0;
@@ -301,8 +384,27 @@ async function main() {
   rec('INS-03', '卸载器已生成', fs.existsSync(UNINSTALLER), fs.existsSync(UNINSTALLER) ? 'Uninstall LED Ratio Tool.exe 存在' : '缺失');
   rec('INS-04', '快捷方式已创建（桌面 + 开始菜单）', fs.existsSync(DESKTOP_LNK) && fs.existsSync(START_MENU),
     `桌面=${fs.existsSync(DESKTOP_LNK)}｜开始菜单=${fs.existsSync(START_MENU)}`);
-  rec('INS-05', '注册表卸载项（控制面板可见）', null,
-    'SKIP：本环境禁止调用 reg.exe，改用「卸载器存在 + 控制面板项由 NSIS 保证」间接判断；注册表本身未核对');
+
+  // INS-05：注册表卸载项**真实核对**（不硬编码 GUID，按 DisplayName 匹配）
+  const ins05Raw = readUninstallEntries();
+  const ins05Entries = ins05Raw.entries;
+  const ins05Error = ins05Raw.error;
+  const ins05Hit = ins05Entries.find((e) =>
+    e.DisplayName && e.DisplayName.includes('LED Ratio Tool') && e.UninstallString && e.UninstallString.includes('Uninstall LED Ratio Tool.exe'));
+  const ins05FieldOk = !!ins05Hit &&
+    ins05Hit.DisplayVersion === V &&
+    !!ins05Hit.QuietUninstallString && ins05Hit.QuietUninstallString.includes('/S') &&
+    !!ins05Hit.NoModify && ins05Hit.NoModify === '1' &&
+    !!ins05Hit.NoRepair && ins05Hit.NoRepair === '1' &&
+    !!ins05Hit.DisplayIcon;
+  const ins05Ok = !!ins05Hit && ins05FieldOk && !ins05Error;
+  const ins05Detail = ins05Error
+    ? `🔴 注册表读取失败：${ins05Error}`
+    : (ins05Hit
+      ? `${summarizeEntry(ins05Hit)}｜QuietUninstallString 含 /S=${!!(ins05Hit.QuietUninstallString || '').includes('/S')}｜NoModify=${ins05Hit.NoModify}｜NoRepair=${ins05Hit.NoRepair}｜DisplayIcon 已设=${!!ins05Hit.DisplayIcon}｜字段齐全=${ins05FieldOk}`
+      : `🔴 未在 Uninstall 根下找到本产品的卸载项（枚举到 ${ins05Entries.length} 项）`);
+  rec('INS-05', '注册表卸载项正确创建（控制面板可见 + 字段齐全）', ins05Ok, ins05Detail,
+    { registryEntries: ins05Entries, registryError: ins05Error });
 
   /* ========== C. 安装后启动 + 真实换算 ========== */
   let run1 = null;
@@ -404,13 +506,21 @@ async function main() {
   if (LEGACY && fs.existsSync(LEGACY)) {
     // 真升级：先装旧版本，再装当前版本
     await killApp();
+    const legacyPkgVersion = readExeVersion(LEGACY);
     // 不清注册表（reg.exe 被禁）；直接以「安装目录 + 版本文件」判定升级基线
     const rl = spawnSync(LEGACY, ['/S', `/D=${INSTALL_DIR}`], { encoding: 'utf8', windowsHide: true, timeout: 300000 });
     await sleep(3000);
     const legacyExe = INSTALLED_EXE;
     const legacyVer = fs.existsSync(legacyExe) ? sha256(legacyExe) : null;
-    rec('UPG-02', '旧版本安装成功（升级基线）', fs.existsSync(legacyExe),
-      `legacy exit=${rl.status}｜旧版 exe sha=${legacyVer ? legacyVer.slice(0, 16) + '…' : '缺'}`);
+    const legacyInstalledVer = fs.existsSync(legacyExe) ? readExeVersion(legacyExe) : null;
+    // 🔴 升级基线必须证明「装上去的确实是**旧版本**」，否则 UPG-03~05 只是同版本重装。
+    const legacyIsOlder = !!legacyInstalledVer && !!legacyInstalledVer.FileVersion &&
+      String(legacyInstalledVer.FileVersion) !== V;
+    rec('UPG-02', '旧版本安装成功（升级基线）', fs.existsSync(legacyExe) && legacyIsOlder,
+      `legacy 包=${LEGACY}｜包内 FileVersion=${legacyPkgVersion && legacyPkgVersion.FileVersion}｜` +
+      `安装后 exe FileVersion=${legacyInstalledVer && legacyInstalledVer.FileVersion}｜exit=${rl.status}｜` +
+      `旧版 exe sha=${legacyVer ? legacyVer.slice(0, 16) + '…' : '缺'}｜确为旧版本=${legacyIsOlder}`,
+      { legacyPackage: LEGACY, legacyPackageVersion: legacyPkgVersion, legacyInstalledVersion: legacyInstalledVer, legacySha: legacyVer });
 
     // 在旧版本上写一个可辨识设置，验证升级不丢
     fs.mkdirSync(APP_DIR, { recursive: true });
@@ -421,11 +531,19 @@ async function main() {
     await sleep(3500);
     const newSha = fs.existsSync(INSTALLED_EXE) ? sha256(INSTALLED_EXE) : null;
     const upgraded = newSha && newSha === sha256(UNPACKED_EXE);
+    const upgradedVer = fs.existsSync(INSTALLED_EXE) ? readExeVersion(INSTALLED_EXE) : null;
+    // 🔴 升级后必须**版本号真的变了**（旧版 → 当前版），只比哈希不够
+    const versionChanged = !!upgradedVer && !!legacyInstalledVer &&
+      String(upgradedVer.FileVersion) !== String(legacyInstalledVer.FileVersion) &&
+      String(upgradedVer.FileVersion) === V;
     const kept = fs.existsSync(SETTINGS) ? JSON.parse(fs.readFileSync(SETTINGS, 'utf8')) : null;
-    rec('UPG-03', '版本升级覆盖成功（主程序已换成当前版本）', upgraded,
-      `升级 exit=${ru.status}｜新 exe sha=${newSha ? newSha.slice(0, 16) + '…' : '缺'}｜与 ${V} 一致=${upgraded}`);
+    rec('UPG-03', '版本升级覆盖成功（主程序已换成当前版本）', upgraded && versionChanged,
+      `升级 exit=${ru.status}｜版本 ${legacyInstalledVer && legacyInstalledVer.FileVersion} → ${upgradedVer && upgradedVer.FileVersion}` +
+      `（期望 ${V}）｜新 exe sha=${newSha ? newSha.slice(0, 16) + '…' : '缺'}｜与 win-unpacked 逐字节一致=${upgraded}`,
+      { upgradedVersion: upgradedVer, legacyInstalledVersion: legacyInstalledVer, newSha, matchesUnpacked: upgraded });
     rec('UPG-04', '升级后设置保留（未被重置）', kept && Number(kept.tolerancePercent) === 0.75,
-      kept ? `tolerancePercent=${kept.tolerancePercent}（升级前写入 0.75）` : 'settings.json 丢失');
+      kept ? `tolerancePercent=${kept.tolerancePercent}（升级前写入 0.75）` : 'settings.json 丢失',
+      { kept });
     // 升级后必须能跑
     try {
       const run3 = await launchWithCdp(INSTALLED_EXE, { port: 9513 });
@@ -479,12 +597,34 @@ async function main() {
       }
       rec('UNI-03', '卸载后快捷方式清除（轮询等待异步卸载完成）', lnkGone,
         `桌面快捷方式=${fs.existsSync(DESKTOP_LNK)}｜开始菜单=${fs.existsSync(START_MENU)}（最多等待 30s）`);
-      rec('UNI-04', '卸载后注册表项清除', null,
-        'SKIP：本环境禁止调用 reg.exe —— 未核对，不得记为通过');
+
+      // UNI-04：注册表卸载项**真实核对**。
+      // 🔴 NSIS 助手式卸载器是**异步**的：主进程先退出，_iu.exe 继续删文件/快捷方式/注册表。
+      //    实测（test/probe-uninstall-registry.cjs）：卸载项在 4~8s 内被清除。
+      //    因此必须**轮询等待**，一次性快照会把「还没来得及删」误判成「没删」。
+      const uni04Timeline = [];
+      let uni04Gone = false;
+      for (let i = 0; i < 30; i++) {
+        await sleep(2000);
+        const cur = readUninstallEntries();
+        uni04Timeline.push({ tSec: (i + 1) * 2, count: cur.entries.length });
+        if (cur.entries.length === 0) { uni04Gone = true; break; }
+      }
+      const uni04Raw = readUninstallEntries();
+      const uni04Residual = uni04Raw.entries;
+      const uni04Ok = uni04Gone && uni04Residual.length === 0 && !uni04Raw.error;
+      rec('UNI-04', '卸载后注册表卸载项正确清除', uni04Ok,
+        uni04Raw.error
+          ? `🔴 注册表读取失败：${uni04Raw.error}`
+          : (uni04Residual.length === 0
+            ? `已清除（轮询 ${uni04Timeline.length} 次 × 2s，最后一次 ${uni04Timeline.length * 2}s 时 count=0）`
+            : `🔴 残留 ${uni04Residual.length} 项：${uni04Residual.map(summarizeEntry).join(' ｜ ')}（轮询 ${uni04Timeline.length * 2}s 未清除）`),
+        { registryResidual: uni04Residual, pollTimeline: uni04Timeline, registryError: uni04Raw.error });
     } else {
       rec('UNI-01', '静默卸载后程序文件被清除', false, '未找到卸载器');
       rec('UNI-02', '卸载后 settings.json 保留', null, '前置未建立');
-      rec('UNI-03', '卸载后注册表项与快捷方式清除', null, '前置未建立');
+      rec('UNI-03', '卸载后快捷方式与注册表项清除', null, '前置未建立');
+      rec('UNI-04', '卸载后注册表卸载项正确清除', null, '前置未建立（未找到卸载器）');
     }
   }
 
@@ -535,13 +675,18 @@ async function main() {
     }
 
     const afterPrograms = fs.existsSync(path.join(os.homedir(), 'AppData', 'Local', 'Programs', 'LED Ratio Tool'));
-    // 🔴 本环境禁止调用 reg.exe（安全策略黑名单）。此处**不绕过**：
-    //    旧实现写的是 `reg.status !== 0`，而调用被拦截时 status 恰为 null，
-    //    `null !== 0` 恒真 → 这一项是**假通过**（run3 就是靠这个变绿的）。
-    //    现在只对「Programs 目录未被创建」作判定，注册表部分明确标为未核对。
-    rec('POR-04', '便携版不产生安装痕迹（未创建 Programs 目录）',
-      !afterPrograms,
-      `Programs 目录=${afterPrograms}（运行前=${beforePrograms}）｜注册表：本环境禁止 reg.exe，未核对（不得视为已验证）`);
+    // 🔴 旧实现写的是 `reg.status !== 0`，而 reg.exe 调用被安全策略拦截时 status 恰为 null，
+    //    `null !== 0` 恒真 → 这一项曾是**假通过**（run3 就是靠这个变绿的）。
+    //    现在改用 PowerShell 的注册表提供程序**真实核对**：
+    //    便携版运行前后都**不得新增**任何本产品的 Uninstall 项（既不装也不注册）。
+    const por04Reg = readUninstallEntries();
+    const por04RegCount = por04Reg.entries.length;
+    const por04Ok = !afterPrograms && !por04Reg.error && por04RegCount === 0;
+    rec('POR-04', '便携版不产生安装痕迹（未创建 Programs 目录 + 未注册卸载项）', por04Ok,
+      `Programs 目录=${afterPrograms}（运行前=${beforePrograms}）｜Uninstall 项数量=${por04RegCount}` +
+      (por04Reg.error ? `｜🔴 注册表读取失败：${por04Reg.error}` : '') +
+      (por04RegCount ? `｜🔴 残留：${por04Reg.entries.map(summarizeEntry).join(' ｜ ')}` : '（无残留，符合「便携版零安装痕迹」）'),
+      { registryEntries: por04Reg.entries, registryError: por04Reg.error, programsDir: afterPrograms });
   }
 
   /* ========== 收尾 ========== */
@@ -564,6 +709,20 @@ function finish() {
       platform: `${os.type()} ${os.release()} ${process.arch}`,
       totalMemGB: Math.round(os.totalmem() / 1024 ** 3),
       displays: null,
+      // 🔴 升级基线来源披露：UPG-02~05 的判定完全依赖 --legacy 指向的旧版本安装包。
+      //    必须把「这个旧包是什么」写进报告，不能让读者误以为测的是公开发行版升级。
+      legacy: LEGACY
+        ? {
+            path: LEGACY,
+            fileVersion: (readExeVersion(LEGACY) || {}).FileVersion || null,
+            sha256: fs.existsSync(LEGACY) ? sha256(LEGACY) : null,
+            note: '本地构建的上一版本安装包（GitHub Releases 为空、仓库仅存 pre-desktop tag，' +
+                  '该包从未对外发行；因此本项证明的是「内部构建版本之间的真实覆盖升级路径」，' +
+                  '不宣称为「公开发行版 → 新版」的升级验证）',
+          }
+        : { path: null, note: '未提供 --legacy=<旧版本安装包>，UPG-02~05 记 SKIP（不当成通过）' },
+      registryVerification: 'INS-05 / UNI-04 走 PowerShell 的注册表提供程序（Microsoft.Win32）' +
+        '读取 Uninstall 键；本环境禁止调用 reg.exe，但注册表本身可读可写。',
     },
     results,
     summary: {

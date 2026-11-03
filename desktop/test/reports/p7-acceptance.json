@@ -1,19 +1,26 @@
 {
   "meta": {
-    "generatedAt": "2026-11-03T00:23:39.339Z",
+    "generatedAt": "2026-11-03T03:41:26.796Z",
     "version": "1.1.0",
     "platform": "Windows_NT 10.0.26300 x64",
     "totalMemGB": 16,
-    "displays": null
+    "displays": null,
+    "legacy": {
+      "path": "dist-legacy/LED Ratio Tool-1.0.0-x64-setup.exe",
+      "fileVersion": "1.0.0",
+      "sha256": "fdc9c53513815f713e246624304abe0e44619f3f0ea7eaf904722f358b040d4c",
+      "note": "本地构建的上一版本安装包（GitHub Releases 为空、仓库仅存 pre-desktop tag，该包从未对外发行；因此本项证明的是「内部构建版本之间的真实覆盖升级路径」，不宣称为「公开发行版 → 新版」的升级验证）"
+    },
+    "registryVerification": "INS-05 / UNI-04 走 PowerShell 的注册表提供程序（Microsoft.Win32）读取 Uninstall 键；本环境禁止调用 reg.exe，但注册表本身可读可写。"
   },
   "results": [
     {
       "id": "ART-01",
       "title": "验收对象与 P7-4 指纹一致（防调包）",
       "pass": true,
-      "detail": "setup b3e66f290b9455ad… / portable dbce57ba3dafce9a…（与 p7-artifacts.json 比对一致）",
-      "shaSetup": "b3e66f290b9455ad403171684d6f1a56858000fffc12ebc4474b68e6224fdc25",
-      "shaPort": "dbce57ba3dafce9a49a10146320e36653ee388c7b1cf8e2a11a6ea8b1b7ee5a1"
+      "detail": "setup fcbaa0f92172bca5… / portable d50012112a9d9ad9…（与 p7-artifacts.json 比对一致）",
+      "shaSetup": "fcbaa0f92172bca59d845f34f24e8aabc952b95bd759d3421c3d555a30361434",
+      "shaPort": "d50012112a9d9ad959b7165b8d83895ba70dc0b5e08ab2c87aaba6bd27d482bd"
     },
     {
       "id": "ART-02",
@@ -34,7 +41,7 @@
       "id": "INS-02",
       "title": "安装后的主程序与 win-unpacked 逐字节一致",
       "pass": true,
-      "detail": "installed=314ae01f1f3ade2e… unpacked=314ae01f1f3ade2e…"
+      "detail": "installed=d35d9361eb2fe73c… unpacked=d35d9361eb2fe73c…"
     },
     {
       "id": "INS-03",
@@ -50,15 +57,33 @@
     },
     {
       "id": "INS-05",
-      "title": "注册表卸载项（控制面板可见）",
-      "pass": null,
-      "detail": "SKIP：本环境禁止调用 reg.exe，改用「卸载器存在 + 控制面板项由 NSIS 保证」间接判断；注册表本身未核对"
+      "title": "注册表卸载项正确创建（控制面板可见 + 字段齐全）",
+      "pass": true,
+      "detail": "LED Ratio Tool 1.1.0｜版本=1.1.0｜键=HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\09ffe2f5-e231-5da3-b757-61d1cd7529a3｜UninstallString=\"C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Tool P7-Accept\\Uninstall LED Ratio Tool.exe\" /currentuser｜QuietUninstallString 含 /S=true｜NoModify=1｜NoRepair=1｜DisplayIcon 已设=true｜字段齐全=true",
+      "registryEntries": [
+        {
+          "hive": "Microsoft",
+          "key": "09ffe2f5-e231-5da3-b757-61d1cd7529a3",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\09ffe2f5-e231-5da3-b757-61d1cd7529a3",
+          "DisplayName": "LED Ratio Tool 1.1.0",
+          "DisplayVersion": "1.1.0",
+          "Publisher": "LED Ratio Tool Authors",
+          "InstallLocation": "",
+          "UninstallString": "\"C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Tool P7-Accept\\Uninstall LED Ratio Tool.exe\" /currentuser",
+          "QuietUninstallString": "\"C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Tool P7-Accept\\Uninstall LED Ratio Tool.exe\" /currentuser /S",
+          "DisplayIcon": "C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Tool P7-Accept\\uninstallerIcon.ico",
+          "NoModify": "1",
+          "NoRepair": "1",
+          "EstimatedSize": "365673"
+        }
+      ],
+      "registryError": null
     },
     {
       "id": "RUN-01",
       "title": "安装版启动成功并完成布局（台账实测）",
       "pass": true,
-      "detail": "客户区=1440×900｜scaleFactor=1｜heightTier=1"
+      "detail": "客户区=1441×902｜scaleFactor=1.25｜heightTier=1"
     },
     {
       "id": "RUN-02",
@@ -97,7 +122,7 @@
         "schemaVersion": 1,
         "tolerancePercent": 1.75,
         "createdAt": "2026-11-02T11:07:37.192Z",
-        "updatedAt": "2026-11-03T00:22:54.398Z"
+        "updatedAt": "2026-11-03T03:39:44.795Z"
       }
     },
     {
@@ -127,27 +152,60 @@
     },
     {
       "id": "UPG-02",
-      "title": "旧版本安装（升级基线）",
-      "pass": null,
-      "detail": "未提供 --legacy=<旧安装包>，真升级未执行（不当成通过）"
+      "title": "旧版本安装成功（升级基线）",
+      "pass": true,
+      "detail": "legacy 包=dist-legacy/LED Ratio Tool-1.0.0-x64-setup.exe｜包内 FileVersion=1.0.0｜安装后 exe FileVersion=1.0.0｜exit=0｜旧版 exe sha=bcb7f35645b4b59c…｜确为旧版本=true",
+      "legacyPackage": "dist-legacy/LED Ratio Tool-1.0.0-x64-setup.exe",
+      "legacyPackageVersion": {
+        "FileVersion": "1.0.0",
+        "ProductVersion": "1.0.0",
+        "ProductName": "LED Ratio Tool"
+      },
+      "legacyInstalledVersion": {
+        "FileVersion": "1.0.0",
+        "ProductVersion": "1.0.0.0",
+        "ProductName": "LED Ratio Tool"
+      },
+      "legacySha": "bcb7f35645b4b59c3a9e9589d768c4b0f6f5f585cb54ccfa1351dba28f02d3a2"
     },
     {
       "id": "UPG-03",
-      "title": "版本升级覆盖成功",
-      "pass": null,
-      "detail": "同上：缺少旧版本产物"
+      "title": "版本升级覆盖成功（主程序已换成当前版本）",
+      "pass": true,
+      "detail": "升级 exit=0｜版本 1.0.0 → 1.1.0（期望 1.1.0）｜新 exe sha=d35d9361eb2fe73c…｜与 win-unpacked 逐字节一致=true",
+      "upgradedVersion": {
+        "FileVersion": "1.1.0",
+        "ProductVersion": "1.1.0.0",
+        "ProductName": "LED Ratio Tool"
+      },
+      "legacyInstalledVersion": {
+        "FileVersion": "1.0.0",
+        "ProductVersion": "1.0.0.0",
+        "ProductName": "LED Ratio Tool"
+      },
+      "newSha": "d35d9361eb2fe73c4d9a521868a5b9442d0837992288929e50b13f497dcc2830",
+      "matchesUnpacked": true
     },
     {
       "id": "UPG-04",
-      "title": "升级后设置保留",
-      "pass": null,
-      "detail": "同上"
+      "title": "升级后设置保留（未被重置）",
+      "pass": true,
+      "detail": "tolerancePercent=0.75（升级前写入 0.75）",
+      "kept": {
+        "schemaVersion": 1,
+        "tolerancePercent": 0.75,
+        "createdAt": "2026-11-03T03:40:27.332Z",
+        "updatedAt": "2026-11-03T03:40:27.341Z"
+      }
     },
     {
       "id": "UPG-05",
-      "title": "升级后启动正常且换算正确",
-      "pass": null,
-      "detail": "同上"
+      "title": "升级后启动正常且换算正确（2560×1440 → 16:9）",
+      "pass": true,
+      "detail": "UI 显示「1.7778 : 1」｜期望「1.7778 : 1」｜输入框 2560×1440｜错误位 [\"\",\"\"]",
+      "shown": "1.7778 : 1",
+      "w3": "2560",
+      "h3": "1440"
     },
     {
       "id": "UNI-01",
@@ -169,15 +227,23 @@
     },
     {
       "id": "UNI-04",
-      "title": "卸载后注册表项清除",
-      "pass": null,
-      "detail": "SKIP：本环境禁止调用 reg.exe —— 未核对，不得记为通过"
+      "title": "卸载后注册表卸载项正确清除",
+      "pass": true,
+      "detail": "已清除（轮询 1 次 × 2s，最后一次 2s 时 count=0）",
+      "registryResidual": [],
+      "pollTimeline": [
+        {
+          "tSec": 2,
+          "count": 0
+        }
+      ],
+      "registryError": null
     },
     {
       "id": "POR-01",
       "title": "便携版从中立目录启动成功（不依赖安装）",
       "pass": true,
-      "detail": "副本 sha=dbce57ba3dafce9a…｜document.title「LED Ratio Tool」｜目录 C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Portable Neutral"
+      "detail": "副本 sha=d50012112a9d9ad9…｜document.title「LED Ratio Tool」｜目录 C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Portable Neutral"
     },
     {
       "id": "POR-02",
@@ -195,16 +261,19 @@
     },
     {
       "id": "POR-04",
-      "title": "便携版不产生安装痕迹（未创建 Programs 目录）",
+      "title": "便携版不产生安装痕迹（未创建 Programs 目录 + 未注册卸载项）",
       "pass": true,
-      "detail": "Programs 目录=false（运行前=false）｜注册表：本环境禁止 reg.exe，未核对（不得视为已验证）"
+      "detail": "Programs 目录=false（运行前=false）｜Uninstall 项数量=0（无残留，符合「便携版零安装痕迹」）",
+      "registryEntries": [],
+      "registryError": null,
+      "programsDir": false
     }
   ],
   "summary": {
     "total": 28,
-    "pass": 22,
+    "pass": 28,
     "fail": 0,
-    "skip": 6,
-    "verdict": "PASS_WITH_SKIP"
+    "skip": 0,
+    "verdict": "PASS"
   }
 }

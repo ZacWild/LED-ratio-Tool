@@ -1,8 +1,8 @@
 {
   "meta": {
-    "generatedAt": "2026-11-03T00:20:41.509Z",
+    "generatedAt": "2026-11-03T03:39:08.247Z",
     "version": "1.1.0",
-    "gitHead": "30b21ab605db190e2b2545be2a7351edceaa8dd2",
+    "gitHead": "a8afd73c810faf47cda13a7bdf254e9c47d93a65",
     "provenance": {
       "status": "MATCH",
       "asar": "dist\\win-unpacked\\resources\\app.asar",
@@ -21,8 +21,8 @@
         },
         {
           "file": "main/main.js",
-          "asarSha256": "f0e7933d46cd565dc6badfcc404eac89fd5e356e8019e20f2381aefefce0dad3",
-          "worktreeSha256": "f0e7933d46cd565dc6badfcc404eac89fd5e356e8019e20f2381aefefce0dad3",
+          "asarSha256": "61d70eede5214a6b27d2a5ca13cfe410c10dda9be04064819219667f7ee79de1",
+          "worktreeSha256": "61d70eede5214a6b27d2a5ca13cfe410c10dda9be04064819219667f7ee79de1",
           "match": true
         },
         {
@@ -43,8 +43,8 @@
       "label": "NSIS 安装程序",
       "file": "LED Ratio Tool-1.1.0-x64-setup.exe",
       "exists": true,
-      "bytes": 121393062,
-      "sha256": "b3e66f290b9455ad403171684d6f1a56858000fffc12ebc4474b68e6224fdc25",
+      "bytes": 121400588,
+      "sha256": "fcbaa0f92172bca59d845f34f24e8aabc952b95bd759d3421c3d555a30361434",
       "fileVersion": "1.1.0",
       "productVersion": "1.1.0",
       "fileDescription": "LED Ratio Tool —— 屏幕尺寸与视频画布比例换算工具（Windows 桌面版）",
@@ -59,8 +59,8 @@
       "label": "Portable 便携版",
       "file": "LED Ratio Tool-1.1.0-x64-portable.exe",
       "exists": true,
-      "bytes": 110426428,
-      "sha256": "dbce57ba3dafce9a49a10146320e36653ee388c7b1cf8e2a11a6ea8b1b7ee5a1",
+      "bytes": 110436477,
+      "sha256": "d50012112a9d9ad959b7165b8d83895ba70dc0b5e08ab2c87aaba6bd27d482bd",
       "fileVersion": "1.1.0",
       "productVersion": "1.1.0",
       "fileDescription": "LED Ratio Tool —— 屏幕尺寸与视频画布比例换算工具（Windows 桌面版）",
@@ -76,7 +76,7 @@
       "file": "LED Ratio Tool.exe",
       "exists": true,
       "bytes": 249865728,
-      "sha256": "314ae01f1f3ade2e0cec44aef0e3a936625dd96b5b73970dc7ffadf65393d7b4",
+      "sha256": "d35d9361eb2fe73c4d9a521868a5b9442d0837992288929e50b13f497dcc2830",
       "fileVersion": "1.1.0",
       "productVersion": "1.1.0.0",
       "fileDescription": "LED Ratio Tool",
@@ -96,8 +96,8 @@
       "label": "安装包 blockmap",
       "file": "LED Ratio Tool-1.1.0-x64-setup.exe.blockmap",
       "exists": true,
-      "bytes": 128114,
-      "sha256": "36d1aa423e432e1254498f6d5c90f7da7b1d7a5e76f43a81511daae0a2b4d6f2",
+      "bytes": 128286,
+      "sha256": "72805633b44029355a420ec9e6c9f42eb86dc0311350d6544c34db92d3a7f9b4",
       "fileVersion": null,
       "productVersion": null,
       "fileDescription": null,

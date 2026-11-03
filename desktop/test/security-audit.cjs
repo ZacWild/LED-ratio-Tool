@@ -88,7 +88,7 @@ const productSourceFiles = allSourceFiles.filter(
 );
 const productSource = productSourceFiles.map((f) => stripComments(fs.readFileSync(f, 'utf8'))).join('\n');
 const allSource = allSourceFiles.map((f) => stripComments(fs.readFileSync(f, 'utf8'))).join('\n');
-const mainSource = ['main/main.js','main/ipc.js','main/settings-store.js','main/paths.js','main/csp.js','main/menu.js']
+const mainSource = ['main/main.js','main/ipc.js','main/settings-store.js','main/paths.js','main/csp.js','main/menu.js','main/window-bounds.js']
   .map((f) => stripComments(read(f))).join('\n');
 const preloadSource = stripComments(read('preload/preload.js'));
 const rendererSource = ['renderer/index.html','renderer/app.js','renderer/desktop-ui.js','renderer/app.css']
