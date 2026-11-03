@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-03T03:38:58.430Z",
+    "generatedAt": "2026-11-03T09:13:55.577Z",
     "exe": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\dist\\win-unpacked\\LED Ratio Tool.exe",
     "exeBytes": 249865728,
     "appAsarBytes": 394668,
@@ -143,7 +143,7 @@
       "detail": "启动前 FATAL：Integrity check failed for asar archive entry '<header>'（退出码 2147483651）",
       "tamperAt": 120,
       "exitCode": 2147483651,
-      "stderr": "[20156:1103/113848.556:FATAL:electron\\shell\\common\\asar\\asar_util.cc:357] Integrity check failed for asar archive entry '<header>' (e8fb61debbb6d6f9b15fa22b6c74747fbdb6dc79c61367d53e486d68e212250a vs 6c0a812681f9d32dce46023154fdd585ac593241fbc1a24673a30c2e9cbbab12, 4348 bytes)\r\n"
+      "stderr": "[27996:1103/171345.996:FATAL:electron\\shell\\common\\asar\\asar_util.cc:357] Integrity check failed for asar archive entry '<header>' (e8fb61debbb6d6f9b15fa22b6c74747fbdb6dc79c61367d53e486d68e212250a vs 6c0a812681f9d32dce46023154fdd585ac593241fbc1a24673a30c2e9cbbab12, 4348 bytes)\r\n"
     },
     {
       "id": "D-04b",
@@ -164,7 +164,7 @@
       "file": "renderer/styles.css",
       "started": true,
       "exitCode": 2147483651,
-      "stderr": "[25788:1103/113849.595:FATAL:electron\\shell\\browser\\net\\asar\\asar_file_validator.cc:129] Failed to validate block while ending ASAR file stream: 0\r\n"
+      "stderr": "[38712:1103/171346.820:FATAL:electron\\shell\\browser\\net\\asar\\asar_file_validator.cc:129] Failed to validate block while ending ASAR file stream: 0\r\n"
     },
     {
       "id": "D-05",
