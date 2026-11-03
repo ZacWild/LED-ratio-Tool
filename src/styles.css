@@ -135,21 +135,82 @@ input, output, table, .num, .ratio-value, .res-value, .dim-text, .mono {
   background: var(--bg-app);
 }
 
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.app-header__logo {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  display: block;
+}
+
+.app-header__text {
+  min-width: 0;
+}
+
 .app-header__title {
   font-size: var(--text-lg-size);
   line-height: var(--text-lg-lh);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .app-header__subtitle {
   font-size: var(--text-caption-size);
   line-height: var(--text-caption-lh);
   color: var(--text-secondary);
-  flex: 1;
-  min-width: 0;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 420px;
+}
+
+/* 实时换算分辨率 —— 软件最有价值的输出，做成明显结果展示而非普通状态文字 */
+.app-header__live {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+}
+
+.app-header__live-label {
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-lh);
+  color: var(--text-muted);
   white-space: nowrap;
+}
+
+.app-header__live-value {
+  font-family: var(--font-num);
+  font-size: var(--text-num-size);
+  line-height: var(--text-num-lh);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.app-header__live.is-ready .app-header__live-value {
+  color: var(--text-accent);
+  font-weight: 600;
+}
+
+.app-header__live.is-waiting .app-header__live-value {
+  color: var(--text-muted);
+}
+
+.app-header__live.is-error .app-header__live-value {
+  color: var(--error);
 }
 
 .app-header__actions {
@@ -975,6 +1036,10 @@ input, output, table, .num, .ratio-value, .res-value, .dim-text, .mono {
 @media (max-width: 760px) {
   .app-header { height: 48px; padding: 0 var(--space-4); }
   .app-header__title { font-size: 17px; }
+  .app-header__subtitle { display: none; }
+  /* 单栏档结果面板就在正下方，顶栏实时分辨率冗余 → 整块隐藏以腾出横向空间 */
+  .app-header__live { display: none; }
+  .app-header__actions { margin-left: auto; }
   .layout {
     grid-template-columns: 1fr;
     grid-template-areas: "a" "c" "b";

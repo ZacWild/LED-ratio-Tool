@@ -119,7 +119,7 @@ function buildMenu({ mainWindow }) {
       submenu: [
         // 🔒 SK-08 / SK-09：Ctrl+/ 与 F1 = 快捷键帮助
         appItem('快捷键帮助', 'F1', COMMANDS.SHORTCUT_HELP, mainWindow, 'shortcut-help'),
-        appItem('关于 LED 比例换算台', null, COMMANDS.ABOUT, mainWindow, 'about'),
+        appItem('关于 LED Ratio Tool', null, COMMANDS.ABOUT, mainWindow, 'about'),
       ],
     },
   ];

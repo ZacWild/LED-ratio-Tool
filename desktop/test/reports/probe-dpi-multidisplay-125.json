@@ -1,0 +1,209 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-03T04:16:17.749Z",
+    "electron": "45.1.0",
+    "node": "24.22.1",
+    "platform": "win32 x64",
+    "note": "坐标系 = DIP（Electron 原生口径），不乘 scaleFactor",
+    "method": "真实 BrowserWindow + 产品 window-bounds.js 算法 + 真实 getBounds() 回读"
+  },
+  "env": {
+    "displayCount": 2,
+    "primaryDisplayId": 3036494085,
+    "cursorPoint": {
+      "x": 1697,
+      "y": 536
+    },
+    "cursorDisplayId": 3036494085,
+    "cursorDisplayLabel": "LEN P27q-10",
+    "cursorIsOnPrimary": true,
+    "measuredFrameDelta": {
+      "width": 15,
+      "height": 64
+    },
+    "pickTargetDisplayRule": "getDisplayNearestPoint(getCursorScreenPoint()) → 鼠标所在显示器优先"
+  },
+  "summary": {
+    "total": 2,
+    "pass": 2,
+    "fail": 0,
+    "allOverflowZero": true,
+    "verdict": "PASS"
+  },
+  "results": [
+    {
+      "display": {
+        "id": 3036494085,
+        "label": "LEN P27q-10",
+        "scaleFactor": 1.25,
+        "isPrimary": true,
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 2048,
+          "height": 1152
+        },
+        "workArea": {
+          "x": 0,
+          "y": 32,
+          "width": 2048,
+          "height": 1120
+        }
+      },
+      "cursorOnThisDisplay": true,
+      "budget": {
+        "contentWidth": 1440,
+        "contentHeight": 900,
+        "maxContentWidth": 2001,
+        "maxContentHeight": 1024,
+        "atMinimum": false,
+        "clampedToMinimum": false,
+        "fitsMinimum": true,
+        "shortfall": {
+          "width": 0,
+          "height": 0
+        },
+        "requiredWorkArea": {
+          "width": 1071,
+          "height": 776
+        }
+      },
+      "plannedPosition": {
+        "desired": {
+          "x": 297,
+          "y": 110
+        },
+        "clamped": {
+          "x": 297,
+          "y": 110,
+          "clamped": false
+        }
+      },
+      "actual": {
+        "bounds": {
+          "x": 297,
+          "y": 110,
+          "width": 1456,
+          "height": 966
+        },
+        "contentBounds": {
+          "x": 304,
+          "y": 167,
+          "width": 1441,
+          "height": 902
+        },
+        "frameDelta": {
+          "width": 15,
+          "height": 64
+        }
+      },
+      "fits": true,
+      "overflow": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "edges": {
+        "left": 297,
+        "top": 110,
+        "right": 1753,
+        "bottom": 1076
+      },
+      "workAreaEdges": {
+        "left": 0,
+        "top": 32,
+        "right": 2048,
+        "bottom": 1152
+      },
+      "verdict": "PASS"
+    },
+    {
+      "display": {
+        "id": 1897915132,
+        "label": "LEN P27q-10",
+        "scaleFactor": 1.25,
+        "isPrimary": false,
+        "bounds": {
+          "x": 2048,
+          "y": 0,
+          "width": 2048,
+          "height": 1152
+        },
+        "workArea": {
+          "x": 2048,
+          "y": 32,
+          "width": 2048,
+          "height": 1120
+        }
+      },
+      "cursorOnThisDisplay": false,
+      "budget": {
+        "contentWidth": 1440,
+        "contentHeight": 900,
+        "maxContentWidth": 2001,
+        "maxContentHeight": 1024,
+        "atMinimum": false,
+        "clampedToMinimum": false,
+        "fitsMinimum": true,
+        "shortfall": {
+          "width": 0,
+          "height": 0
+        },
+        "requiredWorkArea": {
+          "width": 1071,
+          "height": 776
+        }
+      },
+      "plannedPosition": {
+        "desired": {
+          "x": 2345,
+          "y": 110
+        },
+        "clamped": {
+          "x": 2345,
+          "y": 110,
+          "clamped": false
+        }
+      },
+      "actual": {
+        "bounds": {
+          "x": 2345,
+          "y": 110,
+          "width": 1458,
+          "height": 966
+        },
+        "contentBounds": {
+          "x": 2352,
+          "y": 167,
+          "width": 1443,
+          "height": 902
+        },
+        "frameDelta": {
+          "width": 15,
+          "height": 64
+        }
+      },
+      "fits": true,
+      "overflow": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "edges": {
+        "left": 2345,
+        "top": 110,
+        "right": 3803,
+        "bottom": 1076
+      },
+      "workAreaEdges": {
+        "left": 2048,
+        "top": 32,
+        "right": 4096,
+        "bottom": 1152
+      },
+      "verdict": "PASS"
+    }
+  ]
+}

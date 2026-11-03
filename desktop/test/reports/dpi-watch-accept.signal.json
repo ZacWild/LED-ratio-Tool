@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-11-03T05:11:53.792Z",
+  "target": 1,
+  "percent": 100,
+  "displays": [
+    {
+      "id": 3036494085,
+      "label": "LEN P27q-10",
+      "scaleFactor": 1,
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "workArea": {
+        "x": 0,
+        "y": 32,
+        "width": 2560,
+        "height": 1408
+      }
+    },
+    {
+      "id": 1897915132,
+      "label": "LEN P27q-10",
+      "scaleFactor": 1,
+      "bounds": {
+        "x": 2560,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "workArea": {
+        "x": 2560,
+        "y": 32,
+        "width": 2560,
+        "height": 1408
+      }
+    }
+  ],
+  "p7dpiExitCode": 0,
+  "multidisplayExitCode": 0,
+  "p7dpiReport": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\reports\\p7-dpi-100.json",
+  "multidisplayReport": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\reports\\probe-dpi-multidisplay-100.json",
+  "verdict": "PASS"
+}

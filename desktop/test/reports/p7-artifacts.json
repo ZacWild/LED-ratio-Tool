@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-03T04:06:16.000Z",
+    "version": "1.1.0",
+    "gitHead": "89470b5967f2b36f7950e2d62e4489370a3152f6",
+    "provenance": {
+      "status": "MATCH",
+      "asar": "dist\\win-unpacked\\resources\\app.asar",
+      "files": [
+        {
+          "file": "renderer/app.js",
+          "asarSha256": "6a85760e46c1ebd551535149ae0c191329d3a65a6da7b2d6d62f94e79503c754",
+          "worktreeSha256": "6a85760e46c1ebd551535149ae0c191329d3a65a6da7b2d6d62f94e79503c754",
+          "match": true
+        },
+        {
+          "file": "renderer/core.js",
+          "asarSha256": "dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26",
+          "worktreeSha256": "dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26",
+          "match": true
+        },
+        {
+          "file": "main/main.js",
+          "asarSha256": "61d70eede5214a6b27d2a5ca13cfe410c10dda9be04064819219667f7ee79de1",
+          "worktreeSha256": "61d70eede5214a6b27d2a5ca13cfe410c10dda9be04064819219667f7ee79de1",
+          "match": true
+        },
+        {
+          "file": "preload/preload.js",
+          "asarSha256": "befcbb807fb90556419515660a1201105a78359d913dedb6a55e8ab084975135",
+          "worktreeSha256": "befcbb807fb90556419515660a1201105a78359d913dedb6a55e8ab084975135",
+          "match": true
+        }
+      ]
+    },
+    "electron": "45.1.0",
+    "productName": "LED Ratio Tool",
+    "missingOptional": []
+  },
+  "artifacts": [
+    {
+      "key": "nsis",
+      "label": "NSIS 安装程序",
+      "file": "LED Ratio Tool-1.1.0-x64-setup.exe",
+      "exists": true,
+      "bytes": 121400588,
+      "sha256": "fcbaa0f92172bca59d845f34f24e8aabc952b95bd759d3421c3d555a30361434",
+      "fileVersion": "1.1.0",
+      "productVersion": "1.1.0",
+      "fileDescription": "LED Ratio Tool —— 屏幕尺寸与视频画布比例换算工具（Windows 桌面版）",
+      "signature": {
+        "signed": false,
+        "certificateTableSize": 0,
+        "status": "NotSigned（证书表为空）"
+      }
+    },
+    {
+      "key": "portable",
+      "label": "Portable 便携版",
+      "file": "LED Ratio Tool-1.1.0-x64-portable.exe",
+      "exists": true,
+      "bytes": 110436477,
+      "sha256": "d50012112a9d9ad959b7165b8d83895ba70dc0b5e08ab2c87aaba6bd27d482bd",
+      "fileVersion": "1.1.0",
+      "productVersion": "1.1.0",
+      "fileDescription": "LED Ratio Tool —— 屏幕尺寸与视频画布比例换算工具（Windows 桌面版）",
+      "signature": {
+        "signed": false,
+        "certificateTableSize": 0,
+        "status": "NotSigned（证书表为空）"
+      }
+    },
+    {
+      "key": "app",
+      "label": "应用主程序（win-unpacked）",
+      "file": "LED Ratio Tool.exe",
+      "exists": true,
+      "bytes": 249865728,
+      "sha256": "d35d9361eb2fe73c4d9a521868a5b9442d0837992288929e50b13f497dcc2830",
+      "fileVersion": "1.1.0",
+      "productVersion": "1.1.0.0",
+      "fileDescription": "LED Ratio Tool",
+      "signature": {
+        "signed": false,
+        "certificateTableSize": 0,
+        "status": "NotSigned（证书表为空）"
+      }
+    },
+    {
+      "key": "uninstaller",
+      "label": "卸载器（安装后生成）",
+      "exists": false
+    },
+    {
+      "key": "blockmap",
+      "label": "安装包 blockmap",
+      "file": "LED Ratio Tool-1.1.0-x64-setup.exe.blockmap",
+      "exists": true,
+      "bytes": 128286,
+      "sha256": "72805633b44029355a420ec9e6c9f42eb86dc0311350d6544c34db92d3a7f9b4",
+      "fileVersion": null,
+      "productVersion": null,
+      "fileDescription": null,
+      "signature": {
+        "signed": null,
+        "certificateTableSize": null,
+        "status": "不适用（非 PE）"
+      }
+    }
+  ],
+  "signatureSummary": {
+    "anySigned": false,
+    "verdict": "全部未签名（无代码签名证书）"
+  }
+}

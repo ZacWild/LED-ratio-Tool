@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-10-30T07:27:17.591Z",
+    "generatedAt": "2026-11-03T04:01:18.515Z",
     "tool": "desktop/test/smoke-launch.mjs",
     "purpose": "TK-88 · app:// ERR_FAILED(-2) 偶发竞态 · 连续启动冒烟",
     "runs": 10,
@@ -25,11 +25,11 @@
     {
       "index": 1,
       "ok": true,
-      "durationMs": 1596,
+      "durationMs": 2278,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
-        "title": "LED 大屏比例与视频画布换算工具",
+        "title": "LED Ratio Tool",
         "hasCore": true,
         "coreExportCount": 22,
         "ledApiKeys": [
@@ -167,11 +167,11 @@
     {
       "index": 2,
       "ok": true,
-      "durationMs": 1589,
+      "durationMs": 1831,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
-        "title": "LED 大屏比例与视频画布换算工具",
+        "title": "LED Ratio Tool",
         "hasCore": true,
         "coreExportCount": 22,
         "ledApiKeys": [
@@ -309,11 +309,11 @@
     {
       "index": 3,
       "ok": true,
-      "durationMs": 1572,
+      "durationMs": 1806,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
-        "title": "LED 大屏比例与视频画布换算工具",
+        "title": "LED Ratio Tool",
         "hasCore": true,
         "coreExportCount": 22,
         "ledApiKeys": [
@@ -451,11 +451,11 @@
     {
       "index": 4,
       "ok": true,
-      "durationMs": 1592,
+      "durationMs": 1824,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
-        "title": "LED 大屏比例与视频画布换算工具",
+        "title": "LED Ratio Tool",
         "hasCore": true,
         "coreExportCount": 22,
         "ledApiKeys": [
@@ -593,11 +593,11 @@
     {
       "index": 5,
       "ok": true,
-      "durationMs": 1583,
+      "durationMs": 1798,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
-        "title": "LED 大屏比例与视频画布换算工具",
+        "title": "LED Ratio Tool",
         "hasCore": true,
         "coreExportCount": 22,
         "ledApiKeys": [
@@ -735,11 +735,11 @@
     {
       "index": 6,
       "ok": true,
-      "durationMs": 1584,
+      "durationMs": 1792,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
-        "title": "LED 大屏比例与视频画布换算工具",
+        "title": "LED Ratio Tool",
         "hasCore": true,
         "coreExportCount": 22,
         "ledApiKeys": [
@@ -877,11 +877,11 @@
     {
       "index": 7,
       "ok": true,
-      "durationMs": 1595,
+      "durationMs": 1803,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
-        "title": "LED 大屏比例与视频画布换算工具",
+        "title": "LED Ratio Tool",
         "hasCore": true,
         "coreExportCount": 22,
         "ledApiKeys": [
@@ -1019,11 +1019,11 @@
     {
       "index": 8,
       "ok": true,
-      "durationMs": 1601,
+      "durationMs": 1811,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
-        "title": "LED 大屏比例与视频画布换算工具",
+        "title": "LED Ratio Tool",
         "hasCore": true,
         "coreExportCount": 22,
         "ledApiKeys": [
@@ -1103,12 +1103,12 @@
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/app.js",
+          "url": "app://bundle/desktop-ui.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         },
         {
-          "url": "app://bundle/desktop-ui.js",
+          "url": "app://bundle/app.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'"
         }
@@ -1139,13 +1139,13 @@
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/app.js",
+          "url": "app://bundle/desktop-ui.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
         },
         {
-          "url": "app://bundle/desktop-ui.js",
+          "url": "app://bundle/app.js",
           "status": 200,
           "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; manifest-src 'none'",
           "via": "webRequest"
@@ -1161,11 +1161,11 @@
     {
       "index": 9,
       "ok": true,
-      "durationMs": 1602,
+      "durationMs": 1782,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
-        "title": "LED 大屏比例与视频画布换算工具",
+        "title": "LED Ratio Tool",
         "hasCore": true,
         "coreExportCount": 22,
         "ledApiKeys": [
@@ -1303,11 +1303,11 @@
     {
       "index": 10,
       "ok": true,
-      "durationMs": 1568,
+      "durationMs": 1721,
       "probe": {
         "protocol": "app:",
         "href": "app://bundle/index.html",
-        "title": "LED 大屏比例与视频画布换算工具",
+        "title": "LED Ratio Tool",
         "hasCore": true,
         "coreExportCount": 22,
         "ledApiKeys": [

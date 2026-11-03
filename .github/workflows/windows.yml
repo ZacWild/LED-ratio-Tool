@@ -5,8 +5,8 @@
 #
 # ① **本工作流已实际运行并通过**
 #    GitHub Actions 已在本仓库真实运行本工作流，最近一次在 PR Head 提交上
-#    为全绿（36 步 0 失败 0 跳过）。运行次数与逐次结论以 Actions 页面为准，
-#    本文件内不写死次数（写死必然随每次推送过期）。
+#    为全绿（0 失败 0 跳过；**步骤数以该次运行页面显示为准，此处不写死**——
+#    每加一个门禁步骤这个数字都会变，写死必然过期）。
 #
 # ② **`Protect main` 规则集已把本作业设为必需检查（required status check）**
 #    Ruleset：`Protect main`（target=branch，enforcement=active，仅覆盖默认分支）
@@ -59,6 +59,7 @@
 #   5. npm run test:redlines       ← 8 处受保护业务口径（A-01~A-08）
 #   6. npm run test:unit           ← core.js 单元测试
 #   7. 构建（root build + desktop sync + electron-builder 打包配置校验）
+#   7.4 品牌图标资源自检（verify-icons.mjs，10 项 · D-08）
 #   8. Electron 启动冒烟 **连续 10 次**   ← TK-88：app:// ERR_FAILED(-2) 竞态
 #   8.5 桌面 E2E **前置环境取证**（工作区尺寸 / 最大可达客户区 / 当前档位）
 #   9. 桌面 E2E（desktop-suite.mjs，93 条用例）
@@ -67,7 +68,8 @@
 #  10. 200 组差分（differential-200.mjs，DEC-15 三层期望源）
 #  11. 真实 DPI 验收（dpi-acceptance.mjs，仅 100% 缩放档 → 21 项）
 #  12. 打包 + Preview Candidate 产物验收（**报告项，不参与门禁**）
-#  13. 产物 SHA-256 清单 → 上传报告/截图/日志 → 汇总门禁结果
+#  13. P7-2 Fuses 实体验证（**产物在则必过；产物缺失记 SKIP**）
+#  14. 产物 SHA-256 清单 → 上传报告/截图/日志 → 汇总门禁结果
 #
 # -----------------------------------------------------------------------------
 # 🔴 关键环境约束 · 小屏 CI runner（Step 6 第 6 阶段实测 41320637908）
@@ -313,7 +315,8 @@ jobs:
 
       # 7.3 桌面版打包配置校验（不产出 EXE）
       # 🔴 **不执行 electron-builder 实际打包**：正式发行包属 P7 阶段，
-      #    且当前 desktop/resources/icon.ico 尚未产出（P4-B 不含 D-08 图标）。
+      #    打包与安装链路验收（含签名）仍归 P7，不在此处进行。
+      #    （D-08 品牌图标已落地：resources/icon.ico 7 档，由 7.4 单独自检。）
       #    本步骤只做 **配置可解析性** 校验，不产出任何交付物。
       - name: 校验打包配置（不产出 EXE）
         shell: pwsh
@@ -322,13 +325,25 @@ jobs:
           $cfg = "build/electron-builder.yml"
           if (-not (Test-Path $cfg)) { Write-Error "缺少 $cfg"; exit 1 }
           $content = Get-Content $cfg -Raw
-          foreach ($must in @('com.ledratiotool.desktop','LED Ratio Tool','LED 比例换算台','deleteAppDataOnUninstall: false')) {
+          foreach ($must in @('com.ledratiotool.desktop','LED Ratio Tool','shortcutName: LED Ratio Tool','deleteAppDataOnUninstall: false')) {
             if (-not $content.Contains($must)) {
               Write-Error "打包配置缺少必需项：$must"
               exit 1
             }
           }
           Write-Host "✅ 打包配置校验通过（appId / productName / shortcutName / 卸载保留设置）"
+
+      # 7.4 品牌图标资源自检（D-08）
+      # 断言对象是**实际随包发出去的那份资源**，不是配置字符串：
+      #   · ico 结构（7 档尺寸 / 32bpp / 偏移不越界不重叠）
+      #   · 像素为最终 LOGO 品牌色，且**不含旧占位图配色** —— 防止占位图回退
+      #   · icon-256x256.png 与 ico 的 256 条目字节一致（同源产物）
+      #   · electron-builder.yml 的 icon / installerIcon / uninstallerIcon 均可解析
+      #   · main.js 引用的图标路径存在
+      - name: 品牌图标资源自检（D-08）
+        shell: pwsh
+        working-directory: desktop
+        run: npm run verify:icons
 
       # ==========================================================================
       # 8 · Electron 启动冒烟 —— 连续 10 次（TK-88）
@@ -515,6 +530,36 @@ jobs:
           exit 0
 
       # ==========================================================================
+      # 10.7 · P7-2 Electron Fuses 实体验证（只认最终产物）
+      # ==========================================================================
+      # 步骤位置与门禁口径的三条理由：
+      #   ① 不塞进 10.6：10.6 是 continue-on-error，把验证放进去等于「验证失败也是绿」，
+      #      那正是 P7-2 要消灭的「只看配置文件就宣布安全」的翻版。
+      #   ② 不做无条件门禁：本步骤的输入是 10.6 产出的 dist/win-unpacked，
+      #      而打包本身不门禁（联网下载 NSIS/7zip，网络波动与产品无关）。
+      #   ③ 因此口径定为「**产物在就必须过；产物不在明确记 SKIP，绝不记 PASS**」——
+      #      产物缺失时用 ::warning 标注，并在 Step Summary 里写死 SKIP 字样。
+      - name: P7-2 Fuses 实体验证（产物在则必过）
+        id: fuses
+        shell: pwsh
+        working-directory: desktop
+        run: |
+          $exe = "dist/win-unpacked/LED Ratio Tool.exe"
+          $asar = "dist/win-unpacked/resources/app.asar"
+          if (-not (Test-Path $exe) -or -not (Test-Path $asar)) {
+            Write-Host "::warning title=P7-2 SKIPPED::未找到打包产物（exe/asar）—— Fuses 未验证，记 SKIP 不记 PASS"
+            "P7-2 Fuses 实体验证：**SKIP**（打包未产出完整产物，安全配置未被验证）" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            exit 0
+          }
+          # ELECTRON_RUN_AS_NODE 若残留会让 electron 退化为 node，必须先清（SEC-40）
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          npm run test:fuses
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error title=P7-2 FAILED::最终产物的 Fuses / ASAR 完整性 / onlyLoadAppFromAsar 验证未通过，详见 fuses-verify.json"
+            exit 1
+          }
+
+      # ==========================================================================
       # 11 · 产物收集 + SHA-256
       # ==========================================================================
       - name: 生成产物 SHA-256 清单
@@ -589,11 +634,13 @@ jobs:
             '业务红线'   = 'test:redlines（8 处受保护口径 A-01~A-08）'
             '单元测试'   = 'test:unit（core.js 单元测试 64 条）'
             '构建'       = 'HTML 单文件 + 桌面资源同步 + 打包配置校验（不产出 EXE）'
+            '图标自检'   = 'D-08 品牌图标（ico 7 档结构 / 品牌色且无旧占位色 / 三处引用可解析）'
             '启动冒烟'   = 'Electron 连续启动 ×10（TK-88 app:// 竞态）'
             '桌面 E2E'   = 'desktop-suite（93 条）'
             '黄金向量'   = '负向自检 + L2 独立套件（22 向量：21 执行 + 1 不适用）'
             '200 组差分' = 'DEC-15 三层期望源（差异 0 / 43 字段 / 覆盖率 100%）'
             'DPI 验收'   = '真实 100% 缩放档（21 项）'
+            'Fuses 实证' = 'P7-2 最终产物：Fuse Wire 8 项 / ELECTRONASAR 口径 / RunAsNode·NodeOptions·CLI Inspect / ASAR 完整性 3 路径 / onlyLoadAppFromAsar（产物缺失记 SKIP）'
           }
           foreach ($k in $steps.Keys) {
             $description = $steps[$k]
@@ -612,7 +659,7 @@ jobs:
           $lines += '|---|---|'
           $lines += $summary
           $lines += ''
-          $lines += '> ℹ️ 上表只列**参与门禁**的步骤。「打包 + Preview Candidate 产物验收」是 `continue-on-error` 的报告项、**不参与门禁** —— 它在任何情况下都会显示 Success，**不能据此认为打包已通过**；打包结论以 `pc-verify.json` 与 P7 发行验收为准。'
+          $lines += '> ℹ️ 上表只列**参与门禁**的步骤。「Fuses 实证」是**条件门禁**：打包产物存在时它必须通过，产物缺失时该步骤记 SKIP 并在摘要中明示 —— 不得把 SKIP 读成 PASS。「打包 + Preview Candidate 产物验收」是 `continue-on-error` 的报告项、**不参与门禁** —— 它在任何情况下都会显示 Success，**不能据此认为打包已通过**；打包结论以 `pc-verify.json` 与 P7 发行验收为准。'
           $lines += ''
           $lines += '**报告产物**：`desktop/test/reports/`（含 `smoke-launch.json`、`desktop-suite.json`、`differential-200-report.json`、`p4b-evidence.json`）；SHA-256 清单见 `artifacts/SHA256SUMS.txt`。'
           $lines += ''

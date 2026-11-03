@@ -28,11 +28,11 @@
 |---|---|---|---|
 | **D1** | 窗口尺寸一律按**客户区**口径 | `useContentSize: true`；`width/height` 与 `minWidth/minHeight` 同口径 | `main/main.js:251-253` ✅ |
 | **D2** | `useContentSize: true` | 显式设置，不依赖默认值（Electron 默认 `false`） | `main/main.js:251` ✅ |
-| **D3** | 最小标准客户区 **1024×680** | `minWidth/minHeight = 1024/680`；断言回读 `getContentSize()` | `main/main.js:68-69,252-253` ✅ |
+| **D3** | 最小标准客户区 **1024×680** | `minWidth/minHeight = 1024/680`；断言回读 `getContentSize()` | `main/main.js:68-69,252-253` ✅<br>🆕 **2026-11-03 更新**：DEC-07 **保留 1024×680，未下调**。下界保证改由 `setMinimumSize(1024+16, 680+65)` = **(1040, 745) 外框口径** 实施（构造参数口径已被证明不成立，见 §12.2）；实测最小客户区 = **1024×680** ✅ |
 | **D4** | **1280px 三栏转两栏断点**优先于旧版 1100px 断点 | 唯一宽度轴断点 = 1280 | `renderer/desktop-ui.js:40,378-383` ✅ |
 | **D5** | **1024px 窄窗口按 IX-13 采用三面板纵向堆叠**（不得改回两栏或隐藏面板） | `data-layout="stacked"`，A/B/C 三行 | `renderer/app.css:155-166` ✅ |
 | **D6** | 三栏 / 两栏 / 窄窗口三种布局**分别验收** | 三档各一组用例 + 三档截图 | `test/desktop-suite.mjs` TC-D-01/02/03、TC-DP-04 ✅ |
-| **D7** | 产品名与应用存储目录 = `LED Ratio Tool`；快捷方式中文显示名 = `LED 比例换算台` | `productName` / `APP_DIR_NAME` = `LED Ratio Tool`；`nsis.shortcutName` = `LED 比例换算台` | `build/electron-builder.yml:2,39`；`main/paths.js:21` ✅ |
+| **D7** | 产品名 / 应用存储目录 / 快捷方式名 / 窗口标题**统一** = `LED Ratio Tool`（P7-1 品牌统一，旧中文名「LED 比例换算台」弃用） | `productName` / `APP_DIR_NAME` / `nsis.shortcutName` / `main.title` 全部 = `LED Ratio Tool` | `build/electron-builder.yml:2,41`；`main/paths.js:21`；`main/main.js:255` ✅ |
 | **D8** | 垂直预算按 P4 实测修订为 **784px**（不再用旧版 756px） | 面板区高 = 客户区 900 − 68（标题40+状态栏28）− 48（内边距 24×2）= **784** | 本文件 §3 实测表 ✅ |
 | **D9** | **DEC-16 紧凑高度第 ②③ 档**：**TK-72 已闭合**（Step 6 第 3 阶段）→ **②/③ 档收纳已实施**；**任何档位都不得隐藏核心操作**（输入 / 结果 / 警告 / 复制） | 判定在**渲染层自算**（`renderer/desktop-ui.js` `decideHeightTier` / `computeHeightTier`），🔒 **不新增 IPC 通道**；`main.layout` 写入 `data-height-tier`（standard / compact / tight） | `desktop-ui.js:483-531` ✅（实测见 §4.9） |
 | **D10** | Electron 45.1.0 = Chromium **156.0.8078.49** / Node **24.22.1**；生命周期终点 **2027-04-27** | 版本台账由 `process.versions` 实读 | `main/main.js:329` ✅ |
@@ -226,7 +226,7 @@
 | **Δ-09** | 表格布局 | `:602`/`:629`/`:633-639` `auto` 布局 + `nowrap` + 首列 sticky | `table-layout:fixed` + 显式列宽 + 表头 sticky | D-03 §9.2 D-9；`app.css:408-451` |
 | **Δ-10** | 宽/高字段布局 | `:395` `.field-row` **横向**双列 | **恒为纵向堆叠**（CF-2 结论） | D-03 §9.2 D-21；`app.css:207-211` |
 | **Δ-11** | 菜单栏 / 状态栏 | `:471` 顶栏 56px；`:602` `--header-h: 56px /* ≤760px 时 48px */` | **无菜单栏**（HTML 版无原生菜单）→ 桌面版：Windows 原生菜单 28px + 标题条 40px + 状态栏 28px | D-03 §5.1/§5.2；`app.css:86-89, 528-542` |
-| **Δ-12** | 产品名 / 目录名 | `DESIGN-SPEC` 全文以「LED 比例换算台」为界面标题 | **产品名 = 应用存储目录 = `LED Ratio Tool`**；`LED 比例换算台` 仅作**快捷方式显示名**（`nsis.shortcutName`）与**窗口标题** | D7 / DEC-12 / TK-81；`electron-builder.yml:2,39`；`main/paths.js:21` |
+| **Δ-12** | 产品名 / 目录名 | `DESIGN-SPEC` 全文以「LED 比例换算台」为界面标题 | **产品名 = 应用存储目录 = 快捷方式名 = 窗口标题 = `LED Ratio Tool`**（P7-1 起快捷方式名与窗口标题也统一为英文，旧中文名弃用） | D7 / DEC-12 / TK-81；`electron-builder.yml:2,41`；`main/paths.js:21`；`main/main.js:255` |
 | **Δ-13** | 标题条高度 | `:602` `--header-h: 56px` | 桌面端标题条 **40px**（不通过改 `:root` 实现，在 `.app-header` 上局部覆盖） | D-03 §3.2；`app.css:86-89` |
 | **Δ-14** | 列表高度 | `:497` `.list--scroll{max-height:240px}` | `flex:1 1 auto; min-height:120px; max-height:min(40vh,320px)` | D-03 §9.2 D-5；`app.css:275-279` |
 | **Δ-15** | 死代码 | `:771`/`:779` `.scene` / `.screen-wrap` 有规则无元素 | 桌面版**不继承**（`app.css` 中 0 命中） | D-03 §3.4 |
@@ -267,16 +267,24 @@ decideHeightTier(clientH, workH):
 
 #### 4.2.1 非客户区增量与客户区下限
 
+> 🆕 **2026-11-03 更新（P7-DPI-09 Remediation · 方案 A）**：下表中的「增量 16×65」曾被解释为「台账记录口径偏差」，本轮**实测证明那是真实产品缺陷** —— 旧窗口预算公式用的是**推算值 39**（无菜单栏口径），漏算 **26 DIP 原生菜单栏**。现已被方案 A 修正，见 §12。
+
 | 测量项 | 实测值 | 说明 |
 |---|---|---|
 | `getContentSize(1440,900)` → 外框 | 1040×965 | 增量 **16×65** |
 | `getContentSize(1024,680)` → 外框 | 1040×745 | 增量 **16×65** |
 | `setContentSize(1024, 640)` → 客户区 | **1024×654** | ⚠️ **不遵守 `minHeight`**（E-13 复核，仍有效） |
-| `getMinimumSize()` | **[1040, 745]** | = 1024+16 / 680+65 → **外框口径**的最小值 |
+| `getMinimumSize()`（构造参数口径） | **[1040, 719]** | = 1024+16 / 680+**39** → Chromium 内部 min track 用 **39**（无菜单栏）口径 → 客户区实际下限只有 **654**（< DEC-07） |
+| `getMinimumSize()`（`setMinimumSize` 外框口径） | **[1040, 745]** | = 1024+16 / 680+**65** → 客户区下限 **1024×680** ✅ 与 DEC-07 一致 |
 | 原生菜单是否侵占客户区 | **否**（900→900，只是外框 +26） | 印证 P4-BASELINE §3.2 的 C-2 裁决 |
+| 🆕 `autoHideMenuBar: true` 时的增量 | **16×39** | 与 `false`（16×65）相差 **26 DIP = 原生菜单栏高度** |
+| 🆕 `frame: false` 时的增量 | **0×0** | 隔离变量用，证明增量来自原生装饰区 |
+| 🆕 增量与客户区尺寸的关系 | **无关** | 800×600 / 1024×680 / 1440×900 / 1600×1000 恒为 **16×65** |
+| 🆕 125% 缩放时的增量 | **15×64**（实测） | **不是**简单线性放大；150% 保守外推 20×80（**非实测**） |
 
 > 🔴 **修正 E-3**：P4-BASELINE E-3 记「非客户区增量 = 16×39 DIP；原生菜单**额外 +26 DIP**」。本轮实测在**已安装原生菜单**的当前工程上，**总增量就是 16×65**（39 + 26 = 65 ✅ 数值自洽），但**只有 39** 的写法只在**无菜单**时成立。
-> → `main/main.js:114-115` 的 `frameW/frameH`（只加 39）在**有菜单**时**少算 26 DIP**，属**台账记录口径偏差**，不影响窗口尺寸本身 → 列入 **TK-145**（仅改台账，不改窗口行为）。
+> → `main/main.js:114-115` 的 `frameW/frameH`（只加 39）在**有菜单**时**少算 26 DIP**。
+> 🆕 **2026-11-03 结论**：这不是「台账记录口径偏差」（原 TK-145 的判断），而是**真实产品缺陷** —— 该推算值被用于窗口尺寸预算，会直接导致高 DPI / 小工作区下外框超预算。已由方案 A（实测增量纳入预算）修正，**TK-145 随之关闭**。
 
 #### 4.2.2 垂直预算实测（**D8 的 784px 复核**）
 
@@ -383,6 +391,11 @@ else                     tier = 3  // 极低高度（重量收纳）
 > ✅ **TC-H-01 实测判定序列** = `[1,1,2,2,3,3]`（输入 900/784/783/680/679 @workH=1392 + 900@workH=744）。
 > ✅ **TC-H-02 实测**：workH=744 → ③；workH=745 → ①。
 > ✅ **TC-H-03 实测**：1440×900 → standard；1440×750 → compact；1440×600 → tight；1440×900 → standard（**resize 动态重算**）。
+
+> 🆕 **2026-11-03 注记（P7-DPI-09 复核实测，未改本节代码）**：`needH = minH + 65×sf` 中的 `65` 是**@100% 实测值**，`×sf` 线性外推在 125% 下**并非精确**（本轮实测 125% 增量 = **15×64**，非 65×1.25 = 81.25）。
+> - **影响面**：该公式只决定**渲染层的高度收纳档位**（③ 档触发与否），**不参与主进程窗口尺寸计算**，因此**不影响 DPI-09**（DPI-09 已由 §12 的方案 A 在主进程侧修正）。
+> - **不改的理由**：改动 `renderer/desktop-ui.js` 的档位判定会牵动 93 条桌面 E2E、视觉基准与 DEC-16 收纳清单，属**高度档位基线变更**，超出本次「窗口边界修正」的授权范围。
+> - **处置**：登记为 **TK-177（不阻塞）**，待 125%/150% 真实环境实测数据齐备后随高度档位基线一并复核。
 
 #### 4.4.3 CSS 落点（**全部在 `desktop/renderer/app.css`，不改 `src/styles.css`**）
 
@@ -955,4 +968,159 @@ QA 复核 §11.1.1 时发现三项表述与实测不符，本节记录更正过�
 | CI | head 提交上 `Windows · 桌面版门禁` = success（push run 与 pull_request run 各一次） |
 
 **合并前检查清单（已完成项）**：① 差异范围与 TK 边界核对（仅 TK-161/162/163/164 相关 + 台账/基准/验收文档）；② `core.js` 哈希锁未变；③ 主进程 / IPC / CSP / builder / 依赖零改动；④ Ruleset 必需检查已配置且当前通过；⑤ 工作区干净、远端同步。**合并动作本身未执行**（本轮授权范围为「保持 PR Open」）。
+
+---
+
+## 12. P7-DPI-09 Remediation · 高 DPI 窗口边界修正（2026-11-03 · 方案 A）
+
+> 任务编号：`P7-DPI-09 Remediation`｜实施方案：**A｜动态计算窗口边界，纳入原生非客户区实际占用**
+> 基线 HEAD：`89470b5`（P7-DPI-09 方案 A + min track 实测标定）｜分支 `feature/desktop-windows`
+> 完整三段式记录：[`test/reports/DPI-09-ASSESSMENT.md`](test/reports/DPI-09-ASSESSMENT.md)
+
+### 12.1 决策记录：DEC-07（最小客户区 1024×680）
+
+| 项 | 内容 |
+|---|---|
+| **原决策** | 最小标准客户区 1024×680；`minWidth/minHeight = 1024/680`（客户区口径，DEC-14） |
+| **本轮裁决** | 🔒 **DEC-07 保留不变，最小客户区仍为 1024×680，未做任何下调** |
+| **不变的原因** | ① 评估稿 §4 已证明下调 MIN_CONTENT 对 DPI-09（测默认窗口）**无收益**；② 680 是「核心控件仍可完整操作」的产品下限，属业务定义；③ 任务明确要求「不得擅自下调最小客户区」 |
+| **实施方式变更** | 下界保证的**技术实现**改写：构造参数 `minWidth/minHeight` → **`setMinimumSize()` 外框口径** |
+| **原实现的缺陷（实测）** | 构造参数是客户区口径，Chromium 自动加边框（16×39）→ `getMinimumSize() = [1040, 719]`，客户区实际下限只有 **1024×654**（**比 680 少 26 DIP**），即**既有实现从未真正兑现过 DEC-07** |
+| **新实现** | `setMinimumSize(1024 + 16, 680 + 65)` = **(1040, 745)**（外框口径，不自动加边框）→ 实测最小客户区 = **1024×680** ✅ 与 DEC-07 完全一致 |
+| **证据** | `main/window-bounds.js` `computeMinTrackSize()`；运行时台账 `plan.minCalibration.actualMinContent = {width:1024, height:680}` |
+
+### 12.2 决策记录：DEC-09（目标窗口 1440×900）
+
+| 项 | 内容 |
+|---|---|
+| **原决策** | 默认目标客户区 1440×900（`TARGET_W/TARGET_H`） |
+| **本轮裁决** | 🔒 **DEC-09 保留不变，目标窗口仍为 1440×900**；空间充足时**不改变原体验** |
+| **执行方式变更** | 目标尺寸从「**硬编码直出**」改为「**预算收敛**」：`content = min(TARGET, workArea − EDGE_MARGIN − 实测外框增量)`，且 `content ≥ MIN` |
+| **实测验证** | 真实物理屏（2560×1440，workArea 2560×1392）→ 客户区实测 **1440×900**，外框 1456×965，**四边溢出全 0** |
+| **工作区不足时** | `min(TARGET, maxContent)` 收敛到工作区；若 `maxContent < MIN` → **不静默突破 DEC-07**，而是 `fitsMinimum=false` → DPI-09 判 **BLOCKED** 并记录 `requiredWorkArea` / `actualWorkArea` / `shortfall` |
+
+### 12.3 本轮实现的六个关键取舍
+
+| # | 取舍 | 理由 |
+|---|---|---|
+| 1 | 非客户区**实测**（`getBounds() − getContentBounds()`）而非公式推算 | 推算值 39 是「无菜单栏」口径，与实际配置 `autoHideMenuBar:false` 不符，漏 26 DIP |
+| 2 | **保留**原生菜单栏（`autoHideMenuBar: false`） | 隐藏菜单栏能少 26 DIP，但那不是修复而是**把问题藏起来**，且改变产品外观 |
+| 3 | 尺寸施加走 `setContentSize()` 而非构造参数 | 实测构造参数会触发 Windows 工作区裁剪（口径 workArea − (16,39)），`setContentSize()` 不裁剪 |
+| 4 | 两阶段**隐藏窗口**初始化 | 保证「用户可见后不再跳动」，同时能拿到真实 delta 再定尺寸 |
+| 5 | 位置用「工作区内居中 + 夹紧 + 四边终检」 | 覆盖主屏 / 副屏 / 负坐标 / 任务栏缩减 / 混合缩放；保持「鼠标所在显示器优先」选屏原则 |
+| 6 | DPI-09 **四态**判定（PASS/FAIL/BLOCKED/SKIP） | 「工作区装不下最小窗口」≠「产品缺陷」≠「没测」，三者必须可区分 |
+
+### 12.4 变更文件清单与原因
+
+| 文件 | 变更 | 原因 |
+|---|---|---|
+| `main/window-bounds.js` | **新增**（零依赖纯函数模块） | 几何计算单一真源；供 `main.js` 与几何单测共用，避免实现与判据漂移 |
+| `main/main.js` | 窗口创建改为六阶段两阶段初始化；新增 `pickTargetDisplay` / `measureFrameDelta` / `planWindowBounds` / `calibrateMinimumContentSize` / `applyContentSizeWithConvergence`；台账字段扩充 | 方案 A 主体；台账需记录 display / bounds / contentBounds / delta / workArea / scaleFactor / heightTier / 预算 / 收敛 / 四边溢出 |
+| `test/p7-dpi.mjs` | DPI-09 改四边核验；`rec()` 扩四态；报告新增 `windowGeometry` 段；退出码 0/1/3 | 判据强化要求 |
+| `test/window-bounds-geometry.test.mjs` | **新增**（20/20 PASS） | 任务要求的独立几何测试 |
+| `test/probe-frame-delta.cjs` / `probe-min-size.cjs` / `probe-min-visible.cjs` / `probe-win-limit.cjs` / `probe-window-budget.cjs` | **新增**（5 个探针） | 取证用：增量构成 / min track 口径 / 隐藏态可见性 / 裁剪口径 / 收敛与多显示器定位 |
+| `test/security-audit.cjs` | `mainSource` 列表加入 `main/window-bounds.js` | 避免 SEC-01a 出现审计盲区 |
+
+> 🔒 **未改动**：`src/core.js`、`src/app.js`、`appId`、`APP_DIR_NAME`、IPC 通道、用户数据目录、渲染层布局与高度档位判定、品牌栏与实时分辨率、菜单栏与快捷键与状态栏。
+
+### 12.5 本轮待决事项
+
+| 编号 | 事项 | 优先级 | 状态 |
+|---|---|---|---|
+| **TK-177** | 渲染层 `needH = minH + 65×sf` 的线性外推在 125% 下不精确（实测 125% 增量 15×64） | 不阻塞 | 待 125%/150% 实测数据齐备后随高度档位基线复核 |
+| **TK-145** | 原「仅改台账」的处置判断有误（26 DIP 是真实产品缺陷，非台账偏差） | — | ✅ **本轮关闭**（已由方案 A 修正） |
+| **TK-178** | 150% 档真实 DPI 验收 | 阻塞发布 | ⛔ 本环境不可达（需交互式会话切缩放 + 注销重登），已如实记 BLOCKED |
+| **TK-180** | 125% 下精确 1024×680 客户区**平台量化不可达**（best = 1024×682），`TC-DP-04` 判据 `|got−680|≤1` 不满足 | 不阻塞 | ⛔ 记 **BLOCKED**（平台取整，非产品缺陷）；**未改判据让它变绿**，随 §12.6 标定落地后仅余此一项 |
+| **TK-181** | `frameDelta`（`getBounds()` − `getContentBounds()`）**不可**用于换算 min track | — | ✅ **本轮关闭**（已由实测标定替代，见 §12.6） |
+
+### 12.6 第二轮根因：min track 口径 ≠ frameDelta 口径（2026-11-03）
+
+> §12.3 取舍 1 与 §12.4 的 `calibrateMinimumContentSize` 首版实现，把「min track → 客户区下限」的换算量**等同于** `frameDelta`。该假设在 125% 下**被实测证伪**，导致 Desktop E2E 从 93/93 退化为 **90/93**（`TC-DP-01`/`TC-DP-02` FAIL、`TC-DP-04` BLOCKED）—— 属**真实回归**，已定位并修复。
+
+**根因**：Windows 11 存在**不可见缩放边框**（resize border），它**计入** min track、但**不计入** `getBounds()`。125% 实测：`frameDelta` = **15×64**，而「min track → 客户区下限」实际换算 = **12×63**，差 **3×1** → 用 `frameDelta` 换算会把下限**顶高**，`setMinimumSize(1040, 745)` → 下限 **1028×682** → 宽度 1024 档（纵向堆叠）**永远不可达**。
+
+**四步定位**（改前/改后对照 → 移屏对照 → min track 口径对照 → DIP 取整验证）：
+
+| 步骤 | 手段 | 结果 |
+|---|---|---|
+| ① | `git show HEAD:desktop/main/main.js` 还原 + 同套 TC-DP | HEAD **10/10** vs 新版 **7/10** → 确认由本轮改动引入 |
+| ② | `probe-tcdp-regression.cjs`（主屏 ↔ 副屏） | 偏差恒定 **+2 / +8**，与显示器无关 |
+| ③ | `probe-min-track-calibrate.cjs` | `frameDelta` **15×64** ≠ 实际换算 **12×63** → 根因 |
+| ④ | `probe-dip-rounding.cjs` | 125% 下「请求 H → 回读 H′」几乎全 **+1** → 系统取整，非产品缺陷 |
+
+**修法**：`main/window-bounds.js` 新增纯函数 `calibrateMinTrack()`（**分轴判定**），`main/main.js` 的 `calibrateMinimumContentSize()` 改为**实测标定 + 迭代收敛（≤4 轮）**：设初值 → `setMinimumSize` → `setSize(1,1)` 压到下限 → 回读 `getContentBounds()` → 按超出量下调 → **任一轴已达标即停止**（避免为追另一轴精确值而破坏已达标的轴、进而破坏 DEC-07）。
+
+**实测收敛轨迹（125%）**：轮1 `(1039,744)` → 下限 `1026×682` → 下调 `(1037,742)` → 轮2 下限 **`1024×682`**（宽度达标、高度 ≥680）→ 分轴停止。
+
+**修后验证**：`probe-min-track-verify.cjs` **5/5 PASS**、几何单测 **24/24 PASS**、安全审计 **47/47 PASS**、窗口四边溢出全 **0**。
+
+> 🔒 **未改动 DEC-07 / DEC-09 / DEC-14 / DEC-16**；`MIN_CONTENT_W=1024` / `MIN_CONTENT_H=680` / `TARGET_W=1440` / `TARGET_H=900` / `EDGE_MARGIN=32` / `useContentSize:true` / 原生菜单栏配置**全部保留**；`src/core.js`、`src/app.js`、appId / IPC / 用户数据目录**未触碰**。
+>
+> 📎 完整推导与实测数据见 [`test/reports/DPI-09-ASSESSMENT.md`](test/reports/DPI-09-ASSESSMENT.md) §3.9 与 [`README.md`](README.md) §1.7.4。
+
+---
+
+## 13. P7 补测 · 注册表卸载项与真版本覆盖升级（2026-11-03）
+
+> 本节记录 P7-FINAL-ACCEPTANCE 上一版记为 SKIP 的 6 项，本轮全部补做并实测通过（**28/28，0 跳过**）。全部改动**只落在 `desktop/test/` 与文档**，未触碰产品代码、`src/core.js`、`src/app.js`、appId / IPC / 用户数据目录。
+
+### 13.1 为什么推翻上一版「本环境禁 `reg.exe` → 只能 SKIP」的判断
+
+上一版的 SKIP 理由是「本环境禁止调用 `reg.exe`（`PROGRAM BLOCKED BY SECURITY POLICY`），按规矩不绕过」。本轮复核认为该推理**把「外部可执行文件被拦」错误等同于「注册表不可读」**：
+
+| 路径 | 性质 | 本轮结论 |
+|---|---|---|
+| `reg.exe` | 外部可执行文件，被平台策略拦截 | 确实不可用 |
+| PowerShell `Microsoft.Win32` 注册表提供程序 | **标准 .NET API**（`Get-ItemProperty` / `Get-ChildItem`），同一注册表读取接口的托管实现 | **完全可用**，非脚本包装、非等价绕过 |
+
+→ 既然注册表本身可读，就应当**真跑并如实记录**，而不是停在 SKIP。
+
+### 13.2 INS-05：安装后注册表卸载项创建（PASS）
+
+实测（NSIS `perMachine:false` → per-user，写 HKCU）：
+
+| 字段 | 实测值 |
+|---|---|
+| 键路径 | `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\{GUID}`（GUID 由安装器生成，不硬编码） |
+| `DisplayName` | `LED Ratio Tool 1.1.0` |
+| `DisplayVersion` | `1.1.0` |
+| `Publisher` | ✅ 已设 |
+| `UninstallString` | `… /currentuser` |
+| `QuietUninstallString` | `… /currentuser /S` |
+| `DisplayIcon` | ✅ 已设 |
+| `NoModify` / `NoRepair` | `1` / `1` |
+
+判据由「存在该项」升级为「存在 **且** 版本匹配 **且** 静默卸载串含 `/S` **且** NoModify/NoRepair 均为 1 **且** DisplayIcon 已设」。
+
+### 13.3 UNI-04：卸载后注册表项清除（PASS · 轮询判据）
+
+- 判据改为**轮询**（30 次 × 2s，上限 60s），实测**第 1 次轮询（2s）即 `count=0`**。
+- **必须记录的时序事实**：NSIS 异步卸载时，**卸载器主进程先退出、`_iu.exe` 继续删文件 / 快捷方式 / 注册表**，卸载项在 **2~8 秒内**才被清除。**一次性快照会把「异步未删完」误判成「没删」→ 假 FAIL**。`UNI-03`（快捷方式清除）同样采用轮询，原因一致。
+
+### 13.4 UPG-02~05：真版本覆盖升级（PASS · 含边界披露）
+
+以 `--legacy="desktop/dist-legacy/LED Ratio Tool-1.0.0-x64-setup.exe"` 真跑：
+
+| 项 | 实测 |
+|---|---|
+| **UPG-02** | legacy 包 FileVersion=1.0.0 → 安装 exit=0，装后 exe FileVersion=**1.0.0**（≠1.1.0，断言非空转），sha `bcb7f356…` |
+| **UPG-03** | 新版 exit=0，版本 **1.0.0 → 1.1.0**，新 exe sha `9df22ca4…` 与 `win-unpacked` **逐字节一致** |
+| **UPG-04** | 升级前写 `tolerancePercent=0.75` → 升级后仍为 **0.75** |
+| **UPG-05** | 升级后启动正常，2560×1440 → UI「**1.7778 : 1**」，错误位 `["",""]` |
+
+> ⚠️ **边界披露（不得夸大）**：GitHub Releases 为空、仓库仅存 `pre-desktop` tag，该 1.0.0 包**从未对外发行**。故 UPG-02~05 证明的是「**内部构建版本之间**的真实覆盖升级路径」，**不宣称为「公开发行版 → 新版」的升级验证**。
+
+### 13.5 附带发现：跨 hive 接管隐患（登记为后续改进，不阻塞首发）
+
+隔离实验（机器上已存在同 GUID 的旧安装项且位于 `HKLM`）证明：1.1.0 安装器会**卸载旧安装并把卸载项改写为 1.1.0，但仍留在 `HKLM` 且带 `/allusers`** → 普通用户在控制面板的可见性与卸载权限受影响。1.0.0 与 1.1.0 **单独安装时均为 per-user**（`HKCU` + `/currentuser`），二者共用同一 productGUID，故**覆盖升级路径本身正常**。
+
+### 13.6 顺带修掉的一处「假通过」
+
+`POR-04`（便携版零安装痕迹）原实现用 `spawnSync('reg', …)`，被策略拦截时 `status === null`，判据写的是 `status !== 0` → **`null !== 0` 恒真 → 假通过**。本轮改为真实读取消载项，判据为「Uninstall 项数量 === 0」，复跑实测 `Programs 目录=false｜Uninstall 项数量=0` → PASS。
+
+### 13.7 本轮新增待决事项
+
+| 编号 | 事项 | 优先级 | 状态 |
+|---|---|---|---|
+| **TK-179** | 跨 hive 接管：同 GUID 旧安装项在 `HKLM` 时，新安装器改写卸载项但仍留在 `HKLM` 且带 `/allusers`，影响普通用户控制面板可见性与卸载权限 | 不阻塞 | 待裁决：安装器侧显式收敛到 per-user 口径 |
 

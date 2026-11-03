@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-02T11:17:06.122Z",
+    "exe": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\dist\\win-unpacked\\LED Ratio Tool.exe",
+    "expectedPercent": 150
+  },
+  "blocked": true,
+  "measured": {
+    "scaleFactor": 1.25,
+    "dpr": 1.25
+  }
+}

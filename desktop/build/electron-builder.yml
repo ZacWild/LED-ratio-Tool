@@ -20,6 +20,9 @@ asar: true
 asarUnpack: []
 
 win:
+  # 🔒 D-08 品牌图标：resources/icon.ico 内含 16/24/32/48/64/128/256 七档
+  #    （16~128 为 32bpp BMP + AND 掩码，256 为 PNG），由 rcedit 写入 exe 资源表。
+  #    打包后任务栏 / 标题栏 / 开始菜单 / 桌面快捷方式所需的图标全部源自这一处。
   icon: resources/icon.ico
   target:
     - target: nsis
@@ -35,12 +38,16 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: LED 比例换算台
+  shortcutName: LED Ratio Tool
   # 🔴 electron-builder 26.18.0 的 NsisOptions 已**移除** shortcutIcon
   #    （additionalProperties:false → 未知键会导致整个 nsis 块校验失败，
   #    报错只列 null 分支，极难定位）。桌面快捷方式图标改由 installerIcon 决定。
   installerIcon: resources/icon.ico
   uninstallerIcon: resources/icon.ico
+  # 🔴 installerHeaderIcon 在本项目**无效**：scheme.json 标注
+  #    "*one-click installer only.*"，而本项目 oneClick:false（助手式安装器）。
+  #    助手式安装器的界面图标来自 MUI_ICON = installerIcon，桌面/开始菜单快捷方式
+  #    同样取 installerIcon —— 三个可见位置已由上面两行覆盖，勿再添加该键。
   # 🔴 NSIS 安装包与 portable 便携版**必须用不同文件名** ——
   #    两者共用 win.artifactName 时后构建的会覆盖先构建的（实测：portable 覆盖了 NSIS）。
   artifactName: '${productName}-${version}-${arch}-setup.${ext}'

@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "private": true,
   "license": "MIT",
-  "description": "LED 屏比例换算台 —— 屏幕尺寸与视频画布比例换算工具（Windows 桌面版）",
+  "description": "LED Ratio Tool —— 屏幕尺寸与视频画布比例换算工具（Windows 桌面版）",
   "main": "main/main.js",
   "engines": {
     "node": ">=20.0.0"
@@ -23,9 +23,14 @@
     "test:golden": "node test/golden-vectors.mjs",
     "test:golden:selftest": "node test/golden-negative-selftest.mjs",
     "test:dpi": "node test/dpi-acceptance.mjs",
+    "test:p7-artifacts": "node test/p7-artifacts.mjs",
+    "test:p7-acceptance": "node test/p7-acceptance.mjs",
+    "test:p7-dpi": "node test/p7-dpi.mjs",
     "test:pc": "node test/pc-verify.mjs",
+    "verify:icons": "node build/verify-icons.mjs",
+    "test:fuses": "node test/fuses-verify.mjs",
     "dev": "npm run preflight && node build/sync-assets.mjs && electron .",
-    "build:win": "npm run preflight && node build/sync-assets.mjs && electron-builder --win --x64 --config build/electron-builder.yml"
+    "build:win": "npm run preflight && npm run verify:icons && node build/sync-assets.mjs && electron-builder --win --x64 --config build/electron-builder.yml"
   },
   "dependencies": {},
   "devDependencies": {

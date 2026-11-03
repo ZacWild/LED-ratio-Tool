@@ -1,0 +1,503 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-03T05:11:51.942Z",
+    "exe": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\dist\\win-unpacked\\LED Ratio Tool.exe",
+    "expectedPercent": null,
+    "node": "v22.22.2",
+    "os": "Windows_NT 10.0.26300"
+  },
+  "measured": {
+    "scaleFactor": 1,
+    "scalePercent": 100,
+    "dpr": 1,
+    "screen": [
+      2560,
+      1440
+    ],
+    "avail": [
+      2560,
+      1408
+    ],
+    "ledger": {
+      "display": {
+        "id": 3036494085,
+        "label": "LEN P27q-10",
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "workArea": {
+          "x": 0,
+          "y": 32,
+          "width": 2560,
+          "height": 1408
+        },
+        "scaleFactor": 1
+      },
+      "bounds": {
+        "x": 552,
+        "y": 254,
+        "width": 1456,
+        "height": 965
+      },
+      "contentBounds": {
+        "x": 560,
+        "y": 311,
+        "width": 1440,
+        "height": 900
+      },
+      "content": {
+        "width": 1440,
+        "height": 900
+      },
+      "frame": {
+        "width": 1456,
+        "height": 965
+      },
+      "delta": {
+        "width": 16,
+        "height": 65
+      },
+      "workArea": {
+        "x": 0,
+        "y": 32,
+        "width": 2560,
+        "height": 1408
+      },
+      "scaleFactor": 1,
+      "heightTier": 1,
+      "zoomFactor": 1,
+      "fitsWorkArea": true,
+      "overflow": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "edges": {
+        "left": 552,
+        "top": 254,
+        "right": 2008,
+        "bottom": 1219
+      },
+      "plan": {
+        "display": {
+          "id": 3036494085,
+          "label": "LEN P27q-10",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "workArea": {
+            "x": 0,
+            "y": 32,
+            "width": 2560,
+            "height": 1408
+          },
+          "scaleFactor": 1
+        },
+        "bounds": {
+          "x": 552,
+          "y": 254,
+          "width": 1456,
+          "height": 965
+        },
+        "contentBounds": {
+          "x": 560,
+          "y": 311,
+          "width": 1440,
+          "height": 900
+        },
+        "content": {
+          "width": 1440,
+          "height": 900
+        },
+        "frameDelta": {
+          "width": 16,
+          "height": 65
+        },
+        "workArea": {
+          "x": 0,
+          "y": 32,
+          "width": 2560,
+          "height": 1408
+        },
+        "scaleFactor": 1,
+        "heightTier": 1,
+        "fitsWorkArea": true,
+        "overflow": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edges": {
+          "left": 552,
+          "top": 254,
+          "right": 2008,
+          "bottom": 1219
+        },
+        "budget": {
+          "fitsMinimum": true,
+          "exceedsMinimum": false,
+          "clampedToMinimum": false,
+          "maxContentWidth": 2512,
+          "maxContentHeight": 1311,
+          "shortfall": {
+            "width": 0,
+            "height": 0
+          },
+          "requiredWorkArea": {
+            "width": 1072,
+            "height": 777
+          },
+          "requiredWorkAreaForTarget": {
+            "width": 1488,
+            "height": 997
+          }
+        },
+        "minCalibration": {
+          "ok": true,
+          "converged": true,
+          "trace": [
+            {
+              "round": 1,
+              "step": "setMinimumSize(外框口径)+实测下限",
+              "minTrack": {
+                "minWidth": 1040,
+                "minHeight": 745
+              },
+              "actualMinContent": {
+                "width": 1024,
+                "height": 680
+              }
+            }
+          ]
+        },
+        "convergence": {
+          "converged": true,
+          "trace": [
+            {
+              "round": 1,
+              "requested": {
+                "width": 1440,
+                "height": 900
+              },
+              "actualContent": {
+                "width": 1440,
+                "height": 900
+              },
+              "measuredFrameDelta": {
+                "width": 16,
+                "height": 65
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "geometry": {
+    "overflowDoc": 0,
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "boxes": {
+      "#input-width": {
+        "w": 276,
+        "h": 36,
+        "visible": true,
+        "fontSize": "15px",
+        "text": "",
+        "inViewport": true
+      },
+      "#input-height": {
+        "w": 276,
+        "h": 36,
+        "visible": true,
+        "fontSize": "15px",
+        "text": "",
+        "inViewport": true
+      },
+      "#ratio-value": {
+        "w": 208,
+        "h": 48,
+        "visible": true,
+        "fontSize": "40px",
+        "text": "3.5000:1",
+        "inViewport": true
+      },
+      "#btn-swap": {
+        "w": 82,
+        "h": 36,
+        "visible": true,
+        "fontSize": "14px",
+        "text": "宽高互换",
+        "inViewport": true
+      },
+      "#btn-copy-resolution": {
+        "w": 105,
+        "h": 36,
+        "visible": true,
+        "fontSize": "13px",
+        "text": "⧉\n复制分辨率",
+        "inViewport": true
+      },
+      "#btn-copy-full": {
+        "w": 120,
+        "h": 36,
+        "visible": true,
+        "fontSize": "13px",
+        "text": "⧉\n复制完整参数",
+        "inViewport": true
+      }
+    },
+    "tier": "standard",
+    "layout": "three",
+    "stage": {
+      "display": "flex",
+      "h": 560
+    },
+    "stagePanel": {
+      "display": "flex",
+      "h": 784
+    },
+    "stageOverlay": {
+      "w": 562,
+      "h": 16,
+      "visible": true,
+      "fontSize": "11px",
+      "text": "3.5 : 1",
+      "inViewport": true
+    }
+  },
+  "windowGeometry": {
+    "display": {
+      "id": 3036494085,
+      "label": "LEN P27q-10",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "workArea": {
+        "x": 0,
+        "y": 32,
+        "width": 2560,
+        "height": 1408
+      },
+      "scaleFactor": 1
+    },
+    "bounds": {
+      "x": 552,
+      "y": 254,
+      "width": 1456,
+      "height": 965
+    },
+    "contentBounds": {
+      "x": 560,
+      "y": 311,
+      "width": 1440,
+      "height": 900
+    },
+    "measuredFrameDelta": {
+      "width": 16,
+      "height": 65
+    },
+    "devicePixelRatio": 1,
+    "position": {
+      "x": 552,
+      "y": 254
+    },
+    "edges": {
+      "left": 552,
+      "top": 254,
+      "right": 2008,
+      "bottom": 1219
+    },
+    "workAreaEdges": {
+      "left": 0,
+      "top": 32,
+      "right": 2560,
+      "bottom": 1440
+    },
+    "fourEdgeOverflow": {
+      "left": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0
+    },
+    "fits": true,
+    "budget": {
+      "fitsMinimum": true,
+      "exceedsMinimum": false,
+      "clampedToMinimum": false,
+      "maxContentWidth": 2512,
+      "maxContentHeight": 1311,
+      "shortfall": {
+        "width": 0,
+        "height": 0
+      },
+      "requiredWorkArea": {
+        "width": 1072,
+        "height": 777
+      },
+      "requiredWorkAreaForTarget": {
+        "width": 1488,
+        "height": 997
+      }
+    },
+    "minCalibration": {
+      "ok": true,
+      "converged": true,
+      "trace": [
+        {
+          "round": 1,
+          "step": "setMinimumSize(外框口径)+实测下限",
+          "minTrack": {
+            "minWidth": 1040,
+            "minHeight": 745
+          },
+          "actualMinContent": {
+            "width": 1024,
+            "height": 680
+          }
+        }
+      ]
+    },
+    "convergence": {
+      "converged": true,
+      "trace": [
+        {
+          "round": 1,
+          "requested": {
+            "width": 1440,
+            "height": 900
+          },
+          "actualContent": {
+            "width": 1440,
+            "height": 900
+          },
+          "measuredFrameDelta": {
+            "width": 16,
+            "height": 65
+          }
+        }
+      ]
+    },
+    "heightTier": 1,
+    "renderLayerGeometry": {
+      "screenX": 552,
+      "screenY": 254,
+      "outerWidth": 1456,
+      "outerHeight": 965,
+      "innerWidth": 1440,
+      "innerHeight": 900,
+      "availWidth": 2560,
+      "availHeight": 1408
+    }
+  },
+  "results": [
+    {
+      "id": "DPI-01",
+      "title": "系统缩放（按实测记录，不作判定）",
+      "pass": null,
+      "detail": "实测 100%（scaleFactor=1）",
+      "group": "render"
+    },
+    {
+      "id": "DPI-03",
+      "title": "无文档级横向溢出",
+      "pass": true,
+      "detail": "scrollWidth-clientWidth = 0（视口 1440×900，高度档位 standard，布局 three）",
+      "group": "render"
+    },
+    {
+      "id": "DPI-08",
+      "title": "舞台折叠符合 DEC-16（折叠时叠加标签允许不可见）",
+      "pass": true,
+      "detail": "#stage 展开（高 560px）→ #dim-ratio 可见=true",
+      "group": "render"
+    },
+    {
+      "id": "DPI-04",
+      "title": "可交互控件命中区 ≥32×32 CSS px",
+      "pass": true,
+      "detail": "input-width=276×36｜input-height=276×36｜btn-swap=82×36｜btn-copy-resolution=105×36｜btn-copy-full=120×36",
+      "group": "render"
+    },
+    {
+      "id": "DPI-05",
+      "title": "四类核心操作（输入/结果/复制）全部可见",
+      "pass": true,
+      "detail": "6 个核心控件均 visible",
+      "group": "render"
+    },
+    {
+      "id": "DPI-09",
+      "title": "窗口完整落在当前工作区内（四边核验）",
+      "pass": true,
+      "detail": "外框 getBounds() 1456×965 @(552,254)｜工作区 workArea 2560×1408 @(0,32)｜客户区 getContentBounds() 1440×900｜实测非客户区 16×65｜四边溢出 左0/上0/右0/下0｜显示器 id=3036494085 sf=1",
+      "group": "fit",
+      "status": "PASS",
+      "overflow": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "edges": {
+        "left": 552,
+        "top": 254,
+        "right": 2008,
+        "bottom": 1219
+      },
+      "workAreaEdges": {
+        "left": 0,
+        "top": 32,
+        "right": 2560,
+        "bottom": 1440
+      }
+    },
+    {
+      "id": "DPI-06",
+      "title": "核心换算正确且结果对用户可见（1920×1080 → 16:9）",
+      "pass": true,
+      "detail": "#ratio-value 显示「1.7778:1」｜期望「1.7778:1」｜可见=true（208×48，字号 40px）",
+      "group": "render"
+    },
+    {
+      "id": "DPI-07",
+      "title": "截图已留存（供人工复核真实观感）",
+      "pass": true,
+      "detail": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\p7-dpi\\dpi-100.png（148 KB）",
+      "group": "render"
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "pass": 7,
+    "fail": 0,
+    "blocked": 0,
+    "skip": 1,
+    "render": {
+      "total": 7,
+      "pass": 6,
+      "fail": 0,
+      "blocked": 0,
+      "skip": 1
+    },
+    "fit": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "blocked": 0,
+      "skip": 0
+    },
+    "verdict": "PASS"
+  }
+}

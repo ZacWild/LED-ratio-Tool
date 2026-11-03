@@ -1862,7 +1862,7 @@
     }
 
     var v = versionData || {};
-    row('应用名称', 'LED 比例换算台');
+    row('应用名称', 'LED Ratio Tool');
     row('桌面版本', v.version || '—');
     row('计算内核', v.coreVersion || '—');
     row('HTML 版', v.htmlVersion || '—');
