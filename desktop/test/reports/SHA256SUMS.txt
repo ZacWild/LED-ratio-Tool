@@ -1,0 +1,5 @@
+b3e66f290b9455ad403171684d6f1a56858000fffc12ebc4474b68e6224fdc25  LED Ratio Tool-1.1.0-x64-setup.exe
+36d1aa423e432e1254498f6d5c90f7da7b1d7a5e76f43a81511daae0a2b4d6f2  LED Ratio Tool-1.1.0-x64-setup.exe.blockmap
+dbce57ba3dafce9a49a10146320e36653ee388c7b1cf8e2a11a6ea8b1b7ee5a1  LED Ratio Tool-1.1.0-x64-portable.exe
+314ae01f1f3ade2e0cec44aef0e3a936625dd96b5b73970dc7ffadf65393d7b4  win-unpacked/LED Ratio Tool.exe
+5fa8d76af70336c6cc67fe7698c631b5558ce10dd4df2c634aea7b03755cbd59  win-unpacked/resources/app.asar

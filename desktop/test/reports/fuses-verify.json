@@ -1,10 +1,10 @@
 {
   "meta": {
-    "generatedAt": "2026-11-02T10:12:28.563Z",
+    "generatedAt": "2026-11-03T00:22:26.499Z",
     "exe": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\dist\\win-unpacked\\LED Ratio Tool.exe",
     "exeBytes": 249865728,
-    "appAsarBytes": 356159,
-    "appAsarSha256": "a0e64f773b6be7b10583e852ff4e7492c5f54208ffc7f887c55e315d43078d96",
+    "appAsarBytes": 363787,
+    "appAsarSha256": "5fa8d76af70336c6cc67fe7698c631b5558ce10dd4df2c634aea7b03755cbd59",
     "node": "v22.22.2",
     "platform": "win32"
   },
@@ -83,15 +83,15 @@
       "id": "F-05",
       "title": "exe 内 ELECTRONASAR == app.asar header JSON 的 SHA-256（非整档哈希）",
       "ok": true,
-      "detail": "嵌入值 == sha256(app.asar header JSON)（b2251cffcadbfa9d…，alg=SHA256，条目 resources\\app.asar）",
+      "detail": "嵌入值 == sha256(app.asar header JSON)（fa82d9724d6045de…，alg=SHA256，条目 resources\\app.asar）",
       "asarIntegrity": [
         {
           "file": "resources\\app.asar",
           "alg": "SHA256",
-          "value": "b2251cffcadbfa9d937442699749170a76d5afd47037f4cb611750c0c79bc085"
+          "value": "fa82d9724d6045dedda361b1ae0d70e61af05ea263c5309e61cd118cd24a33fa"
         }
       ],
-      "headerSha": "b2251cffcadbfa9d937442699749170a76d5afd47037f4cb611750c0c79bc085"
+      "headerSha": "fa82d9724d6045dedda361b1ae0d70e61af05ea263c5309e61cd118cd24a33fa"
     },
     {
       "id": "F-06",
@@ -143,14 +143,14 @@
       "detail": "启动前 FATAL：Integrity check failed for asar archive entry '<header>'（退出码 2147483651）",
       "tamperAt": 120,
       "exitCode": 2147483651,
-      "stderr": "[33632:1102/181219.787:FATAL:electron\\shell\\common\\asar\\asar_util.cc:357] Integrity check failed for asar archive entry '<header>' (b2251cffcadbfa9d937442699749170a76d5afd47037f4cb611750c0c79bc085 vs 40223fb69a6a8dbf638d8132c23f89b517bd203a5bfa38ad24bf9d5247fdefa9, 3833 bytes)\r\n"
+      "stderr": "[436:1103/082217.697:FATAL:electron\\shell\\common\\asar\\asar_util.cc:357] Integrity check failed for asar archive entry '<header>' (fa82d9724d6045dedda361b1ae0d70e61af05ea263c5309e61cd118cd24a33fa vs b41d7e897c7fb35d26b9fbf6ac57fcf0a9d11cb8614ade35310b53cdd51e938e, 4089 bytes)\r\n"
     },
     {
       "id": "D-04b",
       "title": "篡改主进程脚本（Node 读取路径）→ 启动前即被拒（per-file hash 校验）",
       "ok": true,
       "detail": "启动前被拒：ASAR Integrity Violation（main/csp.js@0，退出码 1）",
-      "tamperAt": 3852,
+      "tamperAt": 4108,
       "file": "main/csp.js",
       "exitCode": 1,
       "stderr": "ASAR Integrity Violation: got a hash mismatch (4bb5d678adb8e4b59f1562c29c3c74cd72e2013ca520981c879644c7e066c28e vs 432cb2d015f05f46b4ab252a970dce6ce7ae3c8546a7b96408ba16589d6864fc)\n"
@@ -160,11 +160,11 @@
       "title": "篡改渲染资源末块 → 必须被检测并非零退出（允许已启动后 FATAL，见边界说明）",
       "ok": true,
       "detail": "已检测但未阻断启动：应用先启动，读取 renderer/styles.css 到损坏块后 FATAL（退出码 2147483651）—— Chromium 侧为流式 block 校验，错误时点在 stream end",
-      "tamperAt": 356158,
+      "tamperAt": 363786,
       "file": "renderer/styles.css",
       "started": true,
       "exitCode": 2147483651,
-      "stderr": "[37952:1102/181220.466:FATAL:electron\\shell\\browser\\net\\asar\\asar_file_validator.cc:129] Failed to validate block while ending ASAR file stream: 0\r\n"
+      "stderr": "[16032:1103/082218.387:FATAL:electron\\shell\\browser\\net\\asar\\asar_file_validator.cc:129] Failed to validate block while ending ASAR file stream: 0\r\n"
     },
     {
       "id": "D-05",
@@ -184,7 +184,7 @@
       "id": "R-01",
       "title": "破坏性用例后产物已完整还原",
       "ok": true,
-      "detail": "resources/ 已还原，app.asar SHA-256 与原始一致（a0e64f773b6be7b1…）"
+      "detail": "resources/ 已还原，app.asar SHA-256 与原始一致（5fa8d76af70336c6…）"
     }
   ],
   "summary": {

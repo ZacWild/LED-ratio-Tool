@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-02T11:10:08.573Z",
+    "generatedAt": "2026-11-03T00:23:39.339Z",
     "version": "1.1.0",
     "platform": "Windows_NT 10.0.26300 x64",
     "totalMemGB": 16,
@@ -11,16 +11,18 @@
       "id": "ART-01",
       "title": "验收对象与 P7-4 指纹一致（防调包）",
       "pass": true,
-      "detail": "setup 732c4603ed4fe9c9… / portable 957bb99b67d82a31…（与 p7-artifacts.json 比对一致）",
-      "shaSetup": "732c4603ed4fe9c913a7b869af58df72ff68ee0e100032714a1b6fbbf8029dc2",
-      "shaPort": "957bb99b67d82a314bf1fabb2480bcc6969d4d84f7c75a51e5f958855a560be4"
+      "detail": "setup b3e66f290b9455ad… / portable dbce57ba3dafce9a…（与 p7-artifacts.json 比对一致）",
+      "shaSetup": "b3e66f290b9455ad403171684d6f1a56858000fffc12ebc4474b68e6224fdc25",
+      "shaPort": "dbce57ba3dafce9a49a10146320e36653ee388c7b1cf8e2a11a6ea8b1b7ee5a1"
     },
     {
       "id": "ART-02",
-      "title": "签名状态已明确披露（未签名不得写成已签名）",
+      "title": "签名状态如实披露（首发 NotSigned = Owner Accepted）",
       "pass": true,
-      "detail": "NotSigned：三处 PE 证书表为空，构建日志明确 \"no code signing certificate configured, signing is skipped\" → 属 P7 发布阻塞项",
-      "signed": false
+      "detail": "Owner Accepted：NotSigned（三处 PE 证书表为空，构建日志 \"no code signing certificate configured, signing is skipped\"）。项目负责人明确首发不签名、后续按用户量决定补签 → 非 P7 阻塞项。风险提示：未签名产物在 Windows SmartScreen / Smart App Control 下可能被拦截或提示「未知发布者」，需现场放行或改用 HTML 版。",
+      "signed": false,
+      "verdict": "OwnerAccepted",
+      "firstReleaseNotSigned": true
     },
     {
       "id": "INS-01",
@@ -32,7 +34,7 @@
       "id": "INS-02",
       "title": "安装后的主程序与 win-unpacked 逐字节一致",
       "pass": true,
-      "detail": "installed=c798d7f03a7ce016… unpacked=c798d7f03a7ce016…"
+      "detail": "installed=314ae01f1f3ade2e… unpacked=314ae01f1f3ade2e…"
     },
     {
       "id": "INS-03",
@@ -56,7 +58,7 @@
       "id": "RUN-01",
       "title": "安装版启动成功并完成布局（台账实测）",
       "pass": true,
-      "detail": "客户区=1024×681｜scaleFactor=1｜heightTier=3"
+      "detail": "客户区=1440×900｜scaleFactor=1｜heightTier=1"
     },
     {
       "id": "RUN-02",
@@ -77,8 +79,8 @@
       "id": "RUN-04",
       "title": "运行期零出网请求（离线可用性的硬证据）",
       "pass": true,
-      "detail": "已审计 6 条请求，全部为 app:/data: 内部资源",
-      "totalRequests": 6
+      "detail": "已审计 7 条请求，全部为 app:/data: 内部资源",
+      "totalRequests": 7
     },
     {
       "id": "RUN-05",
@@ -95,7 +97,7 @@
         "schemaVersion": 1,
         "tolerancePercent": 1.75,
         "createdAt": "2026-11-02T11:07:37.192Z",
-        "updatedAt": "2026-11-02T11:08:53.317Z"
+        "updatedAt": "2026-11-03T00:22:54.398Z"
       }
     },
     {
@@ -125,30 +127,27 @@
     },
     {
       "id": "UPG-02",
-      "title": "旧版本安装成功（升级基线）",
-      "pass": true,
-      "detail": "legacy exit=0｜旧版 exe sha=bcb7f35645b4b59c…"
+      "title": "旧版本安装（升级基线）",
+      "pass": null,
+      "detail": "未提供 --legacy=<旧安装包>，真升级未执行（不当成通过）"
     },
     {
       "id": "UPG-03",
-      "title": "版本升级覆盖成功（主程序已换成当前版本）",
-      "pass": true,
-      "detail": "升级 exit=0｜新 exe sha=c798d7f03a7ce016…｜与 1.1.0 一致=true"
+      "title": "版本升级覆盖成功",
+      "pass": null,
+      "detail": "同上：缺少旧版本产物"
     },
     {
       "id": "UPG-04",
-      "title": "升级后设置保留（未被重置）",
-      "pass": true,
-      "detail": "tolerancePercent=0.75（升级前写入 0.75）"
+      "title": "升级后设置保留",
+      "pass": null,
+      "detail": "同上"
     },
     {
       "id": "UPG-05",
-      "title": "升级后启动正常且换算正确（2560×1440 → 16:9）",
-      "pass": true,
-      "detail": "UI 显示「1.7778 : 1」｜期望「1.7778 : 1」｜输入框 2560×1440｜错误位 [\"\",\"\"]",
-      "shown": "1.7778 : 1",
-      "w3": "2560",
-      "h3": "1440"
+      "title": "升级后启动正常且换算正确",
+      "pass": null,
+      "detail": "同上"
     },
     {
       "id": "UNI-01",
@@ -178,13 +177,13 @@
       "id": "POR-01",
       "title": "便携版从中立目录启动成功（不依赖安装）",
       "pass": true,
-      "detail": "副本 sha=957bb99b67d82a31…｜document.title「LED 大屏比例与视频画布换算工具」｜目录 C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Portable Neutral"
+      "detail": "副本 sha=dbce57ba3dafce9a…｜document.title「LED Ratio Tool」｜目录 C:\\Users\\A\\AppData\\Local\\Temp\\LED Ratio Portable Neutral"
     },
     {
       "id": "POR-02",
       "title": "断网环境下核心换算仍正确（proxy 指向黑洞端口）",
       "pass": true,
-      "detail": "1920×1200 → UI「1.6 : 1」（期望「1.6 : 1」）｜外部请求 0 条｜总请求 6 条",
+      "detail": "1920×1200 → UI「1.6 : 1」（期望「1.6 : 1」）｜外部请求 0 条｜总请求 7 条",
       "shown": "1.6 : 1",
       "external": 0
     },
@@ -203,9 +202,9 @@
   ],
   "summary": {
     "total": 28,
-    "pass": 26,
+    "pass": 22,
     "fail": 0,
-    "skip": 2,
+    "skip": 6,
     "verdict": "PASS_WITH_SKIP"
   }
 }

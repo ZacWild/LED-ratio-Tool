@@ -276,9 +276,15 @@ async function main() {
              : '未找到 p7-artifacts.json，按实测哈希记录',
       { shaSetup, shaPort });
     const unsigned = art ? !art.signatureSummary.anySigned : true;
-    rec('ART-02', '签名状态已明确披露（未签名不得写成已签名）', true,
-      unsigned ? 'NotSigned：三处 PE 证书表为空，构建日志明确 "no code signing certificate configured, signing is skipped" → 属 P7 发布阻塞项' : '存在已签名产物',
-      { signed: !unsigned });
+    // 🔴 P7 最终验收口径（项目负责人裁决，2026-11-03）：首发**明确采用 NotSigned**，
+    //    不采购、不配置代码签名证书，后续根据用户量决定是否补签。
+    //    因此「未签名」不再列为当前 P7 发布阻塞项，但必须**如实记录**并保留
+    //    SmartScreen / Smart App Control 风险提示，绝不伪装为已签名。
+    rec('ART-02', '签名状态如实披露（首发 NotSigned = Owner Accepted）', true,
+      unsigned
+        ? 'Owner Accepted：NotSigned（三处 PE 证书表为空，构建日志 "no code signing certificate configured, signing is skipped"）。项目负责人明确首发不签名、后续按用户量决定补签 → 非 P7 阻塞项。风险提示：未签名产物在 Windows SmartScreen / Smart App Control 下可能被拦截或提示「未知发布者」，需现场放行或改用 HTML 版。'
+        : '存在已签名产物',
+      { signed: !unsigned, verdict: 'OwnerAccepted', firstReleaseNotSigned: true });
   }
 
   /* ========== B. NSIS 安装 ========== */

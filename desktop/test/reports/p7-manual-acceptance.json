@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-03T00:29:37.194Z",
+    "version": "1.1.0",
+    "portable": "LED Ratio Tool-1.1.0-x64-portable.exe",
+    "portableSha256": "dbce57ba3dafce9a49a10146320e36653ee388c7b1cf8e2a11a6ea8b1b7ee5a1"
+  },
+  "results": [
+    {
+      "id": "MAN-01",
+      "title": "窗口标题（渲染层 document.title）= LED Ratio Tool",
+      "pass": true,
+      "detail": "document.title「LED Ratio Tool」"
+    },
+    {
+      "id": "MAN-02",
+      "title": "窗口标题（BrowserWindow 层 / 任务栏标题）= LED Ratio Tool",
+      "pass": true,
+      "detail": "MainWindowTitle「LED Ratio Tool」"
+    },
+    {
+      "id": "MAN-03",
+      "title": "顶栏实时分辨率 waiting 态 = 等待换算（清空输入后）",
+      "pass": true,
+      "detail": "清空后「等待换算」"
+    },
+    {
+      "id": "MAN-04",
+      "title": "顶栏实时分辨率 ready 态 = 1920 × 1080 px",
+      "pass": true,
+      "detail": "输入 1920×1080 →「1920 × 1080 px」"
+    },
+    {
+      "id": "MAN-05",
+      "title": "顶栏实时分辨率 error 态 = 暂不可计算",
+      "pass": true,
+      "detail": "输入非法 →「暂不可计算」"
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0,
+    "skip": 0,
+    "verdict": "PASS"
+  }
+}
