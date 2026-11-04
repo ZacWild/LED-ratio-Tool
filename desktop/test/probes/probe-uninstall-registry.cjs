@@ -35,7 +35,7 @@ const argOf = (n) => {
 };
 
 const DESKTOP = path.join(__dirname, '..', '..');
-const SETUP = argOf('setup') || path.join(DESKTOP, 'dist', 'LED Ratio Tool-1.1.0-x64-setup.exe');
+const SETUP = argOf('setup') || path.join(DESKTOP, 'dist', 'LED Ratio Tool-1.2.0-x64-setup.exe');
 const LEGACY = argOf('legacy') || null;
 const INSTALL_DIR = path.join(os.tmpdir(), 'LED Ratio Tool RegProbe');
 const INSTALLED_EXE = path.join(INSTALL_DIR, 'LED Ratio Tool.exe');

@@ -1,0 +1,60 @@
+{
+  "generatedAt": "2026-11-04T02:21:03.516Z",
+  "summary": {
+    "total": 8,
+    "pass": 8,
+    "fail": 0,
+    "verdict": "PASS"
+  },
+  "convention": "1 px = 1 mm（仅用于单位切换显示换算；比例计算只取决于宽高比，与折算率无关）",
+  "results": [
+    {
+      "id": "PX-01",
+      "title": "px 按钮存在且可选中",
+      "ok": true,
+      "detail": "存在=true aria-checked=true state.unit=px"
+    },
+    {
+      "id": "PX-02",
+      "title": "输入框单位徽标显示 px",
+      "ok": true,
+      "detail": "badge=\"px\""
+    },
+    {
+      "id": "PX-03",
+      "title": "1920×1080 px → 1.7778（16:9）",
+      "ok": true,
+      "detail": "decimal=1.7778 整数比=16:9 exact=true error=\"\""
+    },
+    {
+      "id": "PX-04",
+      "title": "3840×1080 px → 3.5556（32:9）",
+      "ok": true,
+      "detail": "decimal=3.5556 整数比=32:9 exact=true error=\"\""
+    },
+    {
+      "id": "PX-05",
+      "title": "mm→px 切换显示换算（14000 mm → 14000 px，1:1 折算）",
+      "ok": true,
+      "detail": "unit=px 文本=14000×4000"
+    },
+    {
+      "id": "PX-06",
+      "title": "px 档步进按钮 +1 → 14001",
+      "ok": true,
+      "detail": "widthText=14001"
+    },
+    {
+      "id": "PX-07",
+      "title": "px→m 切换（14001 px → 14.001 m），比例不变",
+      "ok": true,
+      "detail": "unit=m 文本=14.001×4（比例显示由 live=1920 × 549 px 承载）"
+    },
+    {
+      "id": "PX-08",
+      "title": "复制完整参数含 px 单位标签",
+      "ok": true,
+      "detail": "屏幕实际尺寸：14001 px × 4000 px"
+    }
+  ]
+}

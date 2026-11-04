@@ -7,7 +7,7 @@
  *   PS-01          —— 匹配容差持久化到 settings.json（经 IPC）
  *   DEC-11         —— app:// 是安全上下文，localStorage 可用，但统一走 IPC 更可控
  *
- * 🔒 本补丁只做**四处**适配，绝不改动业务逻辑：
+ * 🔒 本补丁只做**五处**适配，绝不改动业务逻辑：
  *   ① 持久化：localStorage 读写 → ledApi.settingsGet / settingsSet
  *   ② 剪贴板：navigator.clipboard / legacyCopy → ledApi.clipboardWriteText
  *   ③ 复制反馈：**已上移到 src/app.js**（TK-101 · Step 6 第 2 阶段）——
@@ -15,6 +15,9 @@
  *        桌面版直接继承该修复，**不再需要**适配器补丁（单一实现，避免两份逻辑漂移）
  *   ④ 能力暴露：把 app.js 的内部函数挂到 LedApp 上，供桌面交互层**复用**
  *      —— 复制载荷与 HTML 版逐字一致的唯一可靠做法（不重复实现任何计算）
+ *   ⑤ 步进按钮 data-glyph 注入（index.html 副本）
+ *   ⑥ PX 输入单位（桌面专属）：UNIT_SPEC + PX_UNIT 归一 + 单位按钮注入；
+ *      不触碰 src/core.js / src/app.js / 根 index.html 源文件
  *
  * 🔒 应用方式：由 build/sync-assets.mjs 在同步 app.js 之后应用，
  *    **不修改仓库源文件**（DEC-03：HTML 版零回灌）。
@@ -156,6 +159,101 @@ const GLYPH_MAP = [
 ];
 
 /**
+ * ⑥ PX 输入单位适配（桌面版专属 · 2026-11-04）
+ *
+ * 🔴 需求：Windows 桌面版输入框单位组新增「px」，用户可直接输入 LED 控制器 /
+ *    视频画布的原生像素分辨率（如 3840×1080）计算比例。
+ *
+ * 🔒 边界（任务约束，逐条核对）：
+ *   · **不修改** `src/core.js`（哈希锁保护）—— core 只认物理单位 m/cm/mm
+ *     （UNIT_TO_MM），因此桌面副本在调用 core 前用 PX_UNIT() 把 px 归一为 mm；
+ *   · **不修改** `src/app.js` 与根目录 `index.html`（受保护源）——
+ *     全部补丁只作用于**桌面副本**（DEC-03：HTML 版零回灌）；
+ *   · HTML 离线版因此**没有** px 单位（桌面专属能力）。
+ *
+ * 🔴 折算口径（如实披露）：**1 px = 1 mm**。该折算**只**影响单位切换时的
+ *    显示换算（如 14 m → 14000 px）；比例计算只取决于宽高比，与折算率无关。
+ *    px 档 step = 1（配合 app.js 的 fast 步进 ×10）、digits = 0（像素为整数）。
+ *    格式化链路零改动：formatMm 的除数表对 px 自然回落为 1（与 mm 同）。
+ *
+ * 应用点：
+ *   A. app.js 副本 —— UNIT_SPEC 增加 px 档 + 注入 PX_UNIT() 归一函数 +
+ *      全部 7 处 `Core.parseDimension(…, state.unit)` 改为 `PX_UNIT(state.unit)`；
+ *   B. index.html 副本 —— 单位分段组注入 px 按钮（app.js 按 .unit-segment
+ *      通用绑定，aria-checked 同步、输入框单位徽标、复制参数标签全部自动生效）。
+ */
+const PX_UNIT_SPEC_ANCHOR = `  var UNIT_SPEC = {
+    m: { step: 0.1, digits: 3, label: 'm' },
+    cm: { step: 1, digits: 3, label: 'cm' },
+    mm: { step: 10, digits: 1, label: 'mm' }
+  };`;
+const PX_UNIT_SPEC_PATCH = `  /* ---- desktop-adapter: px-unit ----
+     px 输入单位（桌面版专属）：core.js 只认物理单位，故传参前把 px 归一为 mm
+     （1 px = 1 mm 折算，仅用于单位切换显示；比例计算只取决于宽高比，与折算率无关）。 */
+  function PX_UNIT(u) { return u === 'px' ? 'mm' : u; }
+  var UNIT_SPEC = {
+    m: { step: 0.1, digits: 3, label: 'm' },
+    cm: { step: 1, digits: 3, label: 'cm' },
+    mm: { step: 10, digits: 1, label: 'mm' },
+    px: { step: 1, digits: 0, label: 'px' }
+  };`;
+
+/** core 调用点的单位实参 → PX_UNIT() 包裹（共 4 种形态 / 7 处） */
+const PX_CALL_REWRITES = [
+  ['Core.parseDimension(state.widthText, state.unit)', 'Core.parseDimension(state.widthText, PX_UNIT(state.unit))', 2],
+  ['Core.parseDimension(state.heightText, state.unit)', 'Core.parseDimension(state.heightText, PX_UNIT(state.unit))', 2],
+  ['Core.parseDimension(text, state.unit)', 'Core.parseDimension(text, PX_UNIT(state.unit))', 1],
+  ['Core.parseDimension(newText, state.unit)', 'Core.parseDimension(newText, PX_UNIT(state.unit))', 2],
+];
+
+/** px 按钮注入锚点：mm 按钮整行 */
+const PX_BUTTON_ANCHOR = `<button type="button" class="segmented__item unit-segment" data-unit="mm" role="radio" aria-checked="false">mm</button>`;
+const PX_BUTTON_HTML = `<button type="button" class="segmented__item unit-segment" data-unit="px" role="radio" aria-checked="false" title="按像素输入：px 与 mm 按 1:1 折算用于单位切换显示，比例计算与折算无关">px</button>`;
+
+/**
+ * ⑥-A 对同步后的 app.js 桌面副本应用 px 单位补丁。
+ */
+function applyPxUnitToApp(src, applied, skipped) {
+  if (src.includes('desktop-adapter: px-unit')) {
+    applied.push('px-unit（已应用，跳过）');
+    return src;
+  }
+  if (!src.includes(PX_UNIT_SPEC_ANCHOR)) {
+    skipped.push('px-unit:UNIT_SPEC');
+    return src;
+  }
+  let out = src.replace(PX_UNIT_SPEC_ANCHOR, PX_UNIT_SPEC_PATCH);
+  let allOk = true;
+  for (const [from, to, expect] of PX_CALL_REWRITES) {
+    const count = out.split(from).length - 1;
+    if (count !== expect) {
+      skipped.push(`px-unit:调用点 "${from}" 期望 ${expect} 处、实测 ${count} 处`);
+      allOk = false;
+      continue;
+    }
+    out = out.split(from).join(to);
+  }
+  if (allOk) applied.push('px-unit');
+  return out;
+}
+
+/**
+ * ⑥-B 对同步后的 index.html 桌面副本注入 px 单位按钮。
+ */
+function applyPxButtonToIndex(src, applied, skipped) {
+  if (src.includes('data-unit="px"')) {
+    applied.push('px-button（已应用，跳过）');
+    return src;
+  }
+  if (!src.includes(PX_BUTTON_ANCHOR)) {
+    skipped.push('px-button:anchor');
+    return src;
+  }
+  applied.push('px-button');
+  return src.replace(PX_BUTTON_ANCHOR, PX_BUTTON_ANCHOR + '\n        ' + PX_BUTTON_HTML);
+}
+
+/**
  * 对同步后的 index.html 应用桌面适配。
  * @param {string} filePath desktop/renderer/index.html 的绝对路径
  * @returns {{applied: string[], skipped: string[]}}
@@ -184,6 +282,9 @@ function applyIndexAdapter(filePath) {
     src = src.replace(re, (all, o, text, c) => openTag + text + c);
     applied.push(`glyph:${id}`);
   }
+
+  // ⑥-B px 单位按钮（桌面专属；见 PX 单位适配说明）
+  src = applyPxButtonToIndex(src, applied, skipped);
 
   fs.writeFileSync(filePath, src, 'utf8');
   return { applied, skipped };
@@ -247,6 +348,9 @@ function applyDesktopAdapter(filePath) {
       }
     }
   }
+
+  // ---- ⑥ PX 输入单位（桌面专属；不触碰 src/core.js / src/app.js 源文件）---- */
+  src = applyPxUnitToApp(src, applied, skipped);
 
   fs.writeFileSync(filePath, src, 'utf8');
   return { applied, skipped };

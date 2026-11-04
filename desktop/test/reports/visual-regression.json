@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-03T04:03:16.600Z",
+    "generatedAt": "2026-11-04T02:30:20.973Z",
     "thresholdRatio": 0.001,
     "channelTolerance": 8,
     "masks": [
@@ -21,7 +21,7 @@
   },
   "summary": {
     "total": 3,
-    "fail": 3,
+    "fail": 0,
     "noBaseline": 0
   },
   "results": [
@@ -34,16 +34,28 @@
       },
       "clientSize": {
         "w": 1440,
-        "h": 901
+        "h": 900
       },
       "actualFile": "test/shots/visual-1440x900.png",
       "baselineFile": "test/baselines/shots/baseline-1440x900.png",
       "actualSize": {
-        "w": 1800,
-        "h": 1128
+        "w": 1440,
+        "h": 900
       },
-      "verdict": "FAIL",
-      "reason": "客户区回读 1440×901 ≠ 期望 1440×900（DEC-14）"
+      "diffPixels": 0,
+      "totalPixels": 1296000,
+      "maskedPixels": 8840,
+      "diffRatio": 0,
+      "diffRatioValue": 0,
+      "threshold": 0.001,
+      "diffFile": "test/reports/visual-diff-1440x900.png",
+      "overlayFile": "test/reports/visual-overlay-1440x900.png",
+      "baselineFileAbs": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\baselines\\shots\\baseline-1440x900.png",
+      "hotRegions": [],
+      "domAttribution": null,
+      "domAttributionAggregate": null,
+      "verdict": "PASS",
+      "reason": "像素差 0.0000% ≤ 阈值 0.100%"
     },
     {
       "size": "1200x800",
@@ -54,16 +66,28 @@
       },
       "clientSize": {
         "w": 1200,
-        "h": 801
+        "h": 800
       },
       "actualFile": "test/shots/visual-1200x800.png",
       "baselineFile": "test/baselines/shots/baseline-1200x800.png",
       "actualSize": {
-        "w": 1500,
-        "h": 1003
+        "w": 1200,
+        "h": 800
       },
-      "verdict": "FAIL",
-      "reason": "客户区回读 1200×801 ≠ 期望 1200×800（DEC-14）"
+      "diffPixels": 0,
+      "totalPixels": 960000,
+      "maskedPixels": 680,
+      "diffRatio": 0,
+      "diffRatioValue": 0,
+      "threshold": 0.001,
+      "diffFile": "test/reports/visual-diff-1200x800.png",
+      "overlayFile": "test/reports/visual-overlay-1200x800.png",
+      "baselineFileAbs": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\baselines\\shots\\baseline-1200x800.png",
+      "hotRegions": [],
+      "domAttribution": null,
+      "domAttributionAggregate": null,
+      "verdict": "PASS",
+      "reason": "像素差 0.0000% ≤ 阈值 0.100%"
     },
     {
       "size": "1024x680",
@@ -74,16 +98,28 @@
       },
       "clientSize": {
         "w": 1024,
-        "h": 682
+        "h": 680
       },
       "actualFile": "test/shots/visual-1024x680.png",
       "baselineFile": "test/baselines/shots/baseline-1024x680.png",
       "actualSize": {
-        "w": 1280,
-        "h": 853
+        "w": 1024,
+        "h": 680
       },
-      "verdict": "FAIL",
-      "reason": "客户区回读 1024×682 ≠ 期望 1024×680（DEC-14）"
+      "diffPixels": 0,
+      "totalPixels": 696320,
+      "maskedPixels": 0,
+      "diffRatio": 0,
+      "diffRatioValue": 0,
+      "threshold": 0.001,
+      "diffFile": "test/reports/visual-diff-1024x680.png",
+      "overlayFile": "test/reports/visual-overlay-1024x680.png",
+      "baselineFileAbs": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\baselines\\shots\\baseline-1024x680.png",
+      "hotRegions": [],
+      "domAttribution": null,
+      "domAttributionAggregate": null,
+      "verdict": "PASS",
+      "reason": "像素差 0.0000% ≤ 阈值 0.100%"
     }
   ]
 }

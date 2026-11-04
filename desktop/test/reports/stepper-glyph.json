@@ -1,0 +1,203 @@
+{
+  "generatedAt": "2026-11-04T02:16:14.505Z",
+  "method": "真实 BrowserWindow + getBoundingClientRect + ::before 计算样式 + 截图墨迹包围盒 + elementFromPoint 命中区扫描",
+  "glyphOffsetTolerancePx": 1.5,
+  "results": [
+    {
+      "id": "step-width-minus",
+      "button": {
+        "x": 247,
+        "y": 143,
+        "w": 32,
+        "h": 32
+      },
+      "before": {
+        "content": "\"−\"",
+        "position": "static",
+        "top": "auto",
+        "left": "auto",
+        "right": "auto",
+        "bottom": "auto",
+        "width": "24px",
+        "height": "24px",
+        "borderTop": "0px none",
+        "zIndex": "auto"
+      },
+      "buttonOutline": "3px none rgb(232, 234, 237)",
+      "center": {
+        "x": 263,
+        "y": 159
+      },
+      "hitArea": {
+        "w": 32,
+        "h": 32
+      },
+      "shot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\stepper-glyph\\step-width-minus.png",
+      "ink": {
+        "found": true,
+        "pixels": 8,
+        "bboxPx": {
+          "minX": 12,
+          "minY": 16,
+          "maxX": 19,
+          "maxY": 16
+        },
+        "centerInButtonCoords": {
+          "x": 15.5,
+          "y": 16
+        },
+        "offsetFromButtonCenter": {
+          "x": -0.5,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": "step-width-plus",
+      "button": {
+        "x": 281,
+        "y": 143,
+        "w": 32,
+        "h": 32
+      },
+      "before": {
+        "content": "\"+\"",
+        "position": "static",
+        "top": "auto",
+        "left": "auto",
+        "right": "auto",
+        "bottom": "auto",
+        "width": "24px",
+        "height": "24px",
+        "borderTop": "0px none",
+        "zIndex": "auto"
+      },
+      "buttonOutline": "3px none rgb(232, 234, 237)",
+      "center": {
+        "x": 297,
+        "y": 159
+      },
+      "hitArea": {
+        "w": 32,
+        "h": 32
+      },
+      "shot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\stepper-glyph\\step-width-plus.png",
+      "ink": {
+        "found": true,
+        "pixels": 20,
+        "bboxPx": {
+          "minX": 12,
+          "minY": 13,
+          "maxX": 19,
+          "maxY": 19
+        },
+        "centerInButtonCoords": {
+          "x": 15.5,
+          "y": 16
+        },
+        "offsetFromButtonCenter": {
+          "x": -0.5,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": "step-height-minus",
+      "button": {
+        "x": 247,
+        "y": 187,
+        "w": 32,
+        "h": 32
+      },
+      "before": {
+        "content": "\"−\"",
+        "position": "static",
+        "top": "auto",
+        "left": "auto",
+        "right": "auto",
+        "bottom": "auto",
+        "width": "24px",
+        "height": "24px",
+        "borderTop": "0px none",
+        "zIndex": "auto"
+      },
+      "buttonOutline": "3px none rgb(232, 234, 237)",
+      "center": {
+        "x": 263,
+        "y": 203
+      },
+      "hitArea": {
+        "w": 32,
+        "h": 32
+      },
+      "shot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\stepper-glyph\\step-height-minus.png",
+      "ink": {
+        "found": true,
+        "pixels": 8,
+        "bboxPx": {
+          "minX": 12,
+          "minY": 16,
+          "maxX": 19,
+          "maxY": 16
+        },
+        "centerInButtonCoords": {
+          "x": 15.5,
+          "y": 16
+        },
+        "offsetFromButtonCenter": {
+          "x": -0.5,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": "step-height-plus",
+      "button": {
+        "x": 281,
+        "y": 187,
+        "w": 32,
+        "h": 32
+      },
+      "before": {
+        "content": "\"+\"",
+        "position": "static",
+        "top": "auto",
+        "left": "auto",
+        "right": "auto",
+        "bottom": "auto",
+        "width": "24px",
+        "height": "24px",
+        "borderTop": "0px none",
+        "zIndex": "auto"
+      },
+      "buttonOutline": "3px none rgb(232, 234, 237)",
+      "center": {
+        "x": 297,
+        "y": 203
+      },
+      "hitArea": {
+        "w": 32,
+        "h": 32
+      },
+      "shot": "C:\\Users\\A\\WorkBuddy\\2026-10-29-11-12-26\\led-ratio-tool-repo\\desktop\\test\\shots\\stepper-glyph\\step-height-plus.png",
+      "ink": {
+        "found": true,
+        "pixels": 20,
+        "bboxPx": {
+          "minX": 12,
+          "minY": 13,
+          "maxX": 19,
+          "maxY": 19
+        },
+        "centerInButtonCoords": {
+          "x": 15.5,
+          "y": 16
+        },
+        "offsetFromButtonCenter": {
+          "x": -0.5,
+          "y": 0
+        }
+      }
+    }
+  ]
+}

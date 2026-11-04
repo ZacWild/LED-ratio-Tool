@@ -43,10 +43,15 @@
   var NEAR_21_9_PERCENT = 2.5;
 
   /** 各单位下步进步长与显示精度（m/cm 最多 3 位、mm 最多 1 位） */
+  /* ---- desktop-adapter: px-unit ----
+     px 输入单位（桌面版专属）：core.js 只认物理单位，故传参前把 px 归一为 mm
+     （1 px = 1 mm 折算，仅用于单位切换显示；比例计算只取决于宽高比，与折算率无关）。 */
+  function PX_UNIT(u) { return u === 'px' ? 'mm' : u; }
   var UNIT_SPEC = {
     m: { step: 0.1, digits: 3, label: 'm' },
     cm: { step: 1, digits: 3, label: 'cm' },
-    mm: { step: 10, digits: 1, label: 'mm' }
+    mm: { step: 10, digits: 1, label: 'mm' },
+    px: { step: 1, digits: 0, label: 'px' }
   };
 
   /** 现场需确认的参数层（第 ②③④ 层，本工具不推导） */
@@ -218,8 +223,8 @@
    * 做最小区分——只用 core 的判定结果，不重新实现校验逻辑。
    */
   function readDimensions() {
-    var w = Core.parseDimension(state.widthText, state.unit);
-    var h = Core.parseDimension(state.heightText, state.unit);
+    var w = Core.parseDimension(state.widthText, PX_UNIT(state.unit));
+    var h = Core.parseDimension(state.heightText, PX_UNIT(state.unit));
     return {
       ok: w.ok && h.ok,
       widthMm: w.ok ? w.mm : null,
@@ -1662,13 +1667,13 @@
   function bindEvents() {
     els.widthInput.addEventListener('input', function () {
       state.widthText = els.widthInput.value;
-      var parsed = Core.parseDimension(state.widthText, state.unit);
+      var parsed = Core.parseDimension(state.widthText, PX_UNIT(state.unit));
       if (parsed.ok) state.widthMm = parsed.mm;
       update();
     });
     els.heightInput.addEventListener('input', function () {
       state.heightText = els.heightInput.value;
-      var parsed = Core.parseDimension(state.heightText, state.unit);
+      var parsed = Core.parseDimension(state.heightText, PX_UNIT(state.unit));
       if (parsed.ok) state.heightMm = parsed.mm;
       update();
     });
@@ -1881,7 +1886,7 @@
     var spec = UNIT_SPEC[state.unit] || UNIT_SPEC.m;
     var step = spec.step * (fast ? 10 : 1);
     var text = which === 'width' ? state.widthText : state.heightText;
-    var parsed = Core.parseDimension(text, state.unit);
+    var parsed = Core.parseDimension(text, PX_UNIT(state.unit));
     if (!parsed.ok) return;
     var next = parsed.value + direction * step;
     if (next <= 0) return;
@@ -1889,10 +1894,10 @@
     if (newText.indexOf('.') >= 0) newText = newText.replace(/0+$/, '').replace(/\.$/, '');
     if (which === 'width') {
       state.widthText = newText;
-      state.widthMm = Core.parseDimension(newText, state.unit).mm;
+      state.widthMm = Core.parseDimension(newText, PX_UNIT(state.unit)).mm;
     } else {
       state.heightText = newText;
-      state.heightMm = Core.parseDimension(newText, state.unit).mm;
+      state.heightMm = Core.parseDimension(newText, PX_UNIT(state.unit)).mm;
     }
     update();
   }

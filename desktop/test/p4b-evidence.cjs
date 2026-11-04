@@ -666,7 +666,7 @@ async function main() {
     });
     const b07a =
       about.count >= 8 &&
-      about.map['桌面版本'] === '1.1.0' &&
+      about.map['桌面版本'] === require(path.join(DESKTOP, 'package.json')).version &&
       about.map['计算内核'] === 'core@1.0.1' &&
       about.map['HTML 版'] === '1.0.1';
     record('EV-B07a', '关于对话框三线版本（IPC 实读）', b07a,

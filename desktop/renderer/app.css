@@ -266,9 +266,24 @@ body.is-modal-open .panel {
   align-items: center;
   justify-content: center;
 }
-/* 视觉符号：24×24，与原视觉一致 */
+/* 视觉符号：24×24，与原视觉一致
+   🔴 必须显式复位 styles.css 的 ::before 级联残留（TK-STP-01）：
+   styles.css 的 .stepper__btn::before 是「绝对定位视觉面」
+   （position:absolute + inset:7px + border + z-index:-1，服务 HTML 版的
+   36×36 透明命中区设计）；桌面版已把视觉面移到按钮自身（32×32 实体边框盒），
+   ::before 只剩「绘制符号」一职。若不复位，24×24 符号盒会被
+   absolute + inset:7px 推到按钮右下角 —— 实测符号墨迹偏离中心 (+3.5, +4)px，
+   且多出一圈偏移的内边框（probe-stepper-glyph.cjs 改前基线取证）。
+   复位后 ::before 成为按钮 inline-flex 的普通 flex 项，由
+   align-items/justify-content 精确居中；:focus-visible 焦点环（画在 ::before 上）
+   随之与 32×32 按钮同心 —— 环的样式（2px 实线 + 2px 偏移）未变。 */
 .stepper__btn::before {
   content: attr(data-glyph);
+  position: static;
+  inset: auto;
+  z-index: auto;
+  border: none;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;

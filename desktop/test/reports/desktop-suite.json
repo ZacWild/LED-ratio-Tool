@@ -1,22 +1,22 @@
 {
   "meta": {
-    "generatedAt": "2026-11-03T09:07:58.327Z",
+    "generatedAt": "2026-11-04T02:29:19.152Z",
     "electron": "45.1.0",
     "node": "v22.22.2",
     "platform": "win32",
     "env": {
       "display": {
-        "id": 1897915132,
+        "id": 3036494085,
         "label": "LEN P27q-10",
         "scaleFactor": 1,
         "workArea": {
-          "x": 2560,
+          "x": 0,
           "y": 32,
           "width": 2560,
           "height": 1408
         },
         "bounds": {
-          "x": 2560,
+          "x": 0,
           "y": 0,
           "width": 2560,
           "height": 1440
@@ -27,13 +27,13 @@
         }
       },
       "workArea": {
-        "x": 2560,
+        "x": 0,
         "y": 32,
         "width": 2560,
         "height": 1408
       },
       "effectiveWorkArea": {
-        "x": 2560,
+        "x": 0,
         "y": 32,
         "width": 2560,
         "height": 1408
@@ -310,7 +310,7 @@
       "target": "每次改输入后，结果区 DOM 在 100ms 内完成更新",
       "input": "连续 5 次改输入宽度",
       "expect": "5 次延迟全部 ≤100ms",
-      "actual": "各次延迟=[3.300000011920929, 3.300000011920929, 2.900000035762787, 3, 3.300000011920929] ms 最大=3.300000011920929ms",
+      "actual": "各次延迟=[3.699999988079071, 3.599999964237213, 2.900000035762787, 3.800000011920929, 5] ms 最大=5ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -362,7 +362,7 @@
       "target": "Tab 40 次：顺序 = DOM 顺序；无隐藏焦点；分段控件整组只占 1 个 Tab 位",
       "input": "1440×900 三栏",
       "expect": "序列与 DOM 顺序一致 + 无隐藏焦点 + 分段组各占 1 个 Tab 位",
-      "actual": "停靠 40 个｜隐藏焦点 0｜与 DOM 顺序一致=true｜分组 Tab 位={\"单位分段(.unit-segment)\":{\"stops\":1,\"visible\":true,\"total\":3},\"比例来源(.ratio-source-segment)\":{\"stops\":1,\"visible\":true,\"total\":3},\"画布模式(.canvas-mode-segment)\":{\"stops\":1,\"visible\":true,\"total\":4},\"整数倍档位(.prefer-segment)\":{\"stops\":0,\"visible\":false,\"total\":2}}｜分组均 1 位=true",
+      "actual": "停靠 40 个｜隐藏焦点 0｜与 DOM 顺序一致=true｜分组 Tab 位={\"单位分段(.unit-segment)\":{\"stops\":1,\"visible\":true,\"total\":4},\"比例来源(.ratio-source-segment)\":{\"stops\":1,\"visible\":true,\"total\":3},\"画布模式(.canvas-mode-segment)\":{\"stops\":1,\"visible\":true,\"total\":4},\"整数倍档位(.prefer-segment)\":{\"stops\":0,\"visible\":false,\"total\":2}}｜分组均 1 位=true",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -505,7 +505,7 @@
       "target": "遍历可点击元素，逐像素扫描量出有效命中区 → ≥32×32",
       "input": "遍历步进/复制/开关/设置等可点击元素",
       "expect": "无元素有效命中区 <32×32",
-      "actual": "过小元素=0 个 []｜已测 21 个",
+      "actual": "过小元素=0 个 []｜已测 22 个",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -778,7 +778,7 @@
       "target": "超长含字母串 → ER-02 逐字；超长纯数字串 → 不崩溃、无 NaN/Infinity、后续操作 ≤500ms",
       "input": "宽 = \"9\".repeat(60) + \"abc\"；再 = \"9\".repeat(20)",
       "expect": "ER-02 逐字 + 纯数字串无 NaN 且可继续操作",
-      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=2.900000035762787ms",
+      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=3.099999964237213ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1259,7 +1259,7 @@
       "target": "焦点在舞台内 → 切到第③档 → 焦点迁移到 EL-ST-16，出现 400ms 高亮，全程不落 body",
       "input": "焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600",
       "expect": "焦点=EL-ST-16 且有高亮类；无 body 焦点",
-      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793696868856}",
+      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793759349766}",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
