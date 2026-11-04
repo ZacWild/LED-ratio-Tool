@@ -34,6 +34,8 @@ import { spawn, spawnSync } from 'node:child_process';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DESKTOP = path.join(__dirname, '..');
+const PKG = JSON.parse(fs.readFileSync(path.join(DESKTOP, 'package.json'), 'utf8'));
+const ART_VER = PKG.version; // 产物版本随 package.json 走，不再硬编码
 const DIST = path.join(DESKTOP, 'dist');
 const REPORTS = path.join(DESKTOP, 'test', 'reports');
 const APP_DIR = path.join(os.homedir(), 'AppData', 'Roaming', 'LED Ratio Tool');
@@ -169,9 +171,9 @@ async function main() {
   console.log('=== Preview Candidate 打包产物验收（Step 6 第 7 阶段）===\n');
 
   /* ---- 产物定位 ---- */
-  const setupExe = path.join(DIST, 'LED Ratio Tool-1.1.0-x64-setup.exe');
-  const portableExe = path.join(DIST, 'LED Ratio Tool-1.1.0-x64-portable.exe');
-  const legacyExe = path.join(DIST, 'LED Ratio Tool-1.1.0-x64.exe');
+  const setupExe = path.join(DIST, `LED Ratio Tool-${ART_VER}-x64-setup.exe`);
+  const portableExe = path.join(DIST, `LED Ratio Tool-${ART_VER}-x64-portable.exe`);
+  const legacyExe = path.join(DIST, `LED Ratio Tool-${ART_VER}-x64.exe`);
   const unpacked = path.join(DIST, 'win-unpacked');
   const appExe = path.join(unpacked, 'LED Ratio Tool.exe');
   const asar = path.join(unpacked, 'resources', 'app.asar');

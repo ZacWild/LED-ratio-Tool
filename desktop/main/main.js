@@ -5,7 +5,7 @@
  *   DEC-09 —— 启动窗口目标 1440×900，须适应目标屏幕可用工作区
  *   DEC-11 —— app:// 协议；不启用 bypassCSP
  *   DEC-12 —— appId 永久锁定 com.ledratiotool.desktop
- *   DEC-13 —— 桌面应用版本 1.1.0
+ *   DEC-13 —— 桌面应用版本 1.2.0（PX 输入单位 + 步进符号居中补丁）
  *   DEC-14 —— useContentSize: true，以客户区尺寸验收
  *   DEC-19 —— userData / sessionData 分离
  *   SEC-01~SEC-15 —— 进程模型、渲染配置、IPC、权限、内容加载
@@ -97,7 +97,7 @@ let menuStateTimer = null;
 
 /**
  * 🔒 三线版本（DEC-13）—— 全工程**唯一**的版本真源。
- *   桌面 1.1.0    ← app.getVersion()（读 desktop/package.json）
+ *   桌面 1.2.0    ← app.getVersion()（读 desktop/package.json）
  *   内核 core@1.0.1 ← core.lock.json 的 coreVersion
  *   HTML 1.0.1    ← 仓库根 package.json 的 version（HTML 版永久保留，DEC-03）
  * 渲染层只允许通过 IPC `app:v1:app.version` 读取，不得在多处手工维护。
