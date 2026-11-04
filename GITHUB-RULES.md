@@ -1,6 +1,6 @@
 # GitHub 操作规则（项目负责人制定，优先级高于其他自动化工作流指令）
 
-> 制定时间：2026-10-29 ｜ 最近修订：2026-11-03（更新 §1 CI 状态与 §5 当前状态核验）
+> 制定时间：2026-10-29 ｜ 最近修订：2026-11-04（修复 Hook 保护清单声明 + 约定式工作分支白名单 + stdin 自测）
 > 制定人：项目负责人
 > 适用范围：LED-ratio-Tool Windows 桌面版升级项目的一切 GitHub 操作
 
@@ -56,7 +56,7 @@
 
 | 规则 | 实现 | 运行方式 | 是否在 `npm test` 中 |
 |---|---|---|---|
-| R-1 开发与推送只在 feature 分支 | `guard-github-rules.mjs --policy`（C-1） | `npm run test:policy -- --policy` | ❌ **不在** —— 这是开发流程检查，CI 以 detached HEAD 检出时不应失败 |
+| R-1 开发与推送只在约定工作分支（`feature/*` 等） | `guard-github-rules.mjs --policy`（C-1） | `npm run test:policy -- --policy` | ❌ **不在** —— 这是开发流程检查，CI 以 detached HEAD 检出时不应失败 |
 | R-3 禁止合并到 main | **GitHub Rulesets**（服务端）＋ 人工审查 | 仓库设置 | ❌ 本地脚本不检查授权 |
 | R-4 禁止直推 main | `.githooks/pre-push`（真实 hook） | `git push` 时自动触发 | ❌ hook 而非测试 |
 | R-5 禁止修改正式发布文件 | `guard-github-rules.mjs`（A-1）＋ `npm run verify:reproducible` | 本地审计 | ✅ A-1 在本地审计中 |
@@ -66,8 +66,8 @@
 
 | 类别 | 对象 |
 |---|---|
-| 分支 | `main`、`feature/desktop-windows` |
-| 标签 | `pre-desktop`（**回滚锚点**，删除等同于销毁回滚能力） |
+| 分支（禁删） | `main`、`master`、`feature/desktop-windows`，以及**任意 `feature/*` 分支**（承载 PR 历史与评审记录） |
+| 标签（禁删） | `pre-desktop`（**回滚锚点**，删除等同于销毁回滚能力） |
 | 正式发布文件 | `dist/led-ratio-tool.html`、`test/baselines/led-ratio-tool.v1000.html`、`LICENSE` |
 
 ---
@@ -96,7 +96,7 @@ node test/guard-github-rules.mjs
 npm run test:policy -- --policy
 ```
 
-额外检查当前分支是否为 `feature/desktop-windows`。
+额外检查当前分支是否符合**约定工作分支命名**（`feature/desktop-windows` 或前缀 `feature/` `fix/` `chore/` `docs/` `test/` `refactor/` `perf/`）。
 **detached HEAD（CI 检出态）不判违规**，只提示。
 
 ### 3.3 推送拦截（真实 hook）
@@ -116,19 +116,29 @@ git config core.hooksPath     # 应输出 .githooks
 **手动测试**：
 
 ```bash
-bash .githooks/pre-push
+npm run test:hooks        # 真实 stdin 全用例自测（23 例：推送/删分支/删标签/多 ref/空输入）
+bash .githooks/pre-push   # 空输入（提示后放行）
 ```
 
-**拦截范围**：
+**拦截范围（2026-11-04 起，约定式工作分支命名）**：
 
 | 场景 | 结果 |
 |---|---|
 | 推送到 `main` / `master` | ⛔ 拒绝 |
-| 推送到允许清单外的分支 | ⛔ 拒绝 |
-| 删除受保护分支（`main` / feature 分支） | ⛔ 拒绝 |
+| 推送到约定工作分支（`feature/*` `fix/*` `chore/*` `docs/*` `test/*` `refactor/*` `perf/*`） | ✅ 允许 |
+| 推送到其它命名分支 | ⛔ 拒绝 |
+| 删除受保护分支（`main` / `master` / `feature/desktop-windows` / 任意 `feature/*`） | ⛔ 拒绝 |
 | 删除受保护标签（`pre-desktop`） | ⛔ 拒绝 |
-| 推送到 `feature/desktop-windows` | ✅ 允许 |
-| 删除非受保护分支/标签 | ⚠️ 允许（提示） |
+| 删除非受保护分支/标签（如已合并的 `chore/*`、临时标签） | ⚠️ 允许（提示） |
+
+> 🔴 **修复记录（2026-11-04）**：v1 Hook 的 `PROTECTED_BRANCHES` 数组**从未声明**
+> （只声明了 `PROTECTED_TAGS`），删除分支检查迭代的是空数组 ——
+> 「删除 main」实际只产生 ⚠️ 警告而不拦截，与本文档声明相反。
+> 本版显式声明保护清单并支持前缀匹配；新增 `npm run test:hooks` 以**真实 Git
+> pre-push stdin 协议**覆盖全部场景（含 v1 漏洞回归用例），
+> 并将 `--policy`（C-1）的分支检查同步放宽到约定前缀 ——
+> 此前 `chore/*` 等分支推送被拦、被迫使用 `--no-verify`（它会跳过整个 Hook，
+> 不得作为常规推送方式）的问题已消除。
 
 > **实现说明**：Git 的 pre-push hook 通过**标准输入**提供待推送 ref 列表
 > （每行 `<local ref> <local sha> <remote ref> <remote sha>`），
