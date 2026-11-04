@@ -11,7 +11,7 @@
 | 交付形态 | 版本 | 状态 |
 |---|---|---|
 | HTML 离线版（单文件） | 1.0.1 | ✅ 已发布（随仓库分发） |
-| Windows 桌面版（Electron） | 1.1.0 | ✅ 开发与验收完成，GitHub Release 筹备中 |
+| Windows 桌面版（Electron） | 1.2.0 | ✅ 已发布（[GitHub Release v1.2.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.2.0)） |
 
 ---
 
@@ -23,7 +23,7 @@
 - 提示画面比例不一致时的裁切或留边方案。
 - 复制换算结果与现场参数说明，方便交接给后期或现场技术人员。
 
-两种交付形态的功能完全一致（共用同一套计算内核），只是运行方式不同。
+两种交付形态共用同一套计算内核（`src/core.js`），核心换算能力一致，只是运行方式不同；桌面版在此基础上另提供**桌面专属能力**（如 px 输入单位、原生菜单与全局快捷键、本地设置持久化），HTML 离线版不含这些。
 
 ---
 
@@ -31,11 +31,12 @@
 
 | | HTML 离线版 | Windows 桌面版 |
 |---|---|---|
-| **版本** | 1.0.1 | 1.1.0 |
+| **版本** | 1.0.1 | 1.2.0 |
 | **运行方式** | 本地浏览器打开单文件 | 独立 Windows 应用（Electron） |
 | **是否需要安装** | 否，双击即用 | 安装版需要一次安装；便携版免安装 |
 | **数据保存** | 浏览器 localStorage | 本地用户设置目录（持久化，卸载重装可保留） |
-| **获取方式** | 仓库 `dist/` 目录直接下载 | GitHub Release（筹备中，见下文说明） |
+| **输入单位** | m / cm / mm | m / cm / mm / **px**（按像素分辨率直接输入） |
+| **获取方式** | 仓库 `dist/` 目录直接下载 | [GitHub Release v1.2.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.2.0) |
 | **适合场景** | 快速临时使用、跨系统（任何有浏览器的设备） | Windows 日常工具化使用、独立窗口、原生菜单与快捷键 |
 
 ---
@@ -56,25 +57,29 @@
 
 ---
 
-## Windows 桌面版（v1.1.0）
+## Windows 桌面版（v1.2.0）
 
-Windows 桌面版是与 HTML 版功能一致的原生应用，额外提供：
+Windows 桌面版是与 HTML 版共用同一计算内核的原生应用，额外提供：
 
+- **px 输入单位**（v1.2.0 新增）：可直接按 LED 控制器 / 视频画布的原生像素分辨率输入（如 `1920×1080` → `1.7778:1`、`3840×1080` → `3.5556:1`）。内部折算约定为 **1 px = 1 mm**，该约定只影响单位切换时的显示换算，比例计算只取决于宽高比、与折算率无关；px 模式下结果文案自动改为「输入尺寸」，避免被误读为物理尺寸。
 - 独立应用窗口、原生菜单栏、全局快捷键（如 `Ctrl+C` 复制结果、`Ctrl+B` 宽高互换）。
 - 深色专业工作台界面与品牌图标（安装/便携/任务栏/标题栏同源）。
 - **本地设置持久化**：容差等设置保存在本机用户目录，升级重装不丢失。
 - 完全离线运行，不联网、不上传数据。
 
-**两种发行包：**
+**正式发行包**（[Release v1.2.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.2.0)，2026-11-04 发布）：
 
-| 包 | 文件 | 说明 |
+| 包 | 下载 | 说明 |
 |---|---|---|
-| 安装版（NSIS） | `LED Ratio Tool-1.1.0-x64-setup.exe` | 向导式安装，含开始菜单 / 卸载项 |
-| 便携版（Portable） | `LED Ratio Tool-1.1.0-x64-portable.exe` | 免安装，双击即用，适合 U 盘携带 |
+| 安装版（NSIS） | [LED.Ratio.Tool-1.2.0-x64-setup.exe](https://github.com/ZacWild/LED-ratio-Tool/releases/download/v1.2.0/LED.Ratio.Tool-1.2.0-x64-setup.exe) | 向导式安装，含开始菜单 / 卸载项 |
+| 便携版（Portable） | [LED.Ratio.Tool-1.2.0-x64-portable.exe](https://github.com/ZacWild/LED-ratio-Tool/releases/download/v1.2.0/LED.Ratio.Tool-1.2.0-x64-portable.exe) | 免安装，双击即用，适合 U 盘携带 |
+| 校验清单 | [SHA256SUMS.txt](https://github.com/ZacWild/LED-ratio-Tool/releases/download/v1.2.0/SHA256SUMS.txt) | 两个 EXE 的 SHA-256 |
 
-> ⚠️ **关于未签名的说明**：本工具首发版本未做代码签名（项目规模所限，项目负责人已接受该状态）。首次运行时 Windows SmartScreen 可能出现提示，点击「更多信息 → 仍要运行」即可。工具不联网、不上传数据（安装版仅写标准卸载项等系统信息）。
+下载后可用 `SHA256SUMS.txt` 核对文件完整性（`sha256sum -c SHA256SUMS.txt`，或 `certutil -hashfile <文件> SHA256`）。
 
-**发行状态**：桌面版已完成开发与完整验收（真实 Windows 环境安装/卸载/升级、三档显示缩放、便携版、安全配置等）。**GitHub Release 尚未创建**，发布后将在本节与 [Releases](https://github.com/ZacWild/LED-ratio-Tool/releases) 页面提供正式下载；当前请勿信任任何非官方渠道的安装包。
+> ⚠️ **关于未签名的说明**：本工具**未做代码签名**（项目规模所限，项目负责人已接受该状态）。首次运行时 Windows SmartScreen 可能出现提示，点击「更多信息 → 仍要运行」即可。工具不联网、不上传数据（安装版仅写标准卸载项等系统信息）。
+
+**发行状态**：**已正式发布**。桌面版已完成开发与完整验收（真实 Windows 环境安装 / 卸载 / 升级、显示缩放、便携版、安全配置等）。请只从 [Releases](https://github.com/ZacWild/LED-ratio-Tool/releases) 页面下载官方安装包，勿信任任何非官方渠道。
 
 ---
 
@@ -139,7 +144,7 @@ node build.mjs                   # 重新构建 dist/led-ratio-tool.html
 ## 版本信息
 
 - **`VERSION` 文件（仓库根目录）记录 HTML 离线版的版本号**，当前为 `1.0.1`。
-- **Windows 桌面版的版本号**记录在 [`desktop/package.json`](desktop/package.json)，当前为 `1.1.0`。
+- **Windows 桌面版的版本号**记录在 [`desktop/package.json`](desktop/package.json)，当前为 `1.2.0`；正式发行包见 [Releases](https://github.com/ZacWild/LED-ratio-Tool/releases)。
 - 两种交付形态独立演进、独立编号；完整变更历史见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ---
@@ -156,20 +161,6 @@ node build.mjs                   # 重新构建 dist/led-ratio-tool.html
 | P4–P5 | Step5-preview | 功能完善、测试与 Preview 阶段 |
 | P6 | MiniMax M3.1 Flash | Release Readiness、测试体系完善、缺陷修复、打包与 CI |
 | RC 收尾及后续 | DeepSeek V4.1 | 遗留问题处理、局部修复、工程文档、PR 与发行准备 |
-
-> 📌 **记录口径**
->
-> - 阶段边界的划分依据是仓库内**可查证的工程记录**（`CHANGELOG.md`、`desktop/DESIGN-ALIGNMENT.md` 的遗留事项台账、PR 提交历史），不凭印象归属；
-> - 本表**只记录有对应产物与文档证据的参与**，不虚构模型未承担的任务；
-> - 模型名称（`Space Bunny` / `Step5-preview` / `MiniMax M3.1 Flash` / `DeepSeek V4.1`）沿用引入时的写法，**不随后续版本迭代改写大小写或加简称**；
-> - 同一阶段内的返工与缺陷修复计入该阶段模型，不再细拆到更小的模型粒度。
-
-**分工原则**
-
-| 角色 | 职责 |
-|---|---|
-| 项目负责人（人类） | 需求定义、产品决策、开发范围界定、测试验收、最终发行授权；涉及业务红线与视觉基准的变更须书面确认后方可执行 |
-| AI 模型 | 在其所属阶段内完成代码实现、测试辅助与工程任务执行，并对该阶段产物负责；跨阶段的结论不互相背书 |
 
 **质量保障链路**（每个阶段都需通过才算完成）
 

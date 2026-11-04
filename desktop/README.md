@@ -680,7 +680,7 @@ exe 的 PE 资源里有 `type="INTEGRITY", id="ELECTRONASAR"`，内容是 **JSON
 | Electron | **45.1.0** | DEC-01；生命周期终点 **2027-04-27** |
 | Chromium | **156.0.8078.49** | Electron 45.1.0 内置 |
 | Node | **24.22.1** | Electron 45.1.0 内置 |
-| 桌面应用版本 | **1.1.0** | `package.json.version` |
+| 桌面应用版本 | **1.2.0** | `package.json.version` |
 | 计算内核 | **core@1.0.1** | `core.lock.json` |
 | HTML 版 | **1.0.1** | 仓库根 `package.json`（永久保留，DEC-03） |
 
