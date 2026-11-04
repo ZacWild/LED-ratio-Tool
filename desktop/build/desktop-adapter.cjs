@@ -206,6 +206,26 @@ const PX_CALL_REWRITES = [
   ['Core.parseDimension(newText, state.unit)', 'Core.parseDimension(newText, PX_UNIT(state.unit))', 2],
 ];
 
+/**
+ * ⑥-C px 模式语义文案（桌面副本条件化）。
+ * 🔴 px 输入**不代表** LED 屏的实际物理尺寸（像素间距未知），
+ *    原「实际物理尺寸 / 屏幕实际尺寸」说法在 px 模式下会误导用户
+ *    把像素输入当成物理尺寸。px 模式下改为「输入尺寸 / 输入像素尺寸」；
+ *    m/cm/mm 模式文案逐字不变（EV-B03 复制载荷对照不受影响）。
+ *    提示语的整段切换由 desktop-ui.js 承担（DOM 层，见其 px 提示块）。
+ */
+const PX_LABEL_REWRITES = [
+  // ① 结果表首行行名（src/app.js:619）
+  ["      name: '实际物理尺寸',", "      name: (state.unit === 'px' ? '输入尺寸' : '实际物理尺寸'),", 1],
+  // ② core-note（src/app.js:585，结果面板说明行）
+  // 🔒 `to` 以闭括号收尾、**不追加 `+`** —— 原句余式自带 ` + formatMm(...)`，
+  //    若再补 `+` 会拼成 `+ + formatMm(...)`（一元正号），formatMm 返回 '' 时
+  //    会被 Number 化为 0，破坏显示语义（v1 注入缺陷，已修正并纳入 skipped 断言）。
+  ["    parts.push('屏幕实际尺寸 '", "    parts.push((state.unit === 'px' ? '输入像素尺寸 ' : '屏幕实际尺寸 ')", 1],
+  // ③ 复制完整参数首段（src/app.js:1506）
+  ["    lines.push('屏幕实际尺寸：'", "    lines.push((state.unit === 'px' ? '输入尺寸：' : '屏幕实际尺寸：')", 1],
+];
+
 /** px 按钮注入锚点：mm 按钮整行 */
 const PX_BUTTON_ANCHOR = `<button type="button" class="segmented__item unit-segment" data-unit="mm" role="radio" aria-checked="false">mm</button>`;
 const PX_BUTTON_HTML = `<button type="button" class="segmented__item unit-segment" data-unit="px" role="radio" aria-checked="false" title="按像素输入：px 与 mm 按 1:1 折算用于单位切换显示，比例计算与折算无关">px</button>`;
@@ -228,6 +248,15 @@ function applyPxUnitToApp(src, applied, skipped) {
     const count = out.split(from).length - 1;
     if (count !== expect) {
       skipped.push(`px-unit:调用点 "${from}" 期望 ${expect} 处、实测 ${count} 处`);
+      allOk = false;
+      continue;
+    }
+    out = out.split(from).join(to);
+  }
+  for (const [from, to, expect] of PX_LABEL_REWRITES) {
+    const count = out.split(from).length - 1;
+    if (count !== expect) {
+      skipped.push(`px-unit:文案 "${from.slice(0, 24)}…" 期望 ${expect} 处、实测 ${count} 处`);
       allOk = false;
       continue;
     }

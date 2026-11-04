@@ -574,7 +574,7 @@
     if (!dims.ok) return '请先修正左侧输入，右侧结果将自动更新。';
     var unitLabel = (UNIT_SPEC[state.unit] || UNIT_SPEC.m).label;
     var parts = [];
-    parts.push('屏幕实际尺寸 ' + formatMm(dims.widthMm, state.unit) + ' ' + unitLabel
+    parts.push((state.unit === 'px' ? '输入像素尺寸 ' : '屏幕实际尺寸 ') + formatMm(dims.widthMm, state.unit) + ' ' + unitLabel
       + ' × ' + formatMm(dims.heightMm, state.unit) + ' ' + unitLabel);
 
     if (target.source === 'screen') {
@@ -608,7 +608,7 @@
     var rows = [];
 
     rows.push({
-      name: '实际物理尺寸',
+      name: (state.unit === 'px' ? '输入尺寸' : '实际物理尺寸'),
       screen: formatMm(dims.widthMm, state.unit) + ' ' + (UNIT_SPEC[state.unit] || UNIT_SPEC.m).label
         + ' × ' + formatMm(dims.heightMm, state.unit) + ' ' + (UNIT_SPEC[state.unit] || UNIT_SPEC.m).label,
       canvas: '—'
@@ -1495,7 +1495,7 @@
     var lines = [];
 
     lines.push('LED 屏比例换算参数');
-    lines.push('屏幕实际尺寸：' + formatMm(dims.widthMm, state.unit) + ' ' + unitLabel
+    lines.push((state.unit === 'px' ? '输入尺寸：' : '屏幕实际尺寸：') + formatMm(dims.widthMm, state.unit) + ' ' + unitLabel
       + ' × ' + formatMm(dims.heightMm, state.unit) + ' ' + unitLabel);
     lines.push('实际比例：' + screenRatio.decimal + ' : 1');
     lines.push('最简整数比例：' + (screenRatio.exact ? screenRatio.reducedText
