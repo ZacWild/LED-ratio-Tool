@@ -54,6 +54,11 @@ const ROOT = join(here, '..');
 const DEV_BRANCH = 'feature/desktop-windows';
 const PROTECTED_BRANCHES = ['main', DEV_BRANCH];
 const PROTECTED_TAGS = ['pre-desktop'];
+/**
+ * 约定式工作分支命名（2026-11-04 起，与 .githooks/pre-push 的 WORK_PREFIXES 保持一致）。
+ * --policy 模式（C-1）接受：精确 DEV_BRANCH 或任意约定前缀分支。
+ */
+const WORK_BRANCH_RE = /^(feature|fix|chore|docs|test|refactor|perf)\//;
 /** 正式发布文件：任何内容差异都视为违规 */
 const PROTECTED_FILES = [
   'dist/led-ratio-tool.html',
@@ -216,13 +221,14 @@ if (POLICY_MODE) {
       `C-1 当前处于 detached HEAD（${git(['rev-parse', '--short', 'HEAD']) || '?'}）—— ` +
         `CI 检出即为此状态，此处不判违规。`,
     );
-  } else if (branch !== DEV_BRANCH) {
+  } else if (branch !== DEV_BRANCH && !WORK_BRANCH_RE.test(branch)) {
     violations.push(
-      `C-1 当前分支为 "${branch}"，开发流程约定在 "${DEV_BRANCH}" 上进行。\n` +
+      `C-1 当前分支为 "${branch}"，不符合约定工作分支命名。\n` +
+        `        允许：${DEV_BRANCH} 或前缀 feature/ fix/ chore/ docs/ test/ refactor/ perf/。\n` +
         `        （这是**开发流程**检查，不是产品测试 —— 故未包含在 npm test 中）`,
     );
   } else {
-    checks.push(`C-1 当前分支 = ${branch}`);
+    checks.push(`C-1 当前分支 = ${branch}（约定工作分支）`);
   }
 } else {
   checks.push('C-1 开发分支策略检查（--policy 模式才启用，未计入产品测试）');

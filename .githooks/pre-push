@@ -11,11 +11,22 @@
 #    的检查在真实 git push 场景下都读不到值 —— 必须解析标准输入。
 #
 # -----------------------------------------------------------------------------
-# 钩子会拦截的推送（对应 GITHUB-RULES.md 的 R-4）：
-#   · 目标分支为 main / master            → 拒绝
-#   · 目标分支不在允许清单内               → 拒绝
-#   · 推送包含删除操作（:refs/heads/x → 全零 sha）→ 拒绝删除受保护分支/标签
-#   · 推送删除了受保护标签                  → 拒绝
+# 钩子会拦截的推送（对应 GITHUB-RULES.md 的 R-4 / R-6）：
+#   · 目标分支为 main / master                    → 拒绝（禁止直推）
+#   · 目标分支不符合约定工作分支命名              → 拒绝（见 WORK_PREFIXES）
+#   · 删除受保护分支（main / master / feature/*） → 拒绝
+#   · 删除受保护标签（pre-desktop）               → 拒绝
+#
+# 允许的推送（2026-11-04 起，约定式分支命名）：
+#   feature/*  fix/*  chore/*  docs/*  test/*  refactor/*  perf/*
+#   以及历史开发主分支 feature/desktop-windows（被 feature/* 覆盖，显式保留以自证）。
+#
+# -----------------------------------------------------------------------------
+# 🔴 修复记录（2026-11-04）：
+#   v1 的 PROTECTED_BRANCHES **从未声明**（只有 PROTECTED_TAGS），删除分支检查
+#   迭代的是空数组 —— 结果「删除 main」只产生 ⚠️ 警告而不拦截，与文档声明相反。
+#   本版显式声明受保护清单，并让删除检查同时支持精确名与前缀（feature/*）。
+#   新增真实 stdin 自测：npm run test:hooks（test/githooks-selftest.mjs）。
 #
 # -----------------------------------------------------------------------------
 # 它**不能**做的事（务必知悉）：
@@ -30,7 +41,8 @@
 #     git config core.hooksPath            # 应输出 .githooks
 #
 # 手动测试（不实际推送）：
-#     bash .githooks/pre-push
+#     npm run test:hooks                   # 真实 stdin 全用例自测
+#     bash .githooks/pre-push              # 空输入（提示后放行）
 #
 # 退出码：0 = 允许推送；非 0 = 拒绝推送
 # =============================================================================
@@ -38,8 +50,18 @@
 set -uo pipefail
 
 DEV_BRANCH="feature/desktop-windows"
-ALLOWED_BRANCHES=("main" "$DEV_BRANCH")
+
+# 🔴 受保护分支（**禁止删除**）—— 显式声明，修复 v1 未声明的保护漏洞。
+#    main / master 是正式分支；feature/* 承载 PR 历史与评审记录。
+PROTECTED_BRANCHES=("main" "master" "$DEV_BRANCH")
+# 受保护分支前缀：删除任意 feature/* 分支同样拦截。
+PROTECTED_BRANCH_PREFIXES=("feature/")
+
+# 受保护标签（禁止删除）：pre-desktop 是回滚锚点
 PROTECTED_TAGS=("pre-desktop")
+
+# 允许推送的工作分支（约定式命名，前缀匹配）；main/master 已由 R-4 单独拒绝。
+WORK_PREFIXES=("feature/" "fix/" "chore/" "docs/" "test/" "refactor/" "perf/")
 
 RED=$'\033[31m'
 GREEN=$'\033[32m'
@@ -74,6 +96,29 @@ echo "${COLOR_DIM}[pre-push] 待推送 ref：${COLOR_RESET}"
 BLOCKED=0
 PUSHED=0
 
+# ---- 匹配辅助 --------------------------------------------------------------
+# 是否命中受保护分支（精确名或受保护前缀）
+is_protected_branch() {
+  local b="$1" p
+  for p in "${PROTECTED_BRANCHES[@]}"; do
+    [ "$b" = "$p" ] && return 0
+  done
+  for p in "${PROTECTED_BRANCH_PREFIXES[@]}"; do
+    case "$b" in "$p"*) return 0 ;; esac
+  done
+  return 1
+}
+
+# 是否为允许推送的工作分支（约定前缀）
+is_allowed_work_branch() {
+  local b="$1" p
+  [ "$b" = "$DEV_BRANCH" ] && return 0
+  for p in "${WORK_PREFIXES[@]}"; do
+    case "$b" in "$p"*) return 0 ;; esac
+  done
+  return 1
+}
+
 while read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
   [ -z "${REMOTE_REF:-}" ] && continue
   PUSHED=$((PUSHED + 1))
@@ -85,14 +130,9 @@ while read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
 
       # 删除操作：local sha 为全零
       if [ "$LOCAL_SHA" = "0000000000000000000000000000000000000000" ]; then
-        ALLOWED_DELETE=0
-        for PROTECTED in "${PROTECTED_BRANCHES[@]:-}"; do
-          if [ "$TARGET_BRANCH" = "$PROTECTED" ]; then
-            ALLOWED_DELETE=1
-          fi
-        done
-        if [ "$ALLOWED_DELETE" -eq 1 ]; then
+        if is_protected_branch "$TARGET_BRANCH"; then
           echo "${COLOR_ERR}    ⛔ 拒绝删除受保护分支 '$TARGET_BRANCH'${COLOR_RESET}"
+          echo "${COLOR_ERR}       受保护清单：${PROTECTED_BRANCHES[*]}（及前缀 ${PROTECTED_BRANCH_PREFIXES[*]}*）${COLOR_RESET}"
           BLOCKED=1
         else
           echo "${COLOR_WARN}    ⚠️  允许删除非受保护分支 '$TARGET_BRANCH'${COLOR_RESET}"
@@ -103,22 +143,16 @@ while read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
       # R-4：禁止直接推送 main / master
       if [ "$TARGET_BRANCH" = "main" ] || [ "$TARGET_BRANCH" = "master" ]; then
         echo "${COLOR_ERR}    ⛔ 拒绝推送到 '$TARGET_BRANCH'${COLOR_RESET}"
-        echo "${COLOR_ERR}       规则 R-4：禁止直接向 main 推送提交。变更请推送到 $DEV_BRANCH，${COLOR_RESET}"
+        echo "${COLOR_ERR}       规则 R-4：禁止直接向 main 推送提交。请推送到约定工作分支，${COLOR_RESET}"
         echo "${COLOR_ERR}       再由项目负责人审查后走 PR 合并。${COLOR_RESET}"
         BLOCKED=1
         continue
       fi
 
-      # 目标分支须在允许清单内
-      IN_ALLOWLIST=0
-      for ALLOWED in "${ALLOWED_BRANCHES[@]}"; do
-        if [ "$TARGET_BRANCH" = "$ALLOWED" ]; then
-          IN_ALLOWLIST=1
-        fi
-      done
-      if [ "$IN_ALLOWLIST" -eq 0 ]; then
-        echo "${COLOR_ERR}    ⛔ 目标分支 '$TARGET_BRANCH' 不在允许清单内${COLOR_RESET}"
-        echo "${COLOR_ERR}       允许清单：${ALLOWED_BRANCHES[*]}${COLOR_RESET}"
+      # 目标分支须符合约定工作分支命名
+      if ! is_allowed_work_branch "$TARGET_BRANCH"; then
+        echo "${COLOR_ERR}    ⛔ 目标分支 '$TARGET_BRANCH' 不符合约定工作分支命名${COLOR_RESET}"
+        echo "${COLOR_ERR}       允许前缀：${WORK_PREFIXES[*]}${COLOR_RESET}"
         BLOCKED=1
         continue
       fi
