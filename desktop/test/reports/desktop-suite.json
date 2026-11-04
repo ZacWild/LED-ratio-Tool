@@ -1,22 +1,22 @@
 {
   "meta": {
-    "generatedAt": "2026-11-04T02:29:19.152Z",
+    "generatedAt": "2026-11-04T04:07:52.093Z",
     "electron": "45.1.0",
     "node": "v22.22.2",
     "platform": "win32",
     "env": {
       "display": {
-        "id": 3036494085,
+        "id": 1897915132,
         "label": "LEN P27q-10",
         "scaleFactor": 1,
         "workArea": {
-          "x": 0,
+          "x": 2560,
           "y": 32,
           "width": 2560,
           "height": 1408
         },
         "bounds": {
-          "x": 0,
+          "x": 2560,
           "y": 0,
           "width": 2560,
           "height": 1440
@@ -27,13 +27,13 @@
         }
       },
       "workArea": {
-        "x": 0,
+        "x": 2560,
         "y": 32,
         "width": 2560,
         "height": 1408
       },
       "effectiveWorkArea": {
-        "x": 0,
+        "x": 2560,
         "y": 32,
         "width": 2560,
         "height": 1408
@@ -310,7 +310,7 @@
       "target": "每次改输入后，结果区 DOM 在 100ms 内完成更新",
       "input": "连续 5 次改输入宽度",
       "expect": "5 次延迟全部 ≤100ms",
-      "actual": "各次延迟=[3.699999988079071, 3.599999964237213, 2.900000035762787, 3.800000011920929, 5] ms 最大=5ms",
+      "actual": "各次延迟=[3.699999988079071, 3, 3.299999952316284, 3, 3.699999988079071] ms 最大=3.699999988079071ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -778,7 +778,7 @@
       "target": "超长含字母串 → ER-02 逐字；超长纯数字串 → 不崩溃、无 NaN/Infinity、后续操作 ≤500ms",
       "input": "宽 = \"9\".repeat(60) + \"abc\"；再 = \"9\".repeat(20)",
       "expect": "ER-02 逐字 + 纯数字串无 NaN 且可继续操作",
-      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=3.099999964237213ms",
+      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=3.199999988079071ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1259,7 +1259,7 @@
       "target": "焦点在舞台内 → 切到第③档 → 焦点迁移到 EL-ST-16，出现 400ms 高亮，全程不落 body",
       "input": "焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600",
       "expect": "焦点=EL-ST-16 且有高亮类；无 body 焦点",
-      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793759349766}",
+      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793765262638}",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",

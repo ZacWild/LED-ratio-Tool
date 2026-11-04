@@ -58,8 +58,11 @@
 #   4. npm run audit:security      ← 47 项安全静态审计
 #   5. npm run test:redlines       ← 8 处受保护业务口径（A-01~A-08）
 #   6. npm run test:unit           ← core.js 单元测试
+#   6.5 npm run test:hooks        ← pre-push Hook 真实 stdin 自测（23 项 · 门禁）
 #   7. 构建（root build + desktop sync + electron-builder 打包配置校验）
 #   7.4 品牌图标资源自检（verify-icons.mjs，10 项 · D-08）
+#   7.5 probe-px-unit.cjs         ← px 单位 10 项 UI 链路探针（真实 BrowserWindow · 门禁）
+#   7.6 probe-stepper-glyph.cjs   ← 步进符号视觉取证（**报告项，不门禁**）
 #   8. Electron 启动冒烟 **连续 10 次**   ← TK-88：app:// ERR_FAILED(-2) 竞态
 #   8.5 桌面 E2E **前置环境取证**（工作区尺寸 / 最大可达客户区 / 当前档位）
 #   9. 桌面 E2E（desktop-suite.mjs，93 条用例）
@@ -71,6 +74,30 @@
 #  13. P7-2 Fuses 实体验证（**产物在则必过；产物缺失记 SKIP**）
 #  14. 产物 SHA-256 清单 → 上传报告/截图/日志 → 汇总门禁结果
 #
+# -----------------------------------------------------------------------------
+# 🔴 桌面专属脚本纳入 CI 的评估口径（PR #6 评审跟进 · 2026-11-04）
+# -----------------------------------------------------------------------------
+#   此前 workflow 只上传仓库内已提交的测试报告 JSON，下面三个脚本从未在
+#   GitHub runner 上真实执行。本次按「能否作为门禁」逐项评估：
+#
+#   ① test:hooks（test/githooks-selftest.mjs，23 用例）
+#      → **门禁**。纯 Node + bash 驱动真实 Hook stdin 协议，不启动 Electron、
+#        不依赖显示器尺寸；脚本失败返回 1，语义明确。
+#
+#   ② probe-px-unit.cjs（10 项断言）
+#      → **门禁**。真实 BrowserWindow 内「输入 → LedApp.state → 结果 DOM」链路，
+#        自带 verdict 且失败返回 1。CI 步骤另校验报告 JSON 的 verdict / total /
+#        generatedAt 新鲜度，防止把仓库里提交的旧报告误当成本次执行结果。
+#
+#   ③ probe-stepper-glyph.cjs
+#      → **报告项，不参与门禁**。该脚本只采集证据（按钮几何 / ::before 计算样式 /
+#        截图墨迹包围盒 / 命中区），**不含任何 PASS/FAIL 断言且无条件 exit 0**；
+#        同时墨迹像素阈值对 runner 分辨率档位敏感（windows-latest 工作区仅
+#        1024×720），强行当门禁会把环境差异误判为产品回归。
+#        CI 真实执行它并刷新报告，但结论以日志中打印的实测偏移为准，
+#        绝不因「步骤显示 Success」宣称视觉验收通过。
+#
+#   ①② 的失败会让本作业直接变红；③ 仅在脚本自身抛错（exit != 0）时变红。
 # -----------------------------------------------------------------------------
 # 🔴 关键环境约束 · 小屏 CI runner（Step 6 第 6 阶段实测 41320637908）
 # -----------------------------------------------------------------------------
@@ -300,6 +327,19 @@ jobs:
         run: npm run test:unit
 
       # ==========================================================================
+      # 6.5 · Git pre-push Hook 真实 stdin 自测（23 项 · 门禁）
+      # ==========================================================================
+      # 🔴 该自测用 spawnSync('bash', [HOOK]) 驱动 **Git 原生 pre-push 协议**，
+      #    所以本步骤必须用 bash 作为 shell（保证 bash.exe 在 PATH 中可解析）。
+      #    覆盖推送 / 删除分支 / 删除标签 / 多 ref / 空输入，含 v1 漏洞回归用例
+      #    （PROTECTED_BRANCHES 未声明 → 删除 main 只告警）。失败返回 1。
+      - name: test:hooks（pre-push Hook 真实 stdin 自测 · 23 项）
+        shell: bash
+        run: |
+          command -v bash
+          npm run test:hooks
+
+      # ==========================================================================
       # 7 · 构建
       # ==========================================================================
       # 7.1 HTML 版单文件构建（产物写入 dist/，**不在 CI 中提交**）
@@ -344,6 +384,65 @@ jobs:
         shell: pwsh
         working-directory: desktop
         run: npm run verify:icons
+
+      # ==========================================================================
+      # 7.5 · px 输入单位取证探针（10 项 · 门禁）
+      # ==========================================================================
+      # 🔴 不是「上传仓库里已提交的 JSON」：本步骤在 runner 上真实启动
+      #    BrowserWindow 并执行 10 项 UI 链路断言（输入 → LedApp.state → 结果 DOM）。
+      #    脚本自身失败返回 1；此外再校验刷新后的报告 JSON 的判定与新鲜度，
+      #    防止读到上一次本地生成并提交进仓库的旧报告。
+      - name: PX 输入单位探针（10 项 · 门禁）
+        shell: pwsh
+        working-directory: desktop
+        env:
+          ELECTRON_RUN_AS_NODE: ''
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          node test/probes/probe-px-unit.cjs
+          if ($LASTEXITCODE -ne 0) { Write-Error "px-unit 探针存在失败断言（退出码 $LASTEXITCODE）"; exit 1 }
+          $report = "test/reports/px-unit-check.json"
+          if (-not (Test-Path $report)) { Write-Error "缺少 $report"; exit 1 }
+          $j = Get-Content $report -Raw | ConvertFrom-Json
+          if ($j.summary.verdict -ne 'PASS' -or $j.summary.total -ne 10 -or $j.summary.fail -ne 0) {
+            Write-Error "px-unit-check.json 判定不通过：verdict=$($j.summary.verdict) total=$($j.summary.total) fail=$($j.summary.fail)"
+            exit 1
+          }
+          $ageMin = ((Get-Date).ToUniversalTime() - [datetime]::Parse($j.generatedAt).ToUniversalTime()).TotalMinutes
+          if ($ageMin -lt 0 -or $ageMin -gt 30) {
+            Write-Error "px-unit-check.json 不是本次运行生成（age=$([math]::Round($ageMin,2)) 分钟）"
+            exit 1
+          }
+          Write-Host "✅ PX 探针本次运行实跑 10/10 PASS（报告新鲜度 $([math]::Round($ageMin,2)) 分钟）"
+
+      # ==========================================================================
+      # 7.6 · 步进按钮符号位置视觉取证（报告项，不门禁）
+      # ==========================================================================
+      # 🔴 该脚本只采集证据、无 PASS/FAIL 断言且无条件 exit 0，因此**不作为门禁**。
+      #    CI 真实执行它并刷新 test/reports/stepper-glyph.json 与截图，
+      #    实测值回显到日志；视觉结论以日志为准，不能把「步骤 Success」读成验收通过。
+      - name: 步进符号视觉取证探针（报告项，不门禁）
+        shell: pwsh
+        working-directory: desktop
+        env:
+          ELECTRON_RUN_AS_NODE: ''
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          # 7.5 刚关闭 Electron，留出退出窗口，避免背靠背启动截到瞬态坏态
+          Start-Sleep -Seconds 3
+          node test/probes/probe-stepper-glyph.cjs
+          if ($LASTEXITCODE -ne 0) { Write-Error "stepper-glyph 探针执行异常（退出码 $LASTEXITCODE）"; exit 1 }
+          $report = "test/reports/stepper-glyph.json"
+          if (-not (Test-Path $report)) { Write-Error "缺少 $report"; exit 1 }
+          $j = Get-Content $report -Raw | ConvertFrom-Json
+          Write-Host "ℹ️ 报告项（不门禁）：脚本无 PASS/FAIL 断言且无条件 exit 0，以下仅为本次 runner 实测"
+          foreach ($r in $j.results) {
+            $off = 'ink not found'
+            if ($r.ink.found) {
+              $off = "($($r.ink.offsetFromButtonCenter.x), $($r.ink.offsetFromButtonCenter.y))px"
+            }
+            Write-Host "  $($r.id)：button $($r.button.w)x$($r.button.h) | hit $($r.hitArea.w)x$($r.hitArea.h) | ::before $($r.before.position) | ink offset $off"
+          }
 
       # ==========================================================================
       # 8 · Electron 启动冒烟 —— 连续 10 次（TK-88）
@@ -633,8 +732,10 @@ jobs:
             '安全审计'   = 'audit:security（47 项安全静态审计）'
             '业务红线'   = 'test:redlines（8 处受保护口径 A-01~A-08）'
             '单元测试'   = 'test:unit（core.js 单元测试 64 条）'
+            'Hook 自测' = 'test:hooks（pre-push Hook 真实 stdin 协议 23 项）'
             '构建'       = 'HTML 单文件 + 桌面资源同步 + 打包配置校验（不产出 EXE）'
             '图标自检'   = 'D-08 品牌图标（ico 7 档结构 / 品牌色且无旧占位色 / 三处引用可解析）'
+            'PX 探针'    = 'probe-px-unit.cjs（真实 BrowserWindow · UI 输入链路 10 项 · 校验报告新鲜度）'
             '启动冒烟'   = 'Electron 连续启动 ×10（TK-88 app:// 竞态）'
             '桌面 E2E'   = 'desktop-suite（93 条）'
             '黄金向量'   = '负向自检 + L2 独立套件（22 向量：21 执行 + 1 不适用）'
@@ -660,8 +761,9 @@ jobs:
           $lines += $summary
           $lines += ''
           $lines += '> ℹ️ 上表只列**参与门禁**的步骤。「Fuses 实证」是**条件门禁**：打包产物存在时它必须通过，产物缺失时该步骤记 SKIP 并在摘要中明示 —— 不得把 SKIP 读成 PASS。「打包 + Preview Candidate 产物验收」是 `continue-on-error` 的报告项、**不参与门禁** —— 它在任何情况下都会显示 Success，**不能据此认为打包已通过**；打包结论以 `pc-verify.json` 与 P7 发行验收为准。'
+          $lines += '> ℹ️ 「步进符号视觉取证探针」同样是**报告项，不参与门禁**：该脚本无 PASS/FAIL 断言且无条件 `exit 0`，runner 显示 Success 不等于视觉验收通过；实测墨迹偏移见该步骤日志与 `stepper-glyph.json`。'
           $lines += ''
-          $lines += '**报告产物**：`desktop/test/reports/`（含 `smoke-launch.json`、`desktop-suite.json`、`differential-200-report.json`、`p4b-evidence.json`）；SHA-256 清单见 `artifacts/SHA256SUMS.txt`。'
+          $lines += '**报告产物**：`desktop/test/reports/`（含 `smoke-launch.json`、`desktop-suite.json`、`differential-200-report.json`、`p4b-evidence.json`、`px-unit-check.json`、`stepper-glyph.json`）；SHA-256 清单见 `artifacts/SHA256SUMS.txt`。'
           $lines += ''
           $lines += '**权威来源**：Ruleset 的 strict / 必需审批数 / 允许的合并方式以 GitHub 实时设置为准；规则说明见仓库 `GITHUB-RULES.md`。'
           (($lines -join "`n") + "`n") | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8

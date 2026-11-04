@@ -2198,6 +2198,38 @@
     if (!buildShell()) return;
     ensureSettingsSink();
 
+    /* ---- PX 输入单位 · 语义提示（桌面专属，2026-11-04）----
+     * 🔴 px 输入**不代表** LED 屏的实际物理尺寸（像素间距未知，由箱体/控制系统决定）。
+     *    px 模式下把「屏幕尺寸」组的单位提示整段切换为 px 语义说明，退出 px 恢复原文；
+     *    结果面板的「实际物理尺寸 → 输入尺寸」条件化由 desktop-adapter ⑥-C 承担。
+     *    触发机制：观察 #unit-width 徽标文本（app.js 每次 update() 都会重写它）——
+     *    覆盖按钮点击、恢复默认值、演示案例等全部单位变更路径，不新增点击监听。
+     *    上下两行原始提示（①「LED 实际物理尺寸即上方…」② FAQ）与 px 无关，不动。 */
+    (function () {
+      var badge = document.getElementById('unit-width');
+      var hint = Array.prototype.find.call(
+        document.querySelectorAll('.hint'),
+        function (h) { return h.textContent.indexOf('单位切换只改变显示值') >= 0; },
+      );
+      if (!badge || !hint) return;
+      var HINT_DEFAULT = hint.textContent;
+      var HINT_PX = 'PX 模式用于根据输入的像素宽高计算比例，不代表屏幕的实际物理尺寸。'
+        + 'PX 与 m/cm/mm 之间采用 1px=1mm 的内部显示换算约定，不代表实际像素间距。';
+      var applying = false;
+      var obs = new MutationObserver(function () {
+        if (applying) return;
+        var want = badge.textContent.trim() === 'px';
+        var have = hint.textContent === HINT_PX;
+        if (want !== have) {
+          applying = true;
+          hint.textContent = want ? HINT_PX : HINT_DEFAULT;
+          applying = false;
+        }
+      });
+      obs.observe(badge, { childList: true, characterData: true, subtree: true });
+      if (badge.textContent.trim() === 'px') hint.textContent = HINT_PX;
+    })();
+
     on(document, 'keydown', onKeyDown, true);
 
     // 尺寸变更 → 档位判定（rAF 节流，同帧合并）
