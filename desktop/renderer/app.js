@@ -43,10 +43,26 @@
   var NEAR_21_9_PERCENT = 2.5;
 
   /** 各单位下步进步长与显示精度（m/cm 最多 3 位、mm 最多 1 位） */
-  /* ---- desktop-adapter: px-unit ----
-     px 输入单位（桌面版专属）：core.js 只认物理单位，故传参前把 px 归一为 mm
-     （1 px = 1 mm 折算，仅用于单位切换显示；比例计算只取决于宽高比，与折算率无关）。 */
-  function PX_UNIT(u) { return u === 'px' ? 'mm' : u; }
+  /* ---- desktop-adapter: pitch-unit (v1.3.0) ----
+     🔴 v1.2.0 的 "1 px = 1 mm" 假设已移除。
+     物理尺寸与像素分辨率是两种不同语义：
+       · physicalWidthMm / physicalHeightMm 只由 m/cm/mm 输入写入；
+       · resolutionWidthPx / resolutionHeightPx 只由 px 输入写入；
+       · 物理 ↔ px 切换一律经全局 P 值换算，未配置 P 时禁止换算。
+     app.js 既有的 widthMm / heightMm 只是无量纲比例链路的载体，
+     在 px 模式下承载像素数用于比例计算，绝不写回物理尺寸字段。 */
+  function DESKTOP_PARSE(text, unit, axis) {
+    var lp = globalThis.LedPitch;
+    if (unit === 'px') {
+      if (!lp) return { ok: false, mm: null, px: null, value: null, error: 'unit', message: '像素解析模块未加载' };
+      var p = lp.parsePixelCount(text);
+      if (p.ok && (axis === 'width' || axis === 'height')) lp.recordResolutionPx(axis, p.px);
+      return p;
+    }
+    var d = Core.parseDimension(text, unit);
+    if (d.ok && lp && (axis === 'width' || axis === 'height')) lp.recordPhysicalMm(axis, d.mm);
+    return d;
+  }
   var UNIT_SPEC = {
     m: { step: 0.1, digits: 3, label: 'm' },
     cm: { step: 1, digits: 3, label: 'cm' },
@@ -223,14 +239,24 @@
    * 做最小区分——只用 core 的判定结果，不重新实现校验逻辑。
    */
   function readDimensions() {
-    var w = Core.parseDimension(state.widthText, PX_UNIT(state.unit));
-    var h = Core.parseDimension(state.heightText, PX_UNIT(state.unit));
+    var w = DESKTOP_PARSE(state.widthText, state.unit, 'width');
+    var h = DESKTOP_PARSE(state.heightText, state.unit, 'height');
+    var lp = globalThis.LedPitch;
+    var snap = lp ? lp.snapshot() : null;
     return {
       ok: w.ok && h.ok,
       widthMm: w.ok ? w.mm : null,
       heightMm: h.ok ? h.mm : null,
       widthError: w.ok ? '' : describeError(w),
-      heightError: h.ok ? '' : describeError(h)
+      heightError: h.ok ? '' : describeError(h),
+      /* v1.3.0 显式语义：物理尺寸 / 像素分辨率 / P 值分离，绝不互相覆盖 */
+      physicalWidthMm: snap ? snap.physicalWidthMm : null,
+      physicalHeightMm: snap ? snap.physicalHeightMm : null,
+      resolutionWidthPx: snap ? snap.resolutionWidthPx : null,
+      resolutionHeightPx: snap ? snap.resolutionHeightPx : null,
+      pixelPitchMm: snap ? snap.pixelPitchMm : null,
+      activeUnit: state.unit,
+      dimensionSemantic: state.unit === 'px' ? 'resolution' : 'physical'
     };
   }
 
@@ -1526,10 +1552,20 @@
 
 /* ---- desktop-adapter: persistence → IPC ---- */
   function desktopApplySettings(data) {
-    if (!data || typeof data.tolerancePercent !== 'number') return;
+    if (!data) return;
+    if (typeof data.tolerancePercent !== 'number') return;
     state.tolerancePercent = data.tolerancePercent;
     var t = document.getElementById('input-tolerance');
     if (t) t.value = String(data.tolerancePercent);
+    /* v1.3.0：P 值从既有 settings.get 载荷读取，字段缺失 = 未配置（null），
+       绝不默认 P2.5；不改动容差的任何既有行为。 */
+    if (globalThis.LedPitch) {
+      globalThis.LedPitch.setPitch(
+        Object.prototype.hasOwnProperty.call(data, 'pixelPitchMm') ? data.pixelPitchMm : null
+      );
+      globalThis.LedPitch.setActiveUnit(state.unit);
+      globalThis.dispatchEvent(new CustomEvent('led:pitch', { detail: { source: 'settings' } }));
+    }
   }
   function desktopLoadSettings() {
     if (!window.ledApi || !window.ledApi.settingsGet) return;
@@ -1551,9 +1587,27 @@
   function desktopSaveSettings() {
     if (!window.ledApi || !window.ledApi.settingsSet) return;
     try {
-      var r = window.ledApi.settingsSet({ tolerancePercent: state.tolerancePercent });
+      var lp = globalThis.LedPitch;
+      var r = window.ledApi.settingsSet({
+        tolerancePercent: state.tolerancePercent,
+        // v1.3.0：在既有 settings.set 载荷内增 1 个可选字段；通道与 preload 接口不变。
+        // 未配置时为 null → settings-store 不落盘该键，settings.json 仍是原有 4 键形态。
+        pixelPitchMm: lp ? lp.getPitch().value : null
+      });
       if (r && r.code !== 0) { /* 写入失败静默忽略，本次会话内仍生效 */ }
     } catch (e) { /* 同上 */ }
+  }
+  /* P 值变更后，若当前 px 值来自「由物理尺寸换算」，按新 P 重新换算显示值；
+     若用户直接输入过 px，则此处不得调用，真实像素值保持原样。 */
+  function desktopSetDimensionText(w, h) {
+    if (globalThis.LedPitch) globalThis.LedPitch.markPxConverted(w, h);
+    state.widthText = String(w);
+    state.heightText = String(h);
+    var iw = document.getElementById('input-width');
+    var ih = document.getElementById('input-height');
+    if (iw) iw.value = state.widthText;
+    if (ih) ih.value = state.heightText;
+    update();
   }
 
   /**
@@ -1667,13 +1721,13 @@
   function bindEvents() {
     els.widthInput.addEventListener('input', function () {
       state.widthText = els.widthInput.value;
-      var parsed = Core.parseDimension(state.widthText, PX_UNIT(state.unit));
+      var parsed = DESKTOP_PARSE(state.widthText, state.unit, 'width');
       if (parsed.ok) state.widthMm = parsed.mm;
       update();
     });
     els.heightInput.addEventListener('input', function () {
       state.heightText = els.heightInput.value;
-      var parsed = Core.parseDimension(state.heightText, PX_UNIT(state.unit));
+      var parsed = DESKTOP_PARSE(state.heightText, state.unit, 'height');
       if (parsed.ok) state.heightMm = parsed.mm;
       update();
     });
@@ -1886,7 +1940,7 @@
     var spec = UNIT_SPEC[state.unit] || UNIT_SPEC.m;
     var step = spec.step * (fast ? 10 : 1);
     var text = which === 'width' ? state.widthText : state.heightText;
-    var parsed = Core.parseDimension(text, PX_UNIT(state.unit));
+    var parsed = DESKTOP_PARSE(text, state.unit, 'dimension');
     if (!parsed.ok) return;
     var next = parsed.value + direction * step;
     if (next <= 0) return;
@@ -1894,10 +1948,10 @@
     if (newText.indexOf('.') >= 0) newText = newText.replace(/0+$/, '').replace(/\.$/, '');
     if (which === 'width') {
       state.widthText = newText;
-      state.widthMm = Core.parseDimension(newText, PX_UNIT(state.unit)).mm;
+      state.widthMm = DESKTOP_PARSE(newText, state.unit, 'dimension').mm;
     } else {
       state.heightText = newText;
-      state.heightMm = Core.parseDimension(newText, PX_UNIT(state.unit)).mm;
+      state.heightMm = DESKTOP_PARSE(newText, state.unit, 'dimension').mm;
     }
     update();
   }
@@ -1906,6 +1960,52 @@
    * 单位切换：物理尺寸不变，只换显示值。
    */
   function changeUnit(next) {
+    var lp = globalThis.LedPitch;
+    var prev = state.unit;
+    if (lp && prev === 'px' && next !== 'px') {
+      /* px → m/cm/mm：恢复进入 px 前保存的原始物理尺寸，绝不反算、绝不覆盖。 */
+      var phys = lp.getPhysical();
+      if (phys.ok) {
+        state.widthText = formatMm(phys.widthMm, next);
+        state.heightText = formatMm(phys.heightMm, next);
+        state.widthMm = phys.widthMm;
+        state.heightMm = phys.heightMm;
+      }
+      lp.setActiveUnit(next);
+      lp.clearNotice();
+      state.unit = next;
+      update();
+      return;
+    }
+    if (lp && prev !== 'px' && next === 'px') {
+      /* 物理 → px：必须读取全局 P；未配置则禁止换算并给出明确提示。 */
+      var d0 = readDimensions();
+      var pitch = lp.getPitch();
+      if (pitch.unconfigured || pitch.value === null) {
+        lp.setNotice('未配置 LED 像素间距 P：已禁止物理尺寸 → 像素分辨率换算。可直接输入真实像素数量；原始物理尺寸保持不变。');
+        state.widthText = '';
+        state.heightText = '';
+        lp.setActiveUnit('px');
+        lp.markPxDirect();
+        state.unit = 'px';
+        update();
+        return;
+      }
+      if (d0.ok) {
+        var est = lp.physicalToPixels(d0.widthMm, d0.heightMm, pitch.value);
+        if (est.ok) {
+          state.widthText = String(est.integerWidthPx);
+          state.heightText = String(est.integerHeightPx);
+          lp.markPxConverted(est.integerWidthPx, est.integerHeightPx);
+        }
+      }
+      lp.clearNotice();
+      lp.setActiveUnit('px');
+      state.unit = 'px';
+      update();
+      return;
+    }
+    /* m/cm/mm 之间：沿用 v1.2.0 原有换算逻辑，物理尺寸不变、只换显示值。 */
     var dims = readDimensions();
     if (dims.ok) {
       state.widthMm = dims.widthMm;
@@ -1913,6 +2013,7 @@
       state.widthText = formatMm(dims.widthMm, next);
       state.heightText = formatMm(dims.heightMm, next);
     }
+    if (lp) { lp.setActiveUnit(next); lp.clearNotice(); }
     state.unit = next;
     update();
   }
@@ -2129,6 +2230,11 @@
     renderBadge: renderBadge,
     unitSpec: UNIT_SPEC,
     siteFields: SITE_FIELDS,
-    defaultTolerancePercent: Core.DEFAULT_TOLERANCE_PERCENT
+    defaultTolerancePercent: Core.DEFAULT_TOLERANCE_PERCENT,
+    // v1.3.0 桌面专属适配入口（不涉及任何新计算，只是复用既有状态/更新链路）
+    refresh: update,
+    setDimensionText: desktopSetDimensionText,
+    persistSettings: desktopSaveSettings,
+    changeUnit: changeUnit
   };
 });

@@ -11,6 +11,15 @@
  * 🔒 V1.0 的 settings.json 键集合精确到 4 个（表B §2.2）。
  *    unit / stageMode / window / 栏宽 / 草稿在 V1.0 的 schema 中**不存在**
  *    —— 不是「存在但为空」（TK-70 裁定前按表B 执行）。
+ *
+ * 🔒 v1.3.0 增量兼容（LED 像素间距 P）：
+ *    · `schemaVersion` **保持 1**：若升到 2，回退到 v1.2.0 时旧版 normalize()
+ *      会因 `sv > 1` 整体回退、导致容差配置丢失，违反「保留 v1.2.0 可回退状态」；
+ *    · `pixelPitchMm` 是**可选增量字段**：缺失 = 未配置（null），绝不默认 P2.5；
+ *    · 未配置时**不写入该键**，settings.json 仍是原有精确 4 键（既有门禁不变）；
+ *    · 写入采用「读原文件 → 合并 → 原子写」，保留原文件中已存在的其他键，
+ *      不覆盖旧设置、不删除其他字段、不改变用户数据目录；
+ *    · `tolerancePercent` 的默认值、合法区间、校验与业务逻辑**逐字不变**。
  */
 'use strict';
 
@@ -24,13 +33,26 @@ const TMP = 'settings.json.tmp';
 const SCHEMA_VERSION = 1;
 const DEFAULT_TOLERANCE = 0.5; // 与 core.js DEFAULT_TOLERANCE_PERCENT 一致
 
-/** 允许出现在 settings.json 中的键 —— 精确白名单 */
+/** 允许出现在 settings.json 中的键 —— 精确白名单（v1.3.0 增 1 个可选键） */
 const ALLOWED_KEYS = Object.freeze([
   'schemaVersion',
   'tolerancePercent',
   'createdAt',
   'updatedAt',
+  'pixelPitchMm',
 ]);
+
+/**
+ * P 值字段校验：只允许「大于 0 的有限数值」或「未配置」。
+ * 名称刻意避开受保护的计算函数标识符（SEC-01 静态断言）。
+ */
+function readPitchValue(raw) {
+  if (raw === null || raw === undefined || raw === '') return { ok: true, value: null };
+  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) {
+    return { ok: false, value: null };
+  }
+  return { ok: true, value: raw };
+}
 
 /** 错误码（SEC-06） */
 const ERR_WRITE_FAILED = 5001;
@@ -46,14 +68,27 @@ function tmpPath(userDataDir) {
   return path.join(userDataDir, TMP);
 }
 
+/** 读取原始 settings.json 对象（主文件损坏时回退 .bak）；失败返回 null。 */
+function readRawObject(userDataDir) {
+  for (const file of [settingsPath(userDataDir), backupPath(userDataDir)]) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    } catch (_) {
+      /* 试下一个来源 */
+    }
+  }
+  return null;
+}
+
 /**
  * 校验并归一化一个设置对象。逐字段回退，不整体丢弃。
  * @param {any} raw
- * @returns {{ok: boolean, value: {tolerancePercent: number}, badFields: string[]}}
+ * @returns {{ok: boolean, value: {tolerancePercent: number, pixelPitchMm: number|null}, badFields: string[]}}
  */
 function normalize(raw) {
   const badFields = [];
-  const out = { tolerancePercent: DEFAULT_TOLERANCE };
+  const out = { tolerancePercent: DEFAULT_TOLERANCE, pixelPitchMm: null };
 
   if (!raw || typeof raw !== 'object') {
     badFields.push('*');
@@ -78,6 +113,11 @@ function normalize(raw) {
     badFields.push('tolerancePercent');
   }
 
+  // v1.3.0 增量字段：缺失或非法都视为「未配置」，绝不整体丢弃旧文件、
+  // 不改变容差的既有结果；非法值只静默降级为 null（渲染层另有显式输入校验）。
+  const pitch = readPitchValue(raw.pixelPitchMm);
+  out.pixelPitchMm = pitch.ok ? pitch.value : null;
+
   return { ok: badFields.length === 0, value: out, badFields };
 }
 
@@ -89,7 +129,7 @@ function normalize(raw) {
 function readSettings(userDataDir) {
   const now = new Date().toISOString();
   const fallback = {
-    settings: { schemaVersion: SCHEMA_VERSION, tolerancePercent: DEFAULT_TOLERANCE },
+    settings: { schemaVersion: SCHEMA_VERSION, tolerancePercent: DEFAULT_TOLERANCE, pixelPitchMm: null },
     code: 0,
     badFields: [],
   };
@@ -121,6 +161,7 @@ function readSettings(userDataDir) {
     settings: {
       schemaVersion: SCHEMA_VERSION,
       tolerancePercent: norm.value.tolerancePercent,
+      pixelPitchMm: norm.value.pixelPitchMm,
       createdAt,
       updatedAt: now,
     },
@@ -160,18 +201,34 @@ function writeSettings(userDataDir, patch) {
     };
   }
 
-  const prev = readSettings(userDataDir);
-  const payload = {
-    schemaVersion: SCHEMA_VERSION,
-    tolerancePercent: t,
-    createdAt: prev.settings.createdAt || now,
-    updatedAt: now,
-  };
+  // v1.3.0 增量字段：合法 → 写入；未配置 → 不写该键（保持 v1.2.0 精确 4 键形态）；
+  // 非法 → 拒绝本次写入，绝不落盘脏值。未提供该字段时保留原文件中的既有值。
+  const pitchPatch = ('pixelPitchMm' in picked) ? readPitchValue(picked.pixelPitchMm) : null;
+  if (pitchPatch && !pitchPatch.ok) {
+    return { code: 4002, message: 'pixelPitchMm 必须是大于 0 的有限数或未配置', data: null };
+  }
 
-  // 只写白名单内的键
+  const prev = readSettings(userDataDir);
+
+  // 🔒 升级兼容：以「原文件已有内容」为底稿合并，而不是从零重建。
+  //    只搬运原文件**已存在**的键，patch 无法引入白名单之外的新键（SEC-08 仍成立）；
+  //    旧版 1.2.0 写入的容差、时间戳以及任何既有字段都不会被删除。
   const final = Object.create(null);
-  for (const key of ALLOWED_KEYS) {
-    if (key in payload) final[key] = payload[key];
+  const existing = readRawObject(userDataDir);
+  if (existing) {
+    for (const key of Object.keys(existing)) {
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
+      final[key] = existing[key];
+    }
+  }
+
+  final.schemaVersion = SCHEMA_VERSION;
+  final.tolerancePercent = t;
+  final.createdAt = prev.settings.createdAt || now;
+  final.updatedAt = now;
+  if (pitchPatch) {
+    if (pitchPatch.value === null) delete final.pixelPitchMm;
+    else final.pixelPitchMm = pitchPatch.value;
   }
 
   const target = settingsPath(userDataDir);
@@ -203,6 +260,8 @@ function writeSettings(userDataDir, patch) {
 module.exports = {
   readSettings,
   writeSettings,
+  readRawObject,
+  readPitchValue,
   ALLOWED_KEYS,
   SCHEMA_VERSION,
   DEFAULT_TOLERANCE,

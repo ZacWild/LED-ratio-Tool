@@ -16,6 +16,7 @@
     "audit:security": "node test/security-audit.cjs",
     "test:pitch": "node --test test/led-pitch.test.mjs",
     "test:settings-compat": "node --test test/settings-compat.test.mjs",
+    "test:pitch-dom": "node test/probes/probe-pitch-dom.cjs",
     "evidence:p4a": "node test/p4a-evidence.cjs",
     "evidence:p4b": "node test/p4b-evidence.cjs",
     "test:smoke": "node test/smoke-launch.mjs --runs=10",

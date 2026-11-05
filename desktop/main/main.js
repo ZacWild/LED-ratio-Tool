@@ -5,7 +5,9 @@
  *   DEC-09 —— 启动窗口目标 1440×900，须适应目标屏幕可用工作区
  *   DEC-11 —— app:// 协议；不启用 bypassCSP
  *   DEC-12 —— appId 永久锁定 com.ledratiotool.desktop
- *   DEC-13 —— 桌面应用版本 1.2.0（PX 输入单位 + 步进符号居中补丁）
+ *   DEC-13 —— 桌面应用版本 1.3.0（LED 像素间距 P + 真实 PX 换算 + 原生分辨率估算 + 箱体规格核验）
+ *              运行时版本真源仍为 desktop/package.json；HTML_VERSION 恒为 1.0.1，不随桌面版递增。
+ *              历史：1.2.0（PX 输入单位 + 步进符号居中补丁）已移除 1 px = 1 mm 假设。
  *   DEC-14 —— useContentSize: true，以客户区尺寸验收
  *   DEC-19 —— userData / sessionData 分离
  *   SEC-01~SEC-15 —— 进程模型、渲染配置、IPC、权限、内容加载

@@ -1141,3 +1141,215 @@ html[data-height-tier='tight'] .status-bar {
 .modal__body {
   overscroll-behavior: contain;
 }
+
+/* ==========================================================================
+   v1.3.0 · LED 像素间距 P / 原生分辨率估算 / 箱体规格核验
+   --------------------------------------------------------------------------
+   🔒 全部沿用现有品牌 CSS 变量（深浅色由 styles.css 统一切换），不写死颜色、
+      不引入外部字体或资源。两个模块默认折叠，正文末尾只占 1 行标题。
+   ========================================================================== */
+.pitch-block,
+.cabinet-block {
+  margin-top: var(--space-2);
+}
+.pitch-block > .pitch-summary,
+.cabinet-block > .pitch-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  cursor: pointer;
+  list-style: none;
+}
+.pitch-block > .pitch-summary::-webkit-details-marker,
+.cabinet-block > .pitch-summary::-webkit-details-marker {
+  display: none;
+}
+.pitch-block > .pitch-summary::before,
+.cabinet-block > .pitch-summary::before {
+  content: '\25B8';
+  display: inline-block;
+  margin-right: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-caption-size);
+  transition: transform 120ms ease;
+}
+.pitch-block[open] > .pitch-summary::before,
+.cabinet-block[open] > .pitch-summary::before {
+  transform: rotate(90deg);
+}
+.pitch-block > .pitch-summary > span:first-child,
+.cabinet-block > .pitch-summary > span:first-child {
+  flex: 1;
+}
+.pitch-source-tag {
+  flex: none;
+  padding: 1px var(--space-2);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-lh);
+  font-weight: 400;
+}
+.pitch-content {
+  contain: layout style;
+  padding-top: var(--space-2);
+}
+.pitch-source-note {
+  margin: 0 0 var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+}
+.pitch-notice,
+.pitch-unavailable,
+.pitch-warn {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 2px solid var(--accent);
+  background: var(--accent-bg);
+  color: var(--text-secondary);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+}
+.pitch-unavailable {
+  border-left-color: var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-muted);
+}
+.pitch-warnings {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+}
+.pitch-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior: contain;
+  margin-bottom: var(--space-2);
+}
+.pitch-table {
+  width: 100%;
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+}
+.pitch-table th,
+.pitch-table td {
+  padding: 3px var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: top;
+}
+.pitch-table th {
+  color: var(--text-muted);
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+.pitch-table td:first-child {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.pitch-table td:not(:first-child) {
+  color: var(--text-primary);
+}
+
+/* 设置模态内的 P 值独立设置行 */
+.pitch-settings-row {
+  display: block;
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+.pitch-settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.pitch-status {
+  padding: 1px var(--space-2);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--text-accent);
+  background: var(--accent-bg);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-lh);
+  white-space: nowrap;
+}
+.pitch-status.is-unset {
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+  background: var(--bg-card);
+}
+.pitch-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+.pitch-preset {
+  min-width: 52px;
+  min-height: 26px;
+  padding: 2px var(--space-2);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: var(--text-caption-size);
+  cursor: pointer;
+}
+.pitch-preset:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+.pitch-preset[aria-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--text-accent);
+}
+.pitch-custom-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+.pitch-custom-line .settings-input {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+.pitch-custom-line .group__label {
+  flex: none;
+}
+.pitch-unit-label {
+  flex: none;
+  color: var(--text-muted);
+  font-size: var(--text-caption-size);
+}
+
+/* 箱体 6 项输入 */
+.cabinet-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.cabinet-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cabinet-field .group__label {
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-lh);
+}
+.cabinet-field .settings-input {
+  width: 100%;
+  box-sizing: border-box;
+}

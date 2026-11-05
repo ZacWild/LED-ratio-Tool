@@ -836,10 +836,10 @@ T({
 });
 
 T({
-  id: 'TC-DS-04', cat: 'TC-DS', title: 'settings.json 白名单 = 精确 4 键',
-  target: 'schemaVersion/tolerancePercent/createdAt/updatedAt；无其他键',
+  id: 'TC-DS-04', cat: 'TC-DS', title: 'settings.json 白名单 = 4 键 + v1.3.0 可选 P 值键',
+  target: 'schemaVersion/tolerancePercent/createdAt/updatedAt（+ 可选 pixelPitchMm）；无其他键',
   input: '写入容差后读文件',
-  expect: '键集合 ⊆ 4 键白名单',
+  expect: '键集合 ⊆ 5 键白名单',
   fn: async (ctx) => {
     const r = await ctx.settingsWhitelistAudit();
     const ok = r.ok;
@@ -2825,7 +2825,9 @@ function buildContext(app, win, opts) {
       let obj = null;
       try { obj = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { return { keys: [], extra: ['PARSE_ERROR'], ok: false }; }
       const keys = Object.keys(obj);
-      const allowed = ['schemaVersion', 'tolerancePercent', 'createdAt', 'updatedAt'];
+      // v1.3.0：LED 像素间距是可选增量字段；未配置时 settings-store 不写该键，
+      // 文件仍是 v1.2.0 的精确 4 键形态。schemaVersion 保持 1 以支持回退。
+      const allowed = ['schemaVersion', 'tolerancePercent', 'createdAt', 'updatedAt', 'pixelPitchMm'];
       const extra = keys.filter((k) => !allowed.includes(k));
       return { keys, extra, ok: extra.length === 0, file };
     },

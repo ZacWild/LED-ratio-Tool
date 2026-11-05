@@ -89,9 +89,11 @@ function registerIpc({ mainWindow, userDataDir, appVersion, coreVersion, htmlVer
     return ok(r.settings);
   });
 
-  /* 2. 写设置 */
+  /* 2. 写设置
+   * v1.3.0：在既有通道内增 1 个可选字段 pixelPitchMm（LED 像素间距）。
+   * 通道名、preload 暴露接口、handler 数量、安全策略全部不变。 */
   handle(CHANNELS.SETTINGS_SET, (payload) => {
-    const picked = pickOnly(payload, ['tolerancePercent']);
+    const picked = pickOnly(payload, ['tolerancePercent', 'pixelPitchMm']);
     return writeSettings(userDataDir, picked);
   });
 
