@@ -1,6 +1,6 @@
 {
   "name": "led-ratio-tool-desktop",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "license": "MIT",
   "description": "LED Ratio Tool —— 屏幕尺寸与视频画布比例换算工具（Windows 桌面版）",
@@ -14,6 +14,8 @@
     "sync:check": "node build/sync-assets.mjs --check-only",
     "core:accept": "node build/sync-assets.mjs --accept-core",
     "audit:security": "node test/security-audit.cjs",
+    "test:pitch": "node --test test/led-pitch.test.mjs",
+    "test:settings-compat": "node --test test/settings-compat.test.mjs",
     "evidence:p4a": "node test/p4a-evidence.cjs",
     "evidence:p4b": "node test/p4b-evidence.cjs",
     "test:smoke": "node test/smoke-launch.mjs --runs=10",
