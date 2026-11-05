@@ -505,6 +505,9 @@ T({
   //    ② 无隐藏元素获得焦点；
   //    ③ radiogroup 整组只占 1 个 Tab 位（roving tabindex，F-06）。
   //    本用例断言 ①②③ 三项。
+  //    🔴 v1.3.0：结果区新增两个默认折叠的 <details> 模块，DOM 顺序基线同步扩展为
+  //       「纳入原生可聚焦的 <summary>、排除闭合 details 内的后代」（见 domFocusOrder()）。
+  //       口径仍是「真实 Tab 顺序 == DOM 顺序、无隐藏焦点」，**未放宽或跳过断言**。
   target: 'Tab 40 次：顺序 = DOM 顺序；无隐藏焦点；分段控件整组只占 1 个 Tab 位',
   input: '1440×900 三栏',
   expect: '序列与 DOM 顺序一致 + 无隐藏焦点 + 分段组各占 1 个 Tab 位',
@@ -2990,7 +2993,10 @@ function buildContext(app, win, opts) {
         // 🔒 Chromium 行为补充：**可滚动容器**（overflow:auto/scroll 且内容溢出）
         //    即使没有 tabindex 也会被纳入 Tab 序（键盘可聚焦滚动区）。
         //    故 DOM 顺序基线必须把这类容器一并纳入，否则比对必然失配。
-        const els = document.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])');
+        // 🔴 v1.3.0 基线扩展：结果区新增两个默认折叠的 <details> 模块。
+        //    Chromium 中 <summary> 是原生可聚焦元素（无需 tabindex），必须纳入
+        //    DOM 顺序基线；旧枚举只覆盖表单元素，会把它漏掉。
+        const els = document.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select,textarea,summary,[tabindex]:not([tabindex="-1"])');
         const extra = [];
         for (const d of document.querySelectorAll('div,section,main,aside')) {
           const cs = getComputedStyle(d);
@@ -2999,7 +3005,7 @@ function buildContext(app, win, opts) {
           if (d.hasAttribute('tabindex')) continue;       // 已在 els 中
           // 🔒 Chromium 规则：可滚动区域**仅在自身不含可聚焦后代**时才进入 Tab 序
           //    （否则键盘可直接聚焦其内部控件，容器本身无需单独停靠）。
-          const hasFocusableChild = d.querySelector('a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])');
+          const hasFocusableChild = d.querySelector('a[href],button:not([disabled]),input:not([disabled]),select,textarea,summary,[tabindex]:not([tabindex="-1"])');
           if (hasFocusableChild) continue;
           extra.push(d);
         }
@@ -3011,7 +3017,12 @@ function buildContext(app, win, opts) {
           const ti = e.getAttribute('tabindex');
           if (ti === '-1') continue;                       // roving：非选中项不可 Tab
           if (e.getAttribute('aria-checked') === 'false') continue; // radiogroup 非选中项
-          const isForm = /^(BUTTON|INPUT|SELECT|TEXTAREA|A)$/.test(e.tagName);
+          // 🔴 v1.3.0：闭合 <details> 内的后代不进入 Chromium 的 Tab 序列
+          //    （content-visibility:hidden 让它们仍有非零 offsetWidth，故不能只看尺寸）。
+          //    仅保留 details 自身的 <summary>，与真实键盘行为一致。
+          const closedDetails = e.closest('details:not([open])');
+          if (closedDetails && e.tagName !== 'SUMMARY') continue;
+          const isForm = /^(BUTTON|INPUT|SELECT|TEXTAREA|A|SUMMARY)$/.test(e.tagName);
           const isScrollable = extra.indexOf(e) >= 0;
           if (!isForm && !isScrollable) continue;
           let key = e.id || null;

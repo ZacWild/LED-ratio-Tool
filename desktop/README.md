@@ -51,7 +51,7 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 | `sync:check` / `audit:security` / `test:redlines` / `test:unit` / `test:hooks` | ✅ 无漂移 / 47/47 / 红线 + core 哈希锁通过 / 64/64 / 23/23 |
 | `verify:reproducible` / `test:e2e:noshots`（HTML 侧） | ✅ 通过（`d016a66a…936b`）/ 85/85 |
 | CI 新增门禁 | `.github/workflows/windows.yml` 6.2（39 项独立单测）+ 7.2.1（18 项 DOM 探针 + 新鲜度 ≤30 分钟） |
-| GitHub Actions 实际运行 | ⏳ **PR 创建后才有结果，本表不宣称 CI 已通过** |
+| GitHub Actions 实际运行 | 🔴 **首次 [`run 42007892544`](https://github.com/ZacWild/LED-ratio-Tool/actions/runs/42007892544)**：37 步中 27 成功 / 1 失败（`TC-D-19`）/ 9 因失败跳过；新增 6.2 / 7.2.1 门禁、PX 探针 10/10、冒烟 10/10 均通过。已修正测试基线并复跑，**最终以 PR required check 为准，本表不宣称 CI 已通过** |
 | `test:smoke` / `test:desktop` / Golden / Differential 200 / Visual Regression / DPI / PX 探针 Electron 实跑 / P7 Fuses / 产物指纹 / 安装验收 | ⛔ 本机 Electron GPU 进程 `exit_code=-1073741819` 崩溃阻塞；已在未改动 `main` 基线 worktree 复现同一崩溃，确认非 v1.3.0 引入，需 CI / 真机补齐 |
 
 > ⚠️ `test:pitch-dom` 用 Chrome `file://` 加载桌面生成副本并桩替代 preload 的 8 个 `ledApi` 方法，**不覆盖** Electron BrowserWindow / IPC 主进程 / 原生窗口 / 打包产物，**不是 Electron E2E 替代品**。
@@ -63,6 +63,7 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 3. Electron 相关回归本机不可执行（见 0.5），需 CI 与真机验收。
 4. 本地 `test:policy` 的 A-2（**已解决**）：浅克隆默认不带本地 `feature/desktop-windows` 分支引用（远端存在），已只读取到本地引用后复跑全绿；仅影响本地检出，不推送、不改远端。
 5. P 值估算为理论值，不等于控制器 / 播放服务器已确认的输入分辨率；箱体核验不接供应商数据库。
+6. **CI 首次 `TC-D-19` 失败（已定位并修正）**：两个默认折叠 `<details>` 模块引入 `<summary>` Tab 停靠点，旧 `domFocusOrder()` 只枚举表单元素、且把 `content-visibility:hidden` 但 `offsetWidth>0` 的折叠内容输入框误算为可聚焦 → `desktop-suite` 92/93。已把基线扩展为「纳入原生可聚焦的 `<summary>`、排除闭合 `<details>` 内后代」，本地 Chrome 复现修正后前 40 项与真实 Tab 逐项一致；**断言口径未放宽**，复跑结论以 PR required check 为准。
 
 ---
 ## 一、当前状态

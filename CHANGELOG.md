@@ -69,10 +69,10 @@
 | `sync:check` / `audit:security` / `test:redlines` / `test:unit` / `test:hooks` | ✅ 无漂移 / **47/47** / 红线与 core 哈希锁通过 / **64/64** / **23/23**（本地） |
 | `verify:reproducible` / `test:e2e:noshots`（HTML 侧） | ✅ 通过（`sha256 d016a66a…936b`）/ **85/85**（本地） |
 | `test:policy` | ✅ 通过（A-1 / A-2 / A-3 / B-1 全绿；补齐本地受保护分支引用后复跑，详见「已知问题」第 4 条） |
-| GitHub Actions CI | ⏳ **PR 创建后才会运行；本条目不宣称 CI 已通过** |
+| GitHub Actions CI | 🔴 **首次运行** [`run 42007892544`](https://github.com/ZacWild/LED-ratio-Tool/actions/runs/42007892544)：37 步中 **27 成功 / 1 失败 / 9 因失败跳过**；新增 6.2（39 项）与 7.2.1（18 项）两道门禁、PX 探针 10/10、Electron 冒烟 10/10 均通过，失败点为 `TC-D-19`（见「已知问题」第 7 条）。已修正测试基线并复跑，**最终结论以 PR 的 required status check 为准，本条目不宣称 CI 已通过** |
 | Electron 桌面 E2E / Golden / Differential 200 / Visual Regression / DPI / PX 探针 Electron 实跑 / P7 Fuses / 产物指纹 / 安装验收 | ⛔ **本机环境阻塞**：Electron GPU 进程 `exit_code=-1073741819` 崩溃。已在未改动的 `main` 基线 worktree 上复现同一崩溃，确认非 v1.3.0 代码引入；需 GitHub Actions 实际运行判定 |
 
-**既有测试口径同步（非回归，按任务书要求）**：`probe-px-unit.cjs` 的 PX-05 / PX-07 由 v1.2.0 的「1px=1mm」与「px→m 反算」改为「按 P 换算」与「px→m 恢复原始物理尺寸」，保持 10 项总数与 CI 新鲜度门禁不变；`desktop-suite.mjs` / `p7-acceptance.mjs` 的 settings 白名单增加可选键 `pixelPitchMm`。
+**既有测试口径同步（非回归，按任务书要求）**：`probe-px-unit.cjs` 的 PX-05 / PX-07 由 v1.2.0 的「1px=1mm」与「px→m 反算」改为「按 P 换算」与「px→m 恢复原始物理尺寸」，保持 10 项总数与 CI 新鲜度门禁不变；`desktop-suite.mjs` / `p7-acceptance.mjs` 的 settings 白名单增加可选键 `pixelPitchMm`；`desktop-suite.mjs` 的 `domFocusOrder()` 基线扩展为「纳入原生可聚焦的 `<summary>`、排除闭合 `<details>` 内的后代」——因新增的两个默认折叠结果模块引入了 `<summary>` 停靠点，而 Chromium 的 `content-visibility:hidden` 让折叠内容里的输入框仍有非零 `offsetWidth`，旧枚举会把它们误算进 DOM 顺序。**这是让基线对齐真实 Chromium Tab 行为，不是放宽或跳过 `TC-D-19` 断言**（本地 Chrome 复现：修正后前 40 项与真实 Tab 序列逐项一致）。
 
 ### 已知问题与未完成项
 
@@ -82,6 +82,7 @@
 4. **本机 `test:policy` 的 A-2 项（已解决）**：浅克隆默认不带本地 `feature/desktop-windows` 分支引用（远端分支存在），曾使本地状态审计报「受保护分支缺失」。已把该远端分支只读取到本地引用后复跑，`test:policy` 全绿（A-1 / A-2 / A-3 / B-1 通过）；该操作仅影响本地检出，不推送、不改远端，属检出状态而非仓库违规。
 5. **P 值估算为理论值**，不代表控制器 / 播放服务器已确认分辨率；箱体核验不连接供应商数据库。
 6. **DOM 层取证不是 Electron E2E 替代品**（边界见 CI 步骤注释）。
+7. **CI 首次运行 `TC-D-19` 失败（已定位并修正）**：新增的两个默认折叠 `<details>` 结果模块使既有 `domFocusOrder()` 基线不完整——真实 Tab 序列包含 2 个 `<summary>` 停靠点，而旧基线只枚举表单元素；同时折叠内容里的 6 个箱体输入框因 `content-visibility:hidden` 仍有非零 `offsetWidth`，被旧基线误算为可聚焦。CI 首次运行 `desktop-suite` 为 **92/93 PASS、FAIL 1（TC-D-19）**，其余 27 步通过、9 步因失败跳过。已按 Chromium 真实键盘行为扩展基线（Chrome 复现验证：修正后前 40 项逐项一致），并复跑 CI；结论以 PR 的 required check 为准。
 
 ---
 
