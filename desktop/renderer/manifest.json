@@ -1,33 +1,33 @@
 {
-  "generatedAt": "2026-11-05T09:43:14.083Z",
+  "generatedAt": "2026-11-06T16:01:11.144Z",
   "files": [
     {
       "label": "core.js",
       "source": ".\\src\\core.js",
       "target": ".\\renderer\\core.js",
       "sha256": "dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26",
-      "bytes": 55865
+      "bytes": 54620
     },
     {
       "label": "app.js",
       "source": ".\\src\\app.js",
       "target": ".\\renderer\\app.js",
       "sha256": "ae33c93941b3bc167170b83eff84027f5f576e0e8b97de3bc1899088db81235d",
-      "bytes": 85631
+      "bytes": 83555
     },
     {
       "label": "styles.css",
       "source": ".\\src\\styles.css",
       "target": ".\\renderer\\styles.css",
       "sha256": "f50e0c307c93160258cccb9faadfdefa01cc82123dacfd7aba0da7a770efae86",
-      "bytes": 31860
+      "bytes": 30809
     },
     {
       "label": "index.html",
       "source": ".\\index.html",
       "target": ".\\renderer\\index.html",
       "sha256": "72bfa365ec1c39a8eac00b6c63cbd62498babdb023d8f07027a6d1d0a1fd8bce",
-      "bytes": 19233
+      "bytes": 18927
     }
   ]
 }
