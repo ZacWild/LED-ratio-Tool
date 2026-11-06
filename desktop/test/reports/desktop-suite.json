@@ -1,22 +1,22 @@
 {
   "meta": {
-    "generatedAt": "2026-11-04T04:07:52.093Z",
+    "generatedAt": "2026-11-06T17:50:40.249Z",
     "electron": "45.1.0",
     "node": "v22.22.2",
     "platform": "win32",
     "env": {
       "display": {
-        "id": 1897915132,
-        "label": "LEN P27q-10",
+        "id": 2231160821,
+        "label": "S2719DGF",
         "scaleFactor": 1,
         "workArea": {
-          "x": 2560,
+          "x": 0,
           "y": 32,
           "width": 2560,
           "height": 1408
         },
         "bounds": {
-          "x": 2560,
+          "x": 0,
           "y": 0,
           "width": 2560,
           "height": 1440
@@ -27,13 +27,13 @@
         }
       },
       "workArea": {
-        "x": 2560,
+        "x": 0,
         "y": 32,
         "width": 2560,
         "height": 1408
       },
       "effectiveWorkArea": {
-        "x": 2560,
+        "x": 0,
         "y": 32,
         "width": 2560,
         "height": 1408
@@ -310,7 +310,7 @@
       "target": "每次改输入后，结果区 DOM 在 100ms 内完成更新",
       "input": "连续 5 次改输入宽度",
       "expect": "5 次延迟全部 ≤100ms",
-      "actual": "各次延迟=[3.699999988079071, 3, 3.299999952316284, 3, 3.699999988079071] ms 最大=3.699999988079071ms",
+      "actual": "各次延迟=[4.699999988079071, 3.5999999940395355, 3.7000000178813934, 3.4000000059604645, 4] ms 最大=4.699999988079071ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -553,11 +553,11 @@
     {
       "id": "TC-DS-04",
       "cat": "TC-DS",
-      "title": "settings.json 白名单 = 精确 4 键",
-      "target": "schemaVersion/tolerancePercent/createdAt/updatedAt；无其他键",
+      "title": "settings.json 白名单 = 4 键 + v1.3.0 可选 P 值键",
+      "target": "schemaVersion/tolerancePercent/createdAt/updatedAt（+ 可选 pixelPitchMm）；无其他键",
       "input": "写入容差后读文件",
-      "expect": "键集合 ⊆ 4 键白名单",
-      "actual": "键=[\"schemaVersion\",\"tolerancePercent\",\"createdAt\",\"updatedAt\"] 白名单外=[]",
+      "expect": "键集合 ⊆ 5 键白名单",
+      "actual": "键=[\"schemaVersion\",\"tolerancePercent\",\"createdAt\",\"updatedAt\",\"pixelPitchMm\"] 白名单外=[]",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -778,7 +778,7 @@
       "target": "超长含字母串 → ER-02 逐字；超长纯数字串 → 不崩溃、无 NaN/Infinity、后续操作 ≤500ms",
       "input": "宽 = \"9\".repeat(60) + \"abc\"；再 = \"9\".repeat(20)",
       "expect": "ER-02 逐字 + 纯数字串无 NaN 且可继续操作",
-      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=3.199999988079071ms",
+      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=3.5999999940395355ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1025,7 +1025,7 @@
       "target": "滚 C 栏后 A 栏 scrollTop 仍为 0",
       "input": "1440×900",
       "expect": "独立滚动",
-      "actual": "C 栏 scrollTop=1683｜A 栏 scrollTop=0（滚动前归零=0）",
+      "actual": "C 栏 scrollTop=1773｜A 栏 scrollTop=0（滚动前归零=0）",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1259,7 +1259,7 @@
       "target": "焦点在舞台内 → 切到第③档 → 焦点迁移到 EL-ST-16，出现 400ms 高亮，全程不落 body",
       "input": "焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600",
       "expect": "焦点=EL-ST-16 且有高亮类；无 body 焦点",
-      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793765262638}",
+      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1793987430739}",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
