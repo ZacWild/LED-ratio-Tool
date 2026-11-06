@@ -119,11 +119,20 @@
           display:none 后恢复 93/93）。
         header 在 .layout 之外 + absolute 不占文档流 → 对三档布局零影响；
         且紧贴 px 单位按钮，仅在 px 模式显示，语义最贴切。 */
+  /* ---------------- 3. 「可见 PX 来源标识」（header 右上紧凑徽标） ----------------
+     🔒 三次实测定型的挂载规约（回归约束，长期保留）：
+        · 挂 C 栏流内 → 破坏 TC-H-14 滚动锚点（改内容高度）；
+        · 挂 A 栏流内 → 破坏 TC-H-11 三档可达（600px 档 scrollIntoView 残留）；
+        · 挂 .app-header__actions → 该容器被 EL-HD-01 moveUnitSegment()
+          迁空（0×0），是游离假象，不可用；
+        · 最终：absolute 挂 .app-header__live（目标分辨率徽标）左侧空白，
+          不进入任何文档流、不遮挡交互元素；仅 px 模式显示。 */
   function ensureSourceHost() {
+    var anchor = doc.querySelector('.app-header__live');
+    if (!anchor || anchor.getBoundingClientRect().width === 0) return null;
     var el = byId('p10-px-source');
-    if (el) return el;
-    var anchor = doc.querySelector('.app-header__actions');
-    if (!anchor) return null;
+    if (el && el.parentElement === anchor) return el;
+    if (el) el.parentNode.removeChild(el);
     el = mk('div', 'p10-px-source');
     el.id = 'p10-px-source';
     el.setAttribute('role', 'status');
@@ -139,22 +148,30 @@
     var unit = (doc.querySelector('.unit-segment[aria-checked="true"]') || {}).getAttribute
       ? doc.querySelector('.unit-segment[aria-checked="true"]').getAttribute('data-unit') : null;
     var origin = snap ? snap.pxOrigin : null;
-    var label = t('p10.px.originLabel');
-    var value, note;
-    if (unit !== 'px') {
-      value = t('p10.px.none');
-      note = '';
-    } else if (origin === 'converted') {
-      value = t('p10.px.originTheory');
-      note = t('p10.px.originConvertedNote');
-    } else {
-      value = t('p10.px.originUser');
-      note = t('p10.px.originDirectNote');
-    }
     clear(el);
-    el.appendChild(mk('span', 'p10-px-source__label', label + '：'));
-    el.appendChild(mk('span', 'p10-px-source__value', value));
-    if (note) el.appendChild(mk('span', 'p10-px-source__note', note));
+    el.removeAttribute('title');
+    // 堆叠档（≤1024 宽）输入面板上移至 header 行内，悬浮徽标会遮挡输入框
+    // → 隐藏（断点适配约束：不得遮挡交互元素、不得影响断点切换）。
+    var layoutEl = doc.querySelector('.layout');
+    if (layoutEl && layoutEl.getAttribute('data-layout') === 'stacked') {
+      el.setAttribute('data-origin', 'none');
+      return;
+    }
+    if (unit !== 'px') {
+      // 仅 px 模式显示；m/cm/mm 下隐藏（CSS data-origin="none"）
+      el.setAttribute('data-origin', 'none');
+      return;
+    }
+    var text, tip;
+    if (origin === 'converted') {
+      text = t('p10.px.badge.theory');
+      tip = t('p10.px.originConvertedNote');
+    } else {
+      text = t('p10.px.badge.user');
+      tip = t('p10.px.originDirectNote');
+    }
+    el.appendChild(mk('span', 'p10-px-source__value', text));
+    el.setAttribute('title', tip);
     el.setAttribute('data-origin', origin || 'none');
   }
 
@@ -184,8 +201,14 @@
 
   /* ---------------- 5. 设置面板的语言切换 ---------------- */
   function renderLangPicker() {
-    var panel = byId('settings-panel') || doc.querySelector('.settings');
-    if (!panel) return;
+    /* 语言切换入口挂在**桌面自绘设置模态**内（openSettingsModal 每次打开
+       都重建 modalBody）——根 #settings-panel 在桌面版是 display:none 的
+       隐藏浮层（架构审查 Blocker A1），挂那里用户永远看不到。
+       挂载点 = .pitch-settings-row 之后（模态 body 末尾）；
+       元素同一性移动（不重建）→ select 的 change 监听不重复绑定。 */
+    var pitchRow = doc.querySelector('.pitch-settings-row');
+    var modalBody = pitchRow ? pitchRow.parentElement : null;
+    if (!modalBody) return;
     var wrap = byId('p10-lang');
     if (!wrap) {
       wrap = mk('div', 'settings-row p10-lang');
@@ -207,8 +230,8 @@
       });
       wrap.appendChild(label);
       wrap.appendChild(select);
-      panel.appendChild(wrap);
     }
+    if (wrap.parentElement !== modalBody) modalBody.appendChild(wrap);
     wrap.querySelector('#p10-lang-label').textContent = t('p10.lang.label');
     var sel = wrap.querySelector('#p10-lang-select');
     Array.prototype.forEach.call(sel.options, function (o) {
@@ -248,6 +271,10 @@
     // 设置模态内的 P 值行是打开时才动态生成的：行出现时自动补挂说明，
     // 语言切换由 renderAll() 清空重建，二者不会重复渲染。
     if (global.MutationObserver) {
+      // 🔒 MO 回调内只挂 P 值说明，**禁止挂语言下拉**：
+      //    2026-11-07 实证——MO 微任务内执行 renderLangPicker 会在打开设置
+      //    模态瞬间触发 [RENDERER CRASH]（渲染进程级致命错误，无 JS 异常），
+      //    语言下拉改由下方 500ms 轮询挂载。
       var mo = new MutationObserver(function () {
         if (!byId('p10-pitch-help') && doc.querySelector('.pitch-settings-row')) {
           renderPitchHelp();
@@ -263,6 +290,22 @@
     doc.addEventListener('click', schedule, true);
     // 首次渲染后补一次（覆盖异步持久化回读）
     global.setTimeout(renderAll, 600);
+    // 语言下拉轮询挂载：设置模态每次打开都重建 body（wrap 被移除），轮询重挂；
+    // 500ms 轻量检查，物理上不可能触发 mutation 风暴（见上 MO 注释）。
+    global.setInterval(function () {
+      var row = doc.querySelector('.pitch-settings-row');
+      if (!row) return;
+      var wrap = byId('p10-lang');
+      if (!wrap || wrap.parentElement !== row.parentElement) renderLangPicker();
+    }, 500);
+    // 语言下拉轮询挂载：模态每次打开都重建 body（wrap 被移除），轮询重挂；
+    // 500ms 轻量检查，物理上不可能触发 mutation 风暴（见上 MO 注释）。
+    global.setInterval(function () {
+      var row = doc.querySelector('.pitch-settings-row');
+      if (!row) return;
+      var wrap = byId('p10-lang');
+      if (!wrap || wrap.parentElement !== row.parentElement) renderLangPicker();
+    }, 500);
   }
 
   if (doc.readyState === 'loading') {

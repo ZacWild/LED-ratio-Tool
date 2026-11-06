@@ -1438,18 +1438,18 @@ html[data-height-tier='tight'] .status-bar {
 }
 
 /* 结果面板顶部的可见 PX 来源标识 */
-.app-header__actions { position: relative; }
+.app-header__live { position: relative; }
+/* 紧凑单行徽标：absolute 挂「目标分辨率」徽标左侧空白，不进文档流 */
 .p10-px-source {
   position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 40;
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px;
-  max-width: 380px;
-  padding: 6px 10px;
+  align-items: center;
+  white-space: nowrap;
+  padding: 5px 10px;
   border: 1px solid var(--border-subtle);
   border-left: 3px solid var(--info);
   border-radius: 4px;

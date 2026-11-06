@@ -381,7 +381,7 @@
     'html.faq.q2': "Q: Why isn't 3840 × 1646 equal to 21:9?",
     'html.faq.a2': "A: 3840 ÷ 1646 ≈ 2.3329, whose exact integer ratio is 1920:823 — close to 7:3 but not equal. 21:9 is only an industry colloquialism.",
     'html.faq.q3': "Q: Can physical dimensions determine the native pixel resolution?",
-    'html.faq.a3': "A: No. Physical dimensions determine only the ratio; pixel resolution depends on the LED cabinet count, control system and playback server, and must be confirmed on site.",
+    'html.faq.a3': "A: No. Physical size alone cannot determine it. The v1.3.0 P-value estimate is theoretical only and is not the input resolution confirmed by the controller; the actual pixel resolution is jointly determined by the LED cabinet count, control system and playback server, and must be confirmed on site.",
     'html.faq.q4': "Q: When the ratio does not match, should I crop or letterbox?",
     'html.faq.a4': "A: Both are proportional fit; this tool never recommends stretching. If the content is wider than the screen, crop first (without cutting subtitles or station logos); if narrower, pad left and right to preserve the full frame.",
     /* ---- Stage 4: SITE_FIELDS labels ---- */
@@ -412,6 +412,8 @@
     'p10.layer.cabinetNote': "Comes from the cabinet / module specifications you entered; it is not generated from the P-based theoretical estimate. No fabricated specification is shown before you enter any.",
     /* ---- PR #10: visible PX provenance (S10-3) ---- */
     'p10.px.originLabel': "Current PX value source",
+    'p10.px.badge.theory': "PX source: theoretical (from P)",
+    'p10.px.badge.user': "PX source: user input",
     'p10.px.originTheory': "Theoretical estimate (derived from P)",
     'p10.px.originUser': "User input",
     'p10.px.originCabinet': "Cabinet specification calculation",
