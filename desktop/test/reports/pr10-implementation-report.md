@@ -69,3 +69,42 @@ i18n 双包完整、指南四层挂载、P 值说明 6 段自动挂载、来源�
 - **提交**：`62b472e`（实现）+ `b3fb25f`（回归证据）
 - **创建 PR**：https://github.com/ZacWild/LED-ratio-Tool/pull/new/feature/desktop-v1.3.0-pr10-guide （本机 `gh` CLI 不可用且无 API token，push 已完成，PR 由负责人在该链接一键创建；建议标题 `feat(desktop): complete LED pitch resolution workflow and usage guide`，描述可直接引用本报告）
 - **不授权合并**：PR #10 保持 Open 待独立审查；未创建 Tag / Release
+
+---
+
+# 第三部分 · 合并前审查与修复（2026-11-07，commit `691a5b6`）
+
+负责人评审意见采纳：①原任务书缺陷判定**正式撤销**（实测证伪），PR #10 方向重述为「来源可视化 + 功能说明 + 使用引导」；②i18n 合轨认可，合并前三项检查；③悬浮徽标作为长期回归约束；④先创建 PR 不急着合并。
+
+## 13. 团队审查产出
+
+| 审查 | 成员 | 结论 |
+|---|---|---|
+| 三提交实际 diff 审查 | qa-engineer | **六项全过**：冻结文件零改动、D-1 仅桌面端、guide.js DOM 操作边界干净（零 innerHTML/零跨标签正则）、i18n 资产与来源分支 diff 为零（locales 仅追加 p10.* key）、测试资产零断言修改、adapter diff 边界精确 |
+| i18n 合轨架构审查 | system-architect | 报告 `pr10-i18n-merge-review.md`（注入顺序 / DOM 生命周期 / 失败行为 / 可沿用性规约） |
+
+## 14. 审查发现并修复（Blocker ×2，commit `691a5b6`）
+
+**A1 · 语言下拉不可达（架构师发现）**：语言下拉原挂根 `#settings-panel` —— 桌面版该面板是 `display:none` 隐藏浮层（桌面版用自绘模态 `openSettingsModal`），下拉用户永远看不到。修复：迁入设置模态（pitchRow 之后），元素同一性移动。
+**修复过程中实证的新崩溃**：MO 微任务内执行挂载会在打开模态瞬间触发 **[RENDERER CRASH]**（渲染进程级致命错误、无 JS 异常、`win.on('crash')` 实证）→ 改 **500ms 轮询挂载**，崩溃证据与禁令写入代码注释。
+**A2 · FAQ 第 3 问文案漂移（架构师发现）**：⑦ 系列补丁把桌面副本 FAQ a3 改写为 v1.3.0 口径，但 text-map MAP 与双包 `html.faq.a3` 仍是旧文案 → 打标精确匹配落空、en-US 下该答案**残留中文**（中英混排）。修复：三处对齐 FAQ_PATCH 文案。
+
+## 15. 悬浮徽标最终形态与遮挡实测（负责人第 3 条约束逐项核验）
+
+四轮定位：C 栏流内（破坏 TC-H-14）→ A 栏流内（破坏 TC-H-11）→ header actions（被 EL-HD-01 迁空的 0×0 游离容器假象）→ **最终：`.app-header__live`（目标分辨率徽标）左侧紧凑单行徽标，absolute 不进文档流**；stacked 档输入面板上移会与徽标相交 → **stacked 档隐藏**。
+遮挡实测（zh-CN/en-US × 1440/1200/1024 六组合，`p10-overlay-occlusion.cjs`）：可见组合对 `#input-width/#input-height/px 按钮/设置按钮/三栏标题/#res-value/#warn-bar` **零相交**、悬浮条不出视口、隐藏组合零残留。
+
+## 16. 修复后终态回归
+
+| 项 | 结果 |
+|---|---|
+| 双包一致性 | **378/378** 集合一致（badge 2 key 追加）；FAQ a3 三处对齐核验 PASS |
+| Desktop E2E | **93/93**（console 0 / pageerror 0） |
+| Pitch DOM | **18/18** |
+| 新增模块验证 | **24/24**（含语言下拉「模态内真实可见性」断言） |
+| 遮挡实测 | 六组合零遮挡 |
+| 测试隔离教训 | 探针切语言写 localStorage 残留 → suite 假红 90/93；两个探针补退出清理 |
+
+## 17. 机制可沿用性（负责人第 2 条关注点）
+
+后续功能接入本 i18n 的通用规约（非 p10.* 局部实现）：动态文案取 `LedI18N.t(key)`、key 按 `<域>.<语义>` 进**双包**（zh-CN 为参照真源，集合用 `completenessReport()` 校验）、动态渲染注册 `LedI18N.onLocaleChange`、静态 HTML 文本走 text-map 精确映射、**MO 微任务内禁止做挂载类 DOM 写入**（崩溃实证）。
