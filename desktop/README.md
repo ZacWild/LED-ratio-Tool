@@ -5,6 +5,67 @@ LED 大屏物理尺寸 → 视频画布分辨率换算工具的 Windows 桌面�
 
 ---
 
+## 〇、v1.3.0（当前开发版本 · 2026-11-05）
+
+> 🟡 **状态：开发完成待评审，未发布。** 分支 `feature/desktop-v1.3.0-pitch-resolution`；基线 `ea3f7b0`（远端 main 实际 HEAD）。**未合并 main、未打 Tag、未建 Release、未上传发行文件、PR 不自行合并。**
+> 📌 **历史数据边界**：本节之后的 §一 ~ 全文所有表格与报告数值，均为 **2026-11-03 / v1.1.0~v1.2.0 历史轮次**的真实记录，按任务书要求**保留不改写**，且**不得冒充 v1.3.0 实测结果**。
+> 📐 交互结构与计算结果布局方案先于实现提交：[`V1.3.0-LAYOUT-PROPOSAL.md`](V1.3.0-LAYOUT-PROPOSAL.md)（提交 `2b047b5`）。
+
+| 项 | 内容 |
+| --- | --- |
+| 版本号 | `desktop/package.json` = **1.3.0**，`desktop/package-lock.json` 同步；`VERSION` 首行仍为 HTML 版 `1.0.1` |
+| 主题 | LED 全局像素间距 P + 真实 PX 换算 + LED 原生分辨率估算 + 箱体 / 模组规格核验 |
+| 交付形态 | 仅 Windows 桌面版；HTML 离线版 1.0.1 零改动 |
+
+### 0.1 功能清单
+
+- **全局 P 值设置**：设置面板第二独立设置项（与「匹配容差百分比」并列）；10 个预设 P0.9 / P1.25 / P1.5 / P1.667 / P1.86 / P2 / P2.5 / P3 / P4 / P5 + 自定义（mm）。校验 `Number.isFinite(v) && v > 0`，拒绝 NaN / Infinity / 负数 / 零 / 非法输入；展示最多 6 位小数、内部保留原值；未配置保持 `null` 并显示明确状态，不默认 P2.5；变更即联动重算。
+- **真实 PX 换算**：移除 v1.2.0 的 `1 px = 1 mm`。`pixelWidth = physicalWidthMm / P`、`pixelHeight = physicalHeightMm / P`；`Math.round` 得整数估算并单独保留取整误差。物理尺寸与像素分辨率语义分离；PX 直接输入不覆盖物理尺寸；px → m/cm/mm 恢复原始物理尺寸、不反算；未配置 P 时禁止换算并明确提示。
+- **LED 原生分辨率估算**：默认折叠 `<details>` 模块，输出理论连续值 / 整数估算 / 理论总像素 / 实际宽高比 / 整数化误差 / 当前 P 值，三者并存不静默修正，来源标注「理论 P 值估算」。
+- **箱体 / 模组规格核验**：默认折叠 `<details>` 模块，6 项输入（单箱体宽高 mm、单箱体水平/垂直像素数、横向/纵向箱体数量），输出拼接总宽高、水平/垂直总像素、实际拼接分辨率、理论比例、与理论估算差异及相对像素偏差、异常警告。来源标注「箱体像素矩阵计算」，与理论估算**分列三栏对照**。无网络请求。
+- **联动**：P / 物理尺寸 / 箱体参数变化实时刷新；原始物理尺寸与 PX 直接输入值不被 P 篡改；既有宽高比、最简整数比、画布建议、复制完整参数保持原行为；画布建议不把估算分辨率伪装成控制器确认分辨率。
+
+### 0.2 数据模型与换算规则
+
+`physicalWidthMm` / `physicalHeightMm`（仅 m/cm/mm 写入）｜`resolutionWidthPx` / `resolutionHeightPx`（仅 px 写入）｜`pixelPitchMm`（全局 P，`null` = 未配置）｜`pxOrigin` = `converted` ｜ `direct`｜`activeUnit` / `dimensionSemantic`｜`cabinet.{widthMm,heightMm,pixelsX,pixelsY,cols,rows}`。
+
+示例：14000 × 4000 mm @ P2.5 → 5600 × 1600 px（3.5:1）；改 P1.86 → 理论 7526.881720 × 2150.537634 px、整数估算 7527 × 2151 px，原始物理尺寸仍 14000 × 4000 mm。
+
+### 0.3 settings 持久化兼容
+
+- 走**既有** `app:v1:settings.get/set` 通道与 preload 8 方法，只扩展 `settings.set` 载荷；通道名 / handler 数量 / 暴露接口 / 安全策略零变化。
+- `schemaVersion` **保持 1**（升 2 会导致 v1.2.0 回退时 `sv > SCHEMA_VERSION` 整体回退、丢失旧容差）；`pixelPitchMm` 为可选增量字段：缺失即未配置、非法降级为 `null` 而不丢弃旧文件；写入「读原文件 → 合并 → 原子写」，保留其他已有键、过滤原型污染键，`null` 时删除该键使文件仍是 v1.2.0 精确四键形态；主文件损坏可从 `.bak` 回退。
+- 容差 `tolerancePercent` 的默认值、校验区间与匹配业务逐字不变。
+
+### 0.4 架构边界（未改动项）
+
+`src/core.js`（哈希锁 `dd49a782…cc26`，22 个受保护导出）、`core.lock.json`、`src/app.js`、根 `index.html`、`dist/led-ratio-tool.html`、`appId`、`APP_DIR_NAME`、用户数据目录、IPC 通道与暴露接口、Electron 安全策略。所有 `renderer/*` 副本由 `npm run sync` 经 `desktop-adapter.cjs` 生成，未手工修改；新逻辑集中在 `desktop/build/desktop-adapter.cjs`、`desktop/renderer/led-pitch.js`（零 DOM / 零网络纯计算模块）、`desktop/renderer/desktop-ui.js`、`app.css`。`sync:check` 增 `led-pitch.js` 注入校验。
+
+### 0.5 测试矩阵（本机实测；CI 结论待 PR 后 GitHub Actions）
+
+| 项目 | 结果 |
+| --- | --- |
+| `test:pitch`（26 项） | ✅ 26/26 本地通过 |
+| `test:settings-compat`（13 项） | ✅ 13/13 本地通过 |
+| `test:pitch-dom`（18 项，Chrome DOM 层取证） | ✅ 18/18 PASS；报告 `test/reports/v1.3.0/pitch-dom-check.json` |
+| `sync:check` / `audit:security` / `test:redlines` / `test:unit` / `test:hooks` | ✅ 无漂移 / 47/47 / 红线 + core 哈希锁通过 / 64/64 / 23/23 |
+| `verify:reproducible` / `test:e2e:noshots`（HTML 侧） | ✅ 通过（`d016a66a…936b`）/ 85/85 |
+| CI 新增门禁 | `.github/workflows/windows.yml` 6.2（39 项独立单测）+ 7.2.1（18 项 DOM 探针 + 新鲜度 ≤30 分钟） |
+| GitHub Actions 实际运行 | 🔴 **首次 [`run 42007892544`](https://github.com/ZacWild/LED-ratio-Tool/actions/runs/42007892544)**：37 步中 27 成功 / 1 失败（`TC-D-19`）/ 9 因失败跳过；新增 6.2 / 7.2.1 门禁、PX 探针 10/10、冒烟 10/10 均通过。已修正测试基线并复跑，**最终以 PR required check 为准，本表不宣称 CI 已通过** |
+| `test:smoke` / `test:desktop` / Golden / Differential 200 / Visual Regression / DPI / PX 探针 Electron 实跑 / P7 Fuses / 产物指纹 / 安装验收 | ⛔ 本机 Electron GPU 进程 `exit_code=-1073741819` 崩溃阻塞；已在未改动 `main` 基线 worktree 复现同一崩溃，确认非 v1.3.0 引入，需 CI / 真机补齐 |
+
+> ⚠️ `test:pitch-dom` 用 Chrome `file://` 加载桌面生成副本并桩替代 preload 的 8 个 `ledApi` 方法，**不覆盖** Electron BrowserWindow / IPC 主进程 / 原生窗口 / 打包产物，**不是 Electron E2E 替代品**。
+
+### 0.6 已知问题与未完成项
+
+1. 未发布：无 Tag / Release / v1.3.0 发行文件；PR 保持 Open，不自行合并。
+2. Visual Regression 三档基线未刷新（新增两个折叠模块使首屏多两行标题），需经授权 `--accept`；未刷新前不宣称该项通过。
+3. Electron 相关回归本机不可执行（见 0.5），需 CI 与真机验收。
+4. 本地 `test:policy` 的 A-2（**已解决**）：浅克隆默认不带本地 `feature/desktop-windows` 分支引用（远端存在），已只读取到本地引用后复跑全绿；仅影响本地检出，不推送、不改远端。
+5. P 值估算为理论值，不等于控制器 / 播放服务器已确认的输入分辨率；箱体核验不接供应商数据库。
+6. **CI 首次 `TC-D-19` 失败（已定位并修正）**：两个默认折叠 `<details>` 模块引入 `<summary>` Tab 停靠点，旧 `domFocusOrder()` 只枚举表单元素、且把 `content-visibility:hidden` 但 `offsetWidth>0` 的折叠内容输入框误算为可聚焦 → `desktop-suite` 92/93。已把基线扩展为「纳入原生可聚焦的 `<summary>`、排除闭合 `<details>` 内后代」，本地 Chrome 复现修正后前 40 项与真实 Tab 逐项一致；**断言口径未放宽**，复跑结论以 PR required check 为准。
+
+---
 ## 一、当前状态
 
 | 能力 | 状态 |

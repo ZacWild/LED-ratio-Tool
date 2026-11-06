@@ -26,7 +26,7 @@
       <button type="button" class="segmented__item unit-segment" data-unit="m" role="radio" aria-checked="true">m</button>
       <button type="button" class="segmented__item unit-segment" data-unit="cm" role="radio" aria-checked="false">cm</button>
       <button type="button" class="segmented__item unit-segment" data-unit="mm" role="radio" aria-checked="false">mm</button>
-        <button type="button" class="segmented__item unit-segment" data-unit="px" role="radio" aria-checked="false" title="按像素输入：px 与 mm 按 1:1 折算用于单位切换显示，比例计算与折算无关">px</button>
+        <button type="button" class="segmented__item unit-segment" data-unit="px" role="radio" aria-checked="false" title="按真实像素分辨率输入；物理尺寸 ↔ px 切换需按全局 LED 像素间距 P 换算，未配置 P 时禁止换算">px</button>
     </div>
     <button type="button" class="btn btn--ghost" id="btn-settings" aria-expanded="false" aria-controls="settings-panel">设置</button>
   </div>
@@ -289,7 +289,7 @@
       <div class="result-block__title">常见问题</div>
       <p class="hint">Q：为什么 14m × 4m 不是 21:9？<br>A：14 ÷ 4 = 3.5，其最简整数比是 7:2；21:9 的严格数学比例是 7:3 ≈ 2.3333，两者相差 50%，属于非标准比例。</p>
       <p class="hint">Q：为什么 3840 × 1646 不等于 21:9？<br>A：3840 ÷ 1646 ≈ 2.3329，其严格整数比是 1920:823，只是与 7:3 接近但并不相等；21:9 只是业界俗称。</p>
-      <p class="hint">Q：物理尺寸能推出原生像素分辨率吗？<br>A：不能。物理尺寸只决定比例，像素分辨率由 LED 箱体数量、控制系统与播放服务器共同决定，需现场确认。</p>
+      <p class="hint">Q：物理尺寸能推出原生像素分辨率吗？<br>A：不能由物理尺寸单独确认。v1.3.0 的 P 值估算只是理论值，不等于控制器已确认的输入分辨率；实际像素分辨率仍由 LED 箱体数量、控制系统与播放服务器共同决定，需现场确认。</p>
       <p class="hint">Q：比例不符时该裁切还是留黑边？<br>A：两种都是等比适配，本工具一律不建议拉伸画面。内容比屏幕宽时优先裁切（不切掉上下字幕与台标），内容比屏幕窄时优先左右留黑边以保全画面。</p>
     </div>
 
@@ -302,6 +302,7 @@
 
 </main>
 
+<script src="led-pitch.js"></script>
 <script src="core.js"></script>
 <script src="app.js"></script>
 <script src="desktop-ui.js"></script>

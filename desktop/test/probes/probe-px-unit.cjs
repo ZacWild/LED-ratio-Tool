@@ -12,14 +12,22 @@
  *    · 换算验证用**真实往返**：px → m 切换后同时断言
  *      「显示值换算正确」与「比值 DOM 逐字不变」。
  *
+ * 🔴 v1.3.0 语义更新（2026-11-05，任务书明确要求，**非回归**）：
+ *    · 移除 v1.2.0 的「1 px = 1 mm」假设；物理尺寸 ↔ px 必须按全局
+ *      LED 像素间距 P 换算，未配置 P 时禁止换算并给出明确提示；
+ *    · px → m 不再反算 14001 px → 14.001 m，而是**恢复原始物理尺寸 14 m**
+ *      （「PX 输入后切回 m/cm/mm 不得擅自反算或覆盖原始物理尺寸」）；
+ *    · 因此 PX-05 / PX-06 / PX-07 的期望值按新规则重写，
+ *      探针总数仍为 10（CI 门禁 `summary.total === 10` 不变）。
+ *
  * 覆盖：
  *   PX-01 px 按钮存在且可选中（aria-checked）
  *   PX-02 输入框单位徽标同步显示 px
  *   PX-03 1920×1080 px → 比值 DOM=1.7778 : 1，结果表=输入尺寸 1920 px × 1080 px
- *   PX-04 3840×1080 px → 比值 DOM=3.5556 : 1（32:9）
- *   PX-05 单位切换 mm→px 显示换算（1px=1mm 折算，如 14000 mm → 14000 px）
+ *   PX-04 3840×1080 px → 比值 DOM=3.5556 : 1
+ *   PX-05 物理 → px 按 P 换算（P2.5：14000 mm→5600 px；P1：14000 mm→14000 px）
  *   PX-06 px 档步进按钮 ±1 px
- *   PX-07 px→m 真实往返：显示换算正确（14001 px → 14.001 m）且比值 DOM 逐字不变
+ *   PX-07 px→m 恢复原始物理尺寸 14 m（不反算、不覆盖），比例回到 3.5000
  *   PX-09 px 模式提示语切换（语义说明 ↔ 原提示恢复）
  *   PX-08 px 模式复制参数：语义标签「输入尺寸：」+ px 单位
  *
@@ -133,16 +141,22 @@ const OUT = path.join(DESKTOP, 'test', 'reports', 'px-unit-check.json');
     s.widthMm === 3840 && s.ratioDom.indexOf('3.5556') >= 0 && !s.error,
     `状态=${s.widthMm}×${s.heightMm}mm ｜ 比值DOM="${s.ratioDom}" ｜ 表行="${s.rowScreen}"`);
 
-  // ---- PX-05 mm→px 显示换算 ----
+  // ---- PX-05 物理 → px 按全局 P 换算（v1.3.0；不再是 1px=1mm） ----
   await clickUnit('mm');
   await setInput('input-width', '14000');
   await setInput('input-height', '4000');
   await win.waitForTimeout(200);
+  await win.evaluate(() => window.LedPitch.setPitch(2.5));
+  await clickUnit('px');
+  const sP25 = await readState();
+  await clickUnit('mm');
+  await win.evaluate(() => window.LedPitch.setPitch(1));
   await clickUnit('px');
   s = await readState();
-  rec('PX-05', 'mm→px 切换显示换算（14000 mm → 14000 px，1:1 折算）',
-    s.unit === 'px' && s.widthText === '14000' && s.heightText === '4000',
-    `unit=${s.unit} 文本=${s.widthText}×${s.heightText}`);
+  rec('PX-05', '物理 → px 按 P 换算（P2.5：14000 mm→5600 px；P1：14000 mm→14000 px）',
+    sP25.unit === 'px' && sP25.widthText === '5600' && sP25.heightText === '1600'
+    && s.unit === 'px' && s.widthText === '14000' && s.heightText === '4000',
+    `P2.5 文本=${sP25.widthText}×${sP25.heightText} ｜ P1 文本=${s.widthText}×${s.heightText}`);
 
   // ---- PX-06 px 档步进 ±1 ----
   await win.click('#step-width-plus');
@@ -150,15 +164,17 @@ const OUT = path.join(DESKTOP, 'test', 'reports', 'px-unit-check.json');
   s = await readState();
   rec('PX-06', 'px 档步进按钮 +1 → 14001', s.widthText === '14001', `widthText=${s.widthText}`);
 
-  // ---- PX-07 px→m 真实往返（换算正确 + 比值 DOM 逐字不变）----
-  const ratioInPx = s.ratioDom; // 14001×4000 px 的比值 DOM
+  // ---- PX-07 px→m 恢复原始物理尺寸（v1.3.0：不反算、不覆盖） ----
   await clickUnit('m');
   s = await readState();
-  rec('PX-07', 'px→m 往返：14001 px → 14.001 m，比值 DOM 逐字不变',
-    s.unit === 'm' && s.widthText === '14.001' && s.heightText === '4'
-    && s.rowName === '实际物理尺寸'
-    && s.ratioDom === ratioInPx,
-    `unit=${s.unit} 文本=${s.widthText}×${s.heightText} ｜ 表行="${s.rowName}: ${s.rowScreen}" ｜ 比值DOM px态="${ratioInPx}" / m态="${s.ratioDom}"`);
+  const physicalKept = await win.evaluate(() => {
+    const snap = window.LedPitch.snapshot();
+    return snap.physicalWidthMm === 14000 && snap.physicalHeightMm === 4000;
+  });
+  rec('PX-07', 'px→m 恢复原始 14 m × 4 m（不反算 14.001 m），比例回到 3.5000 且物理尺寸字段未变',
+    s.unit === 'm' && s.widthText === '14' && s.heightText === '4'
+    && s.rowName === '实际物理尺寸' && s.ratioDom.indexOf('3.5000') >= 0 && physicalKept,
+    `unit=${s.unit} 文本=${s.widthText}×${s.heightText} ｜ 表行="${s.rowName}" ｜ 比值DOM="${s.ratioDom}" ｜ 物理尺寸保持=${physicalKept}`);
 
   // ---- PX-09 提示语切换（m 模式应为原文；再回 px 应为语义说明）----
   rec('PX-09', 'm 模式下单位提示为原文', s.hint !== null && s.hint.indexOf('单位切换只改变显示值') === 0,
@@ -182,9 +198,11 @@ const OUT = path.join(DESKTOP, 'test', 'reports', 'px-unit-check.json');
   const pass = results.filter((r) => r.ok).length;
   const out = {
     generatedAt: new Date().toISOString(),
+    appVersion: '1.3.0',
+    semantics: 'v1.3.0：物理尺寸 ↔ px 按全局 LED 像素间距 P 换算；px→物理恢复原始尺寸、不反算',
     summary: { total: results.length, pass, fail: results.length - pass, verdict: pass === results.length ? 'PASS' : 'FAIL' },
     measurementNote: '比值/尺寸断言取自实际结果 DOM 与 LedApp.state（UI 输入链路），不直接调用核心函数',
-    convention: '1 px = 1 mm（仅用于单位切换显示换算；比例计算只取决于宽高比，与折算率无关；不代表实际像素间距）',
+    convention: 'physicalWidthMm / pixelPitchMm = pixelWidth；未配置 P 时禁止换算；PX 输入不覆盖物理尺寸',
     results,
   };
   fs.mkdirSync(path.dirname(OUT), { recursive: true });

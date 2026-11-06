@@ -133,6 +133,7 @@ for (const file of SYNC_FILES) {
       const problems = [];
       if (!adapted.includes('desktop-ui.js')) problems.push('缺 desktop-ui.js');
       if (!adapted.includes('app.css')) problems.push('缺 app.css');
+      if (!adapted.includes('led-pitch.js')) problems.push('缺 led-pitch.js（v1.3.0 桌面专属计算模块）');
       if (adapted.includes('src/styles.css')) problems.push('路径未重写');
       if (problems.length) {
         console.error('[漂移] index.html：' + problems.join('、'));

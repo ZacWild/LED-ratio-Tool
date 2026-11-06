@@ -327,6 +327,19 @@ jobs:
         run: npm run test:unit
 
       # ==========================================================================
+      # 6.2 · v1.3.0 P 值 / PX 换算 / 箱体核验 + settings 升级兼容（独立单测 · 门禁）
+      # ==========================================================================
+      # 🔴 零依赖 node:test，不启动 Electron、不依赖 GUI；新增 P 值逻辑的独立门禁。
+      - name: v1.3.0 P 值与 settings 兼容独立单测（39 项 · 门禁）
+        shell: pwsh
+        working-directory: desktop
+        run: |
+          npm run test:pitch
+          if ($LASTEXITCODE -ne 0) { Write-Error "led-pitch 单测失败"; exit 1 }
+          npm run test:settings-compat
+          if ($LASTEXITCODE -ne 0) { Write-Error "settings 升级兼容单测失败"; exit 1 }
+
+      # ==========================================================================
       # 6.5 · Git pre-push Hook 真实 stdin 自测（23 项 · 门禁）
       # ==========================================================================
       # 🔴 该自测用 spawnSync('bash', [HOOK]) 驱动 **Git 原生 pre-push 协议**，
@@ -352,6 +365,32 @@ jobs:
         shell: pwsh
         working-directory: desktop
         run: npm run sync
+
+      # ==========================================================================
+      # 7.2.1 · v1.3.0 P 值 / PX 换算 / 箱体核验 DOM 层取证（18 项 · 门禁）
+      # ==========================================================================
+      # ⚠️ 边界：Chrome file:// 加载桌面生成副本，桩替代 preload 的 8 个 ledApi 方法。
+      #    它不覆盖 Electron BrowserWindow / IPC 主进程 / 原生窗口 / 打包产物；
+      #    完整桌面验收仍以后续的 Desktop E2E 与 P7 报告项为准。
+      - name: v1.3.0 P 值 DOM 探针（18 项 · 门禁）
+        shell: pwsh
+        working-directory: desktop
+        run: |
+          npm run test:pitch-dom
+          if ($LASTEXITCODE -ne 0) { Write-Error "pitch-dom 探针存在失败断言"; exit 1 }
+          $report = "test/reports/v1.3.0/pitch-dom-check.json"
+          if (-not (Test-Path $report)) { Write-Error "缺少 $report"; exit 1 }
+          $j = Get-Content $report -Raw | ConvertFrom-Json
+          if ($j.summary.verdict -ne 'PASS' -or $j.summary.total -ne 18 -or $j.summary.fail -ne 0) {
+            Write-Error "pitch-dom-check.json 判定不通过：verdict=$($j.summary.verdict) total=$($j.summary.total) fail=$($j.summary.fail)"
+            exit 1
+          }
+          $ageMin = ((Get-Date).ToUniversalTime() - [datetime]::Parse($j.generatedAt).ToUniversalTime()).TotalMinutes
+          if ($ageMin -lt 0 -or $ageMin -gt 30) {
+            Write-Error "pitch-dom-check.json 不是本次运行生成（age=$([math]::Round($ageMin,2)) 分钟）"
+            exit 1
+          }
+          Write-Host "✅ v1.3.0 P 值 DOM 探针本次运行实跑 18/18 PASS"
 
       # 7.3 桌面版打包配置校验（不产出 EXE）
       # 🔴 **不执行 electron-builder 实际打包**：正式发行包属 P7 阶段，

@@ -467,7 +467,8 @@ async function main() {
       onDisk ? `settings.json → tolerancePercent=${onDisk.tolerancePercent}（输入框回读 ${setRes && setRes.value}）` : 'settings.json 未生成',
       { settings: onDisk });
     const keys = onDisk ? Object.keys(onDisk) : [];
-    const allowed = ['schemaVersion', 'tolerancePercent', 'createdAt', 'updatedAt'];
+    // v1.3.0：pixelPitchMm 为可选增量字段；schemaVersion 保持 1 以支持 v1.2.0 回退。
+    const allowed = ['schemaVersion', 'tolerancePercent', 'createdAt', 'updatedAt', 'pixelPitchMm'];
     rec('SET-02', 'settings.json 只含白名单键（无冗余字段）', keys.every((k) => allowed.includes(k)),
       `键：${keys.join(', ')}`, { keys });
     await run1.close();

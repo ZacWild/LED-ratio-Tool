@@ -153,6 +153,7 @@
     buildExplainFold();      // S2-2：EL-RS-21~24 说明块折叠容器（桌面层，根文件零改动）
     buildResultAnchors();    // S3-5：EL-RS-26 结果分段锚点条
     buildStageFitBadge();    // S2-3：EL-ST-17 舞台角标
+    buildPitchResultModules(); // v1.3.0：两个默认折叠的 LED 估算 / 箱体核验模块
     return true;
   }
 
@@ -1813,6 +1814,12 @@
       input.removeAttribute('aria-invalid');
     }
 
+    /* v1.3.0：第二个独立设置项「LED 像素间距 P」。
+       🔒 与容差行完全独立：不同元素、不同字段、不同持久化键，互不覆盖。 */
+    var pitchRow = buildPitchSettingsRow();
+    if (pitchRow) modalBodyEl.appendChild(pitchRow);
+    syncPitchSettingsUI();
+
     var ok = document.createElement('button');
     ok.type = 'button';
     ok.className = 'btn';
@@ -2146,6 +2153,7 @@
       updateStageSummary();
       updateStageFitBadge();
       applyAnchorVisibility();
+      schedulePitchRefresh(); // v1.3.0：物理尺寸 / 单位 / 结果变化 → 理论估算与箱体核验重算
     });
     for (var i = 0; i < watched.length; i++) {
       if (watched[i]) {
@@ -2192,6 +2200,382 @@
   }
 
   /* ======================================================================
+     17.5 · v1.3.0 LED 像素间距 P / 原生分辨率估算 / 箱体规格核验
+     ----------------------------------------------------------------------
+     🔒 本层只做 DOM 与事件；全部数值来自 window.LedPitch（桌面专属纯模块）。
+     🔒 不新增 IPC 通道、不调用 fetch、不复制任何 core.js 算法。
+     🔒 两个模块默认折叠，只在正文末尾占 1 行标题，避免首屏拥挤与滚动卡顿。
+     ====================================================================== */
+  var pitchUI = {
+    nativeBlock: null, nativeBody: null,
+    cabinetBlock: null, cabinetBody: null,
+    cabinetInputs: {}, presets: [],
+    status: null, customInput: null, error: null,
+    refreshFrame: 0, persistTimer: 0,
+  };
+
+  var CABINET_FIELDS = [
+    { key: 'widthMm', label: '单箱体宽度 (mm)' },
+    { key: 'heightMm', label: '单箱体高度 (mm)' },
+    { key: 'pixelsX', label: '单箱体水平像素数' },
+    { key: 'pixelsY', label: '单箱体垂直像素数' },
+    { key: 'cols', label: '横向箱体数量' },
+    { key: 'rows', label: '纵向箱体数量' },
+  ];
+
+  function lp() {
+    return window.LedPitch;
+  }
+  function mk(tag, cls, txt) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (txt !== undefined && txt !== null) e.textContent = String(txt);
+    return e;
+  }
+  function addRow2(tbody, label, value, cls) {
+    var tr = mk('tr', cls || '');
+    tr.appendChild(mk('td', '', label));
+    tr.appendChild(mk('td', '', value));
+    tbody.appendChild(tr);
+  }
+  function addRow3(tbody, label, left, right, cls) {
+    var tr = mk('tr', cls || '');
+    tr.appendChild(mk('td', '', label));
+    tr.appendChild(mk('td', '', left));
+    tr.appendChild(mk('td', '', right));
+    tbody.appendChild(tr);
+  }
+  function makeTable(columns) {
+    var wrap = mk('div', 'pitch-table-wrap');
+    var table = mk('table', 'table pitch-table');
+    if (columns === 3) {
+      var head = mk('thead');
+      var hr = mk('tr');
+      hr.appendChild(mk('th', '', '项目'));
+      hr.appendChild(mk('th', '', '理论 P 值估算'));
+      hr.appendChild(mk('th', '', '箱体像素矩阵计算'));
+      head.appendChild(hr);
+      table.appendChild(head);
+    }
+    var tbody = mk('tbody');
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return { wrap: wrap, tbody: tbody };
+  }
+
+  /** 构造两个默认折叠的结果模块（运行时注入，生成副本零手改）。 */
+  function buildPitchResultModules() {
+    var body = resultPanel ? resultPanel.querySelector('.result-body') : null;
+    if (!body || pitchUI.nativeBlock) return;
+    var p = lp();
+    var defaults = p ? p.snapshot().cabinet : {};
+
+    var d1 = mk('details', 'result-block pitch-block');
+    d1.id = 'pitch-native-block';
+    var s1 = mk('summary', 'result-block__title pitch-summary');
+    s1.appendChild(mk('span', '', 'LED 原生分辨率估算'));
+    s1.appendChild(mk('span', 'pitch-source-tag', '理论 P 值估算'));
+    d1.appendChild(s1);
+    var c1 = mk('div', 'pitch-content');
+    c1.appendChild(mk('p', 'pitch-source-note',
+      '来源：理论 P 值估算 — 基于屏幕物理尺寸与全局 P 值，非控制器已确认的输入分辨率。'));
+    pitchUI.nativeBody = mk('div', 'pitch-body');
+    c1.appendChild(pitchUI.nativeBody);
+    d1.appendChild(c1);
+    body.appendChild(d1);
+    pitchUI.nativeBlock = d1;
+
+    var d2 = mk('details', 'result-block cabinet-block');
+    d2.id = 'cabinet-verify-block';
+    var s2 = mk('summary', 'result-block__title pitch-summary');
+    s2.appendChild(mk('span', '', '箱体 / 模组规格核验'));
+    s2.appendChild(mk('span', 'pitch-source-tag', '箱体像素矩阵计算'));
+    d2.appendChild(s2);
+    var c2 = mk('div', 'pitch-content');
+    c2.appendChild(mk('p', 'pitch-source-note',
+      '来源：箱体像素矩阵计算 — 由单箱体像素数与拼装数量得出；与理论 P 值估算分列，绝不合并。'));
+    var grid = mk('div', 'cabinet-inputs');
+    for (var i = 0; i < CABINET_FIELDS.length; i++) {
+      (function (f) {
+        var cell = mk('div', 'cabinet-field');
+        var lab = mk('label', 'group__label', f.label);
+        var id = 'cabinet-' + f.key;
+        lab.setAttribute('for', id);
+        var inp = mk('input', 'input settings-input');
+        inp.type = 'text';
+        inp.id = id;
+        inp.setAttribute('inputmode', 'decimal');
+        inp.setAttribute('autocomplete', 'off');
+        inp.value = String(defaults[f.key] === undefined ? '' : defaults[f.key]);
+        cell.appendChild(lab);
+        cell.appendChild(inp);
+        grid.appendChild(cell);
+        pitchUI.cabinetInputs[f.key] = inp;
+        on(inp, 'input', function () {
+          var mod = lp();
+          if (mod) mod.setCabinetField(f.key, inp.value);
+          schedulePitchRefresh();
+        });
+      })(CABINET_FIELDS[i]);
+    }
+    c2.appendChild(grid);
+    pitchUI.cabinetBody = mk('div', 'cabinet-body');
+    c2.appendChild(pitchUI.cabinetBody);
+    d2.appendChild(c2);
+    body.appendChild(d2);
+    pitchUI.cabinetBlock = d2;
+
+    on(d1, 'toggle', schedulePitchRefresh);
+    on(d2, 'toggle', schedulePitchRefresh);
+  }
+
+  function renderNativeModule(p) {
+    var host = pitchUI.nativeBody;
+    if (!host) return;
+    host.textContent = '';
+    var snap = p.snapshot();
+    var theory = p.estimateNativeResolution({
+      physicalWidthMm: snap.physicalWidthMm,
+      physicalHeightMm: snap.physicalHeightMm,
+      pixelPitchMm: snap.pixelPitchMm,
+    });
+    if (snap.notice) host.appendChild(mk('p', 'pitch-notice', snap.notice));
+    if (snap.activeUnit === 'px') {
+      host.appendChild(mk('p', 'hint',
+        '当前为 PX 输入模式：理论估算仍基于上次记录的原始物理尺寸（PX 输入未改写该尺寸），不是由当前像素输入反算。'));
+    }
+    if (!theory.ok) {
+      host.appendChild(mk('p', 'pitch-unavailable', '暂不可用：' + theory.reason));
+      return;
+    }
+    var t = makeTable(2);
+    addRow2(t.tbody, '结果来源', '理论 P 值估算');
+    addRow2(t.tbody, '屏幕物理宽 × 高',
+      p.fmtTrim(theory.physicalWidthMm, 3) + ' × ' + p.fmtTrim(theory.physicalHeightMm, 3) + ' mm');
+    addRow2(t.tbody, '当前采用的 P 值', theory.formatted.pitch);
+    addRow2(t.tbody, '理论水平像素数量（连续值）', theory.formatted.theoreticalWidthPx + ' px');
+    addRow2(t.tbody, '理论垂直像素数量（连续值）', theory.formatted.theoreticalHeightPx + ' px');
+    addRow2(t.tbody, '理论整数分辨率估算', theory.formatted.integerResolution);
+    addRow2(t.tbody, '理论总像素数量',
+      theory.formatted.totalPixelsTheoretical + ' px（整数估算 ' + theory.formatted.totalPixelsInteger + ' px）');
+    addRow2(t.tbody, '实际宽高比', theory.formatted.aspectRatio);
+    addRow2(t.tbody, '整数化误差（宽 / 高）',
+      theory.formatted.roundingErrorWidthPx + ' / ' + theory.formatted.roundingErrorHeightPx + ' px');
+    addRow2(t.tbody, '数据语义', 'physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离');
+    host.appendChild(t.wrap);
+    if (theory.hasRoundingError) {
+      host.appendChild(mk('p', 'pitch-warn',
+        '注意：理论值不能很好地满足整数分辨率约束；上表已显式列出整数化误差，未静默修正。'));
+    }
+  }
+
+  function renderCabinetModule(p) {
+    var host = pitchUI.cabinetBody;
+    if (!host) return;
+    host.textContent = '';
+    var raw = {};
+    for (var i = 0; i < CABINET_FIELDS.length; i++) {
+      var key = CABINET_FIELDS[i].key;
+      var inp = pitchUI.cabinetInputs[key];
+      raw[key] = inp ? inp.value : String(p.state.cabinet[key]);
+    }
+    var c = p.computeCabinetSpec(raw);
+    if (!c.ok) {
+      host.appendChild(mk('p', 'pitch-unavailable', '箱体参数不可用：' + c.errors.join('；')));
+      return;
+    }
+    var t = makeTable(2);
+    addRow2(t.tbody, '结果来源', '箱体像素矩阵计算');
+    addRow2(t.tbody, '实际拼接总宽度', c.formatted.totalWidthMm);
+    addRow2(t.tbody, '实际拼接总高度', c.formatted.totalHeightMm);
+    addRow2(t.tbody, '水平方向总像素', c.formatted.totalWidthPx);
+    addRow2(t.tbody, '垂直方向总像素', c.formatted.totalHeightPx);
+    addRow2(t.tbody, '实际拼接分辨率', c.formatted.actualResolution);
+    addRow2(t.tbody, '实际拼接比例', c.formatted.actualAspectRatio);
+    host.appendChild(t.wrap);
+
+    var theory = p.estimateNativeResolution();
+    var d = p.compareCabinetToTheory(c, theory);
+    var t2 = makeTable(3);
+    addRow3(t2.tbody, '理论 / 实际分辨率',
+      theory.ok ? theory.formatted.integerResolution : '不可用',
+      c.formatted.actualResolution);
+    addRow3(t2.tbody, '理论 / 实际总宽度',
+      theory.ok ? p.fmtTrim(theory.physicalWidthMm, 3) + ' mm' : '不可用',
+      c.formatted.totalWidthMm);
+    addRow3(t2.tbody, '理论 / 实际总高度',
+      theory.ok ? p.fmtTrim(theory.physicalHeightMm, 3) + ' mm' : '不可用',
+      c.formatted.totalHeightMm);
+    addRow3(t2.tbody, '理论 / 实际比例',
+      theory.ok ? theory.formatted.aspectRatio : '不可用',
+      c.formatted.actualAspectRatio);
+    host.appendChild(t2.wrap);
+
+    if (!d.ok) {
+      host.appendChild(mk('p', 'pitch-unavailable', '与 P 值理论估算的差异：' + d.reason));
+    } else {
+      var t3 = makeTable(2);
+      addRow2(t3.tbody, '差异来源', '理论 P 值估算 ↔ 箱体像素矩阵计算（分列，不合并）');
+      addRow2(t3.tbody, '水平像素差异', d.formatted.deltaWidthPx);
+      addRow2(t3.tbody, '垂直像素差异', d.formatted.deltaHeightPx);
+      addRow2(t3.tbody, '总宽度差异', d.formatted.deltaWidthMm);
+      addRow2(t3.tbody, '总高度差异', d.formatted.deltaHeightMm);
+      addRow2(t3.tbody, '比例差异', d.formatted.deltaAspectRatio);
+      addRow2(t3.tbody, '相对像素偏差', d.formatted.relativePixelDeviationPercent);
+      addRow2(t3.tbody, '核验结论', d.verdict);
+      host.appendChild(t3.wrap);
+    }
+    if (c.warnings.length) {
+      var ul = mk('ul', 'pitch-warnings');
+      for (var j = 0; j < c.warnings.length; j++) ul.appendChild(mk('li', '', c.warnings[j]));
+      host.appendChild(ul);
+    }
+  }
+
+  function refreshPitchModules() {
+    var p = lp();
+    if (!p) return;
+    renderNativeModule(p);
+    renderCabinetModule(p);
+    syncPitchSettingsUI();
+  }
+
+  /** rAF 合并刷新，避免逐字符重排整栏。 */
+  function schedulePitchRefresh() {
+    if (pitchUI.refreshFrame) return;
+    pitchUI.refreshFrame = requestAnimationFrame(function () {
+      pitchUI.refreshFrame = 0;
+      refreshPitchModules();
+    });
+  }
+
+  function syncPitchSettingsUI() {
+    var p = lp();
+    if (!p) return;
+    var g = p.getPitch();
+    if (pitchUI.status) {
+      text(pitchUI.status, g.unconfigured
+        ? '未配置'
+        : '已配置 P' + g.formatted + '（' + g.formatted + ' mm）');
+      pitchUI.status.classList.toggle('is-unset', g.unconfigured);
+    }
+    for (var i = 0; i < pitchUI.presets.length; i++) {
+      var b = pitchUI.presets[i];
+      var checked = !g.unconfigured && b.getAttribute('data-pitch') === String(g.value);
+      b.setAttribute('aria-checked', checked ? 'true' : 'false');
+      b.tabIndex = checked ? 0 : -1;
+    }
+    if (pitchUI.customInput && document.activeElement !== pitchUI.customInput) {
+      pitchUI.customInput.value = g.unconfigured ? '' : g.formatted;
+    }
+  }
+
+  /** P 值改动：校验 → 生效 → 持久化（防抖）→ 重算依赖 → 刷新。 */
+  function applyPitchValue(raw) {
+    var p = lp();
+    if (!p) return false;
+    var r = p.setPitch(raw);
+    if (!r.ok) {
+      text(pitchUI.error, r.message);
+      if (pitchUI.customInput) pitchUI.customInput.setAttribute('aria-invalid', 'true');
+      return false;
+    }
+    text(pitchUI.error, '');
+    if (pitchUI.customInput) pitchUI.customInput.removeAttribute('aria-invalid');
+    if (pitchUI.persistTimer) window.clearTimeout(pitchUI.persistTimer);
+    pitchUI.persistTimer = window.setTimeout(function () {
+      pitchUI.persistTimer = 0;
+      var a = app();
+      if (a && a.persistSettings) a.persistSettings();
+    }, 220);
+
+    var a0 = app();
+    if (a0 && a0.state && a0.state.unit === 'px' && p.snapshot().pxOrigin === 'converted') {
+      var phys = p.getPhysical();
+      var g = p.getPitch();
+      if (g.value === null) {
+        p.setNotice('未配置 LED 像素间距 P：已禁止物理尺寸 → 像素分辨率换算。可直接输入真实像素数量；原始物理尺寸保持不变。');
+        if (a0.setDimensionText) a0.setDimensionText('', '');
+      } else if (phys.ok && a0.setDimensionText) {
+        var est = p.physicalToPixels(phys.widthMm, phys.heightMm, g.value);
+        if (est.ok) a0.setDimensionText(est.integerWidthPx, est.integerHeightPx);
+      }
+    }
+    if (a0 && a0.refresh) a0.refresh();
+    refreshPitchModules();
+    return true;
+  }
+
+  /** 在设置模态内构建「LED 像素间距 P」独立设置行（与容差互不干扰）。 */
+  function buildPitchSettingsRow() {
+    var p = lp();
+    if (!p) return null;
+    pitchUI.presets = [];
+    var row = mk('div', 'settings-row pitch-settings-row');
+    var head = mk('div', 'pitch-settings-head');
+    head.appendChild(mk('label', 'group__label', 'LED 像素间距 P'));
+    pitchUI.status = mk('span', 'pitch-status', '未配置');
+    pitchUI.status.id = 'pitch-status';
+    pitchUI.status.setAttribute('role', 'status');
+    head.appendChild(pitchUI.status);
+    row.appendChild(head);
+
+    var presetsWrap = mk('div', 'pitch-presets');
+    presetsWrap.setAttribute('role', 'radiogroup');
+    presetsWrap.setAttribute('aria-label', 'LED 像素间距预设');
+    for (var i = 0; i < p.PITCH_PRESETS.length; i++) {
+      (function (item) {
+        var b = mk('button', 'pitch-preset', item.label);
+        b.type = 'button';
+        b.setAttribute('role', 'radio');
+        b.setAttribute('aria-checked', 'false');
+        b.setAttribute('data-pitch', String(item.value));
+        b.tabIndex = -1;
+        on(b, 'click', function () {
+          if (pitchUI.customInput) pitchUI.customInput.value = String(item.value);
+          applyPitchValue(item.value);
+        });
+        on(b, 'keydown', function (e) {
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+          e.preventDefault();
+          var idx = pitchUI.presets.indexOf(b);
+          var step = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+          var next = pitchUI.presets[(idx + step + pitchUI.presets.length) % pitchUI.presets.length];
+          next.focus();
+          if (pitchUI.customInput) pitchUI.customInput.value = String(next.getAttribute('data-pitch'));
+          applyPitchValue(Number(next.getAttribute('data-pitch')));
+        });
+        pitchUI.presets.push(b);
+        presetsWrap.appendChild(b);
+      })(p.PITCH_PRESETS[i]);
+    }
+    row.appendChild(presetsWrap);
+
+    var customLine = mk('div', 'pitch-custom-line');
+    pitchUI.customInput = mk('input', 'input settings-input');
+    pitchUI.customInput.type = 'text';
+    pitchUI.customInput.id = 'input-pitch-custom';
+    pitchUI.customInput.setAttribute('inputmode', 'decimal');
+    pitchUI.customInput.setAttribute('autocomplete', 'off');
+    pitchUI.customInput.setAttribute('placeholder', '自定义 P 值，留空 = 未配置');
+    pitchUI.customInput.setAttribute('aria-describedby', 'pitch-error');
+    pitchUI.error = mk('p', 'settings-error');
+    pitchUI.error.id = 'pitch-error';
+    pitchUI.error.setAttribute('role', 'alert');
+    on(pitchUI.customInput, 'input', function () {
+      applyPitchValue(pitchUI.customInput.value);
+    });
+    customLine.appendChild(mk('label', 'group__label', '自定义'));
+    customLine.appendChild(pitchUI.customInput);
+    customLine.appendChild(mk('span', 'pitch-unit-label', 'mm'));
+    row.appendChild(customLine);
+    row.appendChild(mk('p', 'hint settings-hint',
+      '仅接受大于 0 的有限数值（最多 6 位小数）；留空回到「未配置」。未配置时禁止物理尺寸 ↔ 像素分辨率换算。设置与匹配容差分开保存，关闭程序后仍保留。'));
+    row.appendChild(pitchUI.error);
+    return row;
+  }
+
+  /* ======================================================================
      18 · 初始化
      ====================================================================== */
   function init() {
@@ -2214,7 +2598,8 @@
       if (!badge || !hint) return;
       var HINT_DEFAULT = hint.textContent;
       var HINT_PX = 'PX 模式用于根据输入的像素宽高计算比例，不代表屏幕的实际物理尺寸。'
-        + 'PX 与 m/cm/mm 之间采用 1px=1mm 的内部显示换算约定，不代表实际像素间距。';
+        + '物理尺寸切换为 px 需按全局 LED 像素间距 P 换算；未配置 P 时禁止换算，可直接输入真实像素数量，原始物理尺寸保持不变。'
+        + 'PX 输入与 P 值都不代表实际像素间距，也不能确认真实屏幕物理尺寸。';
       var applying = false;
       var obs = new MutationObserver(function () {
         if (applying) return;
@@ -2247,6 +2632,28 @@
     installObservers();
     loadVersion();
 
+    /* ---- v1.3.0 事件联动 ----
+       · 设置持久化异步回读完成后刷新 P 值 UI 与两个结果模块；
+       · px 模式下用户直接编辑输入框 → 标记来源为 direct，P 值变化不再篡改该值；
+       · 单位分段点击 → 在 app.js 处理完之后刷新新模块。 */
+    on(window, 'led:pitch', function () {
+      schedulePitchRefresh();
+    });
+    ['input-width', 'input-height'].forEach(function (id) {
+      on($(id), 'input', function () {
+        var m = lp();
+        var a0 = app();
+        if (m && a0 && a0.state && a0.state.unit === 'px') m.markPxDirect();
+        schedulePitchRefresh();
+      });
+    });
+    (function () {
+      var segs = document.querySelectorAll('.unit-segment');
+      for (var i = 0; i < segs.length; i++) {
+        on(segs[i], 'click', schedulePitchRefresh);
+      }
+    })();
+
     // 首次落档（changed = true → 执行进入档位的过渡）
     applyTier(detectTier());
     applyHeightTier(computeHeightTier());
@@ -2256,6 +2663,7 @@
     applyAnchorVisibility();
     positionHandles();
     applyIx13();
+    refreshPitchModules(); // v1.3.0：首屏即给出「未配置 P」明确状态
 
     // 启动焦点落 EL-IN-02（D-02 §3.1 F-01）
     var w = $('input-width');

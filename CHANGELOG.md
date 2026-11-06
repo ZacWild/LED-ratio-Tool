@@ -9,7 +9,80 @@
 版本号按**交付形态**独立记录：
 
 - **HTML 离线版**：仓库根目录 `VERSION` 文件（纯文本，当前 `1.0.1`）；
-- **Windows 桌面版**：[`desktop/package.json`](desktop/package.json) 的 `version` 字段（当前 `1.1.0`）。
+- **Windows 桌面版**：[`desktop/package.json`](desktop/package.json) 的 `version` 字段（当前 `1.3.0`，开发中 / 未发布；最新正式发行版为 `1.2.0`）。
+
+---
+
+## [1.3.0] — 2026-11-05 ｜ Windows 桌面版（功能版本 · 开发中）
+
+> 🟡 **状态：功能分支 `feature/desktop-v1.3.0-pitch-resolution` 开发完成待评审。未合并 `main`、未打 Tag、未建 Release、未上传发行文件。**
+> 基线为远端 `main` 实际 HEAD `ea3f7b0814e18f298dd9634a55db88395acb742e`（任务书所列 `4f44aa3` 为 v1.2.0 tag，非当时 `main` HEAD）。
+> 本条目为 **MINOR**（向后兼容的新功能）。**HTML 离线版保持 1.0.1、零改动**；桌面新增能力不回灌 HTML 版。
+> 交互结构与计算结果布局方案先于实现提交，见 [`desktop/V1.3.0-LAYOUT-PROPOSAL.md`](desktop/V1.3.0-LAYOUT-PROPOSAL.md)（提交 `2b047b5`）。
+
+### 新增
+
+- **全局「LED 像素间距 P」设置**（设置面板第二独立设置项，与「匹配容差百分比」并列）：10 个预设 P0.9 / P1.25 / P1.5 / P1.667 / P1.86 / P2 / P2.5 / P3 / P4 / P5 + 自定义值（mm）。校验口径 `Number.isFinite(v) && v > 0`，拒绝 NaN / Infinity / 负数 / 零 / 非法输入；展示最多 6 位小数、内部保留 Number 原值；**未配置为 `null`，不默认 P2.5**；状态胶囊明确显示「已配置 / 未配置」。P 值变更即触发所有依赖结果的重算。
+- **真实 PX 单位换算**：移除 v1.2.0 的 `1 px = 1 mm` 假设。`theoreticalWidthPx = physicalWidthMm / P`、`theoreticalHeightPx = physicalHeightMm / P`；整数估算用 `Math.round`，误差 `integer − theoretical` 单独保留。物理尺寸与像素分辨率语义分离，PX 直接输入按真实像素数量处理且不覆盖物理尺寸；px → m/cm/mm 恢复原始物理尺寸、不反算；未配置 P 时禁止依赖 P 的换算并给出明确提示。比例计算始终取当前输入数据的宽高比。
+- **LED 原生分辨率估算模块**（结果区默认折叠 `<details>`）：输出理论水平 / 垂直像素数量（连续值）、理论整数分辨率估算、理论总像素数量、实际宽高比、整数化误差、当前 P 值；连续值 / 整数估算 / 误差三者并存，**不静默修正**；来源标签「理论 P 值估算」。
+- **箱体 / 模组规格核验模块**（结果区默认折叠 `<details>`）：输入单箱体宽高（mm）、单箱体水平 / 垂直像素数、横向 / 纵向箱体数量；输出拼接总宽高、水平 / 垂直总像素、实际拼接分辨率、理论比例、与理论估算的差异及相对像素偏差、异常警告。来源标签「箱体像素矩阵计算」，与「理论 P 值估算」**分列三栏对照，不合并成无来源数字**。无网络请求、无供应商数据库。
+- **联动与既有能力回归**：P / 物理尺寸 / 箱体参数变化均实时刷新；原始物理尺寸与 PX 直接输入值不被 P 值篡改；既有宽高比、最简整数比、画布建议、复制完整参数保持原行为，画布建议不把估算分辨率伪装成控制器确认分辨率。
+- **CI 门禁**：`.github/workflows/windows.yml` 新增 6.2（`test:pitch` + `test:settings-compat`，39 项独立单测）与 7.2.1（`test:pitch-dom`，18 项 DOM 层取证 + 报告新鲜度 ≤30 分钟校验）两个必需步骤；后者明确声明边界：Chrome `file://` + preload 桩，**不覆盖** Electron BrowserWindow / IPC 主进程 / 原生窗口 / 打包产物。
+
+### 数据模型变更
+
+| 字段 | 语义 | 写入来源 |
+|---|---|---|
+| `physicalWidthMm` / `physicalHeightMm` | 屏幕物理尺寸（mm，权威值） | 仅 m / cm / mm 输入 |
+| `resolutionWidthPx` / `resolutionHeightPx` | 真实像素分辨率 | 仅 px 输入 |
+| `pixelPitchMm` | 全局 LED 像素间距 P（mm），`null` = 未配置 | 设置面板 / settings 持久化 |
+| `pxOrigin` | `converted`（由 P 换算得到）或 `direct`（用户直接输入） | 单位切换 / px 输入事件 |
+| `activeUnit` / `dimensionSemantic` | 当前单位与输入语义 | 单位切换链路 |
+| `cabinet.{widthMm,heightMm,pixelsX,pixelsY,cols,rows}` | 箱体规格输入 | 箱体核验模块 |
+
+`settings.json` 的 `pixelPitchMm` 为**可选增量字段**；`schemaVersion` **保持 1**（若升到 2，v1.2.0 回退时 `sv > SCHEMA_VERSION` 会整体回退并丢失旧容差配置）。
+
+### 换算规则（示例）
+
+| 场景 | 输入 | 结果 |
+|---|---|---|
+| P2.5 | 14000 × 4000 mm | 5600 × 1600 px，比例 3.5:1 |
+| P1.86 | 14000 × 4000 mm | 理论 7526.881720 × 2150.537634 px；整数估算 7527 × 2151 px；原始物理尺寸仍 14000 × 4000 mm |
+
+### 持久化兼容策略
+
+- 走**既有** `app:v1:settings.get` / `settings.set` 通道与 preload 的 8 个方法；只扩展 `settings.set` 载荷字段，**通道名、handler 数量、暴露接口、安全策略零变化**。
+- 读取：旧版四键文件缺 `pixelPitchMm` → 视为未配置 `null`；字段非法 → 降级为 `null`，**不整体丢弃旧文件**；容差默认值、校验区间、`matchStandards` 调用逐字不变。
+- 写入：读原文件 → 合并（保留其他已有键、过滤原型污染键）→ 原子写（`.bak` 回退）；`pixelPitchMm: null` 时**删除该键**，settings 文件仍保持 v1.2.0 精确四键形态。主文件损坏时可从 `.bak` 恢复已有字段。非法 P 值写入返回 `4002`。
+
+### 架构保护（未改动项）
+
+`src/core.js`（SHA-256 `dd49a782…cc26`，22 个受保护导出）、`core.lock.json` / `desktop/core.lock.json`、`src/app.js`、根 `index.html`、`dist/led-ratio-tool.html`、`VERSION` 首行 `1.0.1`、`appId`、`APP_DIR_NAME`、用户数据目录、IPC 通道与 preload 暴露接口、Electron 安全策略。所有 `desktop/renderer/*` 副本由 `npm run sync` 经 `desktop-adapter.cjs` 生成，未手工修改；`sync:check` 增加 `led-pitch.js` 注入校验。
+
+### 测试与证据（如实标注：以下为**本机实测**，非 GitHub CI 结论）
+
+| 项目 | 结果 |
+|---|---|
+| `test:pitch`（P 值 / 换算 / 箱体独立单测） | ✅ **26/26**（本地 Node `node:test`） |
+| `test:settings-compat`（旧版 settings 升级兼容） | ✅ **13/13**（本地 Node `node:test`） |
+| `test:pitch-dom`（Chrome DOM 层取证，18 项） | ✅ **18/18 PASS**（本地；报告 `desktop/test/reports/v1.3.0/pitch-dom-check.json`） |
+| `sync:check` / `audit:security` / `test:redlines` / `test:unit` / `test:hooks` | ✅ 无漂移 / **47/47** / 红线与 core 哈希锁通过 / **64/64** / **23/23**（本地） |
+| `verify:reproducible` / `test:e2e:noshots`（HTML 侧） | ✅ 通过（`sha256 d016a66a…936b`）/ **85/85**（本地） |
+| `test:policy` | ✅ 通过（A-1 / A-2 / A-3 / B-1 全绿；补齐本地受保护分支引用后复跑，详见「已知问题」第 4 条） |
+| GitHub Actions CI | 🔴 **首次运行** [`run 42007892544`](https://github.com/ZacWild/LED-ratio-Tool/actions/runs/42007892544)：37 步中 **27 成功 / 1 失败 / 9 因失败跳过**；新增 6.2（39 项）与 7.2.1（18 项）两道门禁、PX 探针 10/10、Electron 冒烟 10/10 均通过，失败点为 `TC-D-19`（见「已知问题」第 7 条）。已修正测试基线并复跑，**最终结论以 PR 的 required status check 为准，本条目不宣称 CI 已通过** |
+| Electron 桌面 E2E / Golden / Differential 200 / Visual Regression / DPI / PX 探针 Electron 实跑 / P7 Fuses / 产物指纹 / 安装验收 | ⛔ **本机环境阻塞**：Electron GPU 进程 `exit_code=-1073741819` 崩溃。已在未改动的 `main` 基线 worktree 上复现同一崩溃，确认非 v1.3.0 代码引入；需 GitHub Actions 实际运行判定 |
+
+**既有测试口径同步（非回归，按任务书要求）**：`probe-px-unit.cjs` 的 PX-05 / PX-07 由 v1.2.0 的「1px=1mm」与「px→m 反算」改为「按 P 换算」与「px→m 恢复原始物理尺寸」，保持 10 项总数与 CI 新鲜度门禁不变；`desktop-suite.mjs` / `p7-acceptance.mjs` 的 settings 白名单增加可选键 `pixelPitchMm`；`desktop-suite.mjs` 的 `domFocusOrder()` 基线扩展为「纳入原生可聚焦的 `<summary>`、排除闭合 `<details>` 内的后代」——因新增的两个默认折叠结果模块引入了 `<summary>` 停靠点，而 Chromium 的 `content-visibility:hidden` 让折叠内容里的输入框仍有非零 `offsetWidth`，旧枚举会把它们误算进 DOM 顺序。**这是让基线对齐真实 Chromium Tab 行为，不是放宽或跳过 `TC-D-19` 断言**（本地 Chrome 复现：修正后前 40 项与真实 Tab 序列逐项一致）。
+
+### 已知问题与未完成项
+
+1. **未发布**：无 Tag、无 Release、无 v1.3.0 发行文件；PR 不自行合并。
+2. **Visual Regression 三档基线未刷新**：结果区新增两个默认折叠模块，首屏多两行标题，基线需经授权 `--accept` 后刷新；未刷新前**不宣称该项通过**。
+3. **Electron 相关回归本机不可执行**（见上表），需 CI 与真机验收补齐。
+4. **本机 `test:policy` 的 A-2 项（已解决）**：浅克隆默认不带本地 `feature/desktop-windows` 分支引用（远端分支存在），曾使本地状态审计报「受保护分支缺失」。已把该远端分支只读取到本地引用后复跑，`test:policy` 全绿（A-1 / A-2 / A-3 / B-1 通过）；该操作仅影响本地检出，不推送、不改远端，属检出状态而非仓库违规。
+5. **P 值估算为理论值**，不代表控制器 / 播放服务器已确认分辨率；箱体核验不连接供应商数据库。
+6. **DOM 层取证不是 Electron E2E 替代品**（边界见 CI 步骤注释）。
+7. **CI 首次运行 `TC-D-19` 失败（已定位并修正）**：新增的两个默认折叠 `<details>` 结果模块使既有 `domFocusOrder()` 基线不完整——真实 Tab 序列包含 2 个 `<summary>` 停靠点，而旧基线只枚举表单元素；同时折叠内容里的 6 个箱体输入框因 `content-visibility:hidden` 仍有非零 `offsetWidth`，被旧基线误算为可聚焦。CI 首次运行 `desktop-suite` 为 **92/93 PASS、FAIL 1（TC-D-19）**，其余 27 步通过、9 步因失败跳过。已按 Chromium 真实键盘行为扩展基线（Chrome 复现验证：修正后前 40 项逐项一致），并复跑 CI；结论以 PR 的 required check 为准。
 
 ---
 
@@ -273,7 +346,10 @@ m / cm / mm 切换组视觉宽 108 → 118 px，换取触屏命中区达标。
 
 ## 版本索引
 
-| 版本 | 日期 | 摘要 |
-| --- | --- | --- |
-| 1.0.1 | 2026-10-28 | 缺陷修复与文案订正：24 个控件触屏命中区扩至 ≥36×36、桌面端焦点顺序对齐视觉、预设列表显示真实比例与偏差、候选卡标签口径明确、单位切换组加宽 |
-| 1.0.0 | 2026-10-28 | 首个正式版本：本地离线 HTML 工具，含比例计算、四种画布换算模式、四层参数区分、可视化舞台、参数导出 |
+| 版本 | 交付形态 | 日期 | 摘要 |
+| --- | --- | --- | --- |
+| **1.3.0** | Windows 桌面版 | 2026-11-05 | **开发中 / 未发布**：全局 LED 像素间距 P、真实 PX 换算、原生分辨率理论估算、箱体规格核验、settings 增量兼容、新增 CI 门禁 |
+| 1.2.0 | Windows 桌面版 | 2026-11-04 | 已发布：px 输入单位（v1.2.0 的 1 px = 1 mm，v1.3.0 已移除）、步进按钮符号居中、正式发行包 |
+| 1.1.0 | Windows 桌面版 | 2026-11-03 | 已发布：Electron 桌面版首个正式版本（新交付形态）、NSIS + Portable、Windows CI 门禁 |
+| 1.0.1 | HTML 离线版 | 2026-10-28 | 缺陷修复与文案订正：24 个控件触屏命中区扩至 36x36、桌面端焦点顺序对齐视觉、预设列表显示真实比例与偏差、候选卡标签口径明确、单位切换组加宽 |
+| 1.0.0 | HTML 离线版 | 2026-10-28 | 首个正式版本：本地离线 HTML 工具，含比例计算、四种画布换算模式、四层参数区分、可视化舞台、参数导出 |
