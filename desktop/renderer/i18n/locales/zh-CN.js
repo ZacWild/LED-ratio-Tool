@@ -396,6 +396,9 @@
     /* ---- Stage 4: table cell match text ---- */
     'app.status.roundingErrorFull': "存在取整误差",
     /* ---- PR #10: P 值说明（S10-4） ---- */
+    'pitch.msg.unconfigured': "未配置",
+    'pitch.err.finite.short': "P 值必须是有限数值（不接受 NaN / Infinity）",
+    'pitch.err.positive': "P 值必须大于 0 mm",
     'p10.pitch.title': "什么是 LED 点间距（P 值）？",
     'p10.pitch.definition': "P 值表示 LED 屏幕上相邻两个像素点中心之间的距离，单位为毫米（mm）。例如 P2.0 表示相邻像素点中心之间的距离为 2 毫米。",
     'p10.pitch.purpose': "当你知道 LED 屏幕的实际宽度和高度后，选择对应的 P 值，软件就可以根据物理尺寸估算屏幕理论上具有多少个像素，从而得到 LED 屏幕的理论原生分辨率。",

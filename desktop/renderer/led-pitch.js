@@ -106,17 +106,25 @@
    * 拒绝：NaN / ±Infinity / 0 / 负数 / 非数值串 / 超 6 位小数。
    * 存储的是 Number 原值，不做任何四舍五入，避免显示精度丢失实际值。
    */
+  /* S10-R8 i18n 原型：运行时经 LedI18N.t(key) 取当前语种；
+     node --test 环境无 LedI18N → 回退 fallback（= zh-CN 原文），
+     既有 26 项正则断言（/未配置/ /有限数值/）不受影响。 */
+  function msg(key, fallback) {
+    var g = (typeof global !== 'undefined') ? global : window;
+    return (g && g.LedI18N && typeof g.LedI18N.t === 'function') ? g.LedI18N.t(key) : fallback;
+  }
+
   function parsePitch(raw) {
     if (raw === null || raw === undefined ||
         (typeof raw === 'string' && raw.trim() === '')) {
-      return { ok: true, value: null, unconfigured: true, error: '', message: '未配置' };
+      return { ok: true, value: null, unconfigured: true, error: '', message: msg('pitch.msg.unconfigured', '未配置') };
     }
     if (typeof raw === 'number') {
       if (!Number.isFinite(raw)) {
-        return { ok: false, value: null, unconfigured: false, error: 'finite', message: 'P 值必须是有限数值（不接受 NaN / Infinity）' };
+        return { ok: false, value: null, unconfigured: false, error: 'finite', message: msg('pitch.err.finite.short', 'P 值必须是有限数值（不接受 NaN / Infinity）') };
       }
       if (raw <= 0) {
-        return { ok: false, value: null, unconfigured: false, error: 'positive', message: 'P 值必须大于 0 mm' };
+        return { ok: false, value: null, unconfigured: false, error: 'positive', message: msg('pitch.err.positive', 'P 值必须大于 0 mm') };
       }
       return { ok: true, value: raw, unconfigured: false, error: '', message: 'ok' };
     }

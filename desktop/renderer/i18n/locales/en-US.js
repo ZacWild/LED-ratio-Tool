@@ -396,6 +396,9 @@
     /* ---- Stage 4: table cell match text ---- */
     'app.status.roundingErrorFull': "Rounding error",
     /* ---- PR #10: pitch guide (S10-4) ---- */
+    'pitch.msg.unconfigured': "Not Configured",
+    'pitch.err.finite.short': "P value must be a finite number (NaN / Infinity rejected)",
+    'pitch.err.positive': "P value must be greater than 0 mm",
     'p10.pitch.title': "What is LED pixel pitch (P value)?",
     'p10.pitch.definition': "The P value is the distance between the centres of two adjacent LED pixels, in millimetres (mm). For example, P2.0 means the centres are 2 mm apart.",
     'p10.pitch.purpose': "Once you know the real width and height of the LED screen, choosing the matching P value lets the tool estimate how many pixels the screen theoretically has, i.e. its theoretical native resolution.",
