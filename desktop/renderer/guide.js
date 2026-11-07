@@ -259,25 +259,65 @@
     });
   }
 
-  function start() {
-    // desktop-ui.js 的 init() 与本文档可能同帧触发；重试等待设置行生成。
-    var tries = 0;
-    (function wait() {
-      var ready = !!doc.querySelector('.pitch-settings-row');
-      if (!ready && tries++ < 40) { global.setTimeout(wait, 50); return; }
-      renderAll();
-    })();
+  /* ======================================================================
+     生命周期（S10-R1 / S10-R2 整改后）：
+     · start() 有 started 守卫——重复执行（含脚本意外双载）不重复绑定、
+       不重复注入、不重复开定时器；
+     · 首屏立即 renderAll()：指南 / 来源徽标 / ⓘ 不依赖设置行；
+     · P 值说明与语言下拉的目标 DOM（.pitch-settings-row）仅在设置模态
+       打开时存在 → 挂载采用「500ms 轮询状态机 + MO 轻触发」：
+         - MO 回调内**禁止执行任何挂载**（[RENDERER CRASH] 实证，见下），
+           只允许 setTimeout(0) 重启轮询（纯定时器调用，零 DOM 写入）；
+         - tick：行存在且 wrap 未就位 → 挂载（下一 tick 确认）；
+           已就位或行随模态关闭消失 → clearInterval 停止，零常驻开销；
+       模态关闭后再打开由 MO 感知 body 重建并重启轮询。
+     ====================================================================== */
+  var started = false;
+  var langPollTimer = 0;
+  var langPollStartedCount = 0;
 
-    // 设置模态内的 P 值行是打开时才动态生成的：行出现时自动补挂说明，
-    // 语言切换由 renderAll() 清空重建，二者不会重复渲染。
+  function langPollTick() {
+    var row = doc.querySelector('.pitch-settings-row');
+    if (row) {
+      // 轮询上下文（500ms 节流）内挂载安全；MO 微任务上下文禁止（见 start 注释）
+      if (!byId('p10-pitch-help')) renderPitchHelp();
+      var wrap = byId('p10-lang');
+      if (!wrap || wrap.parentElement !== row.parentElement) {
+        renderLangPicker();            // 挂载 / 迁移（幂等，元素同一性移动）
+        return;                        // 下一 tick 确认成功后再停止
+      }
+    }
+    stopLangPoll();                    // 已就位，或行已随模态关闭消失
+  }
+  function stopLangPoll() {
+    if (langPollTimer) { global.clearInterval(langPollTimer); langPollTimer = 0; }
+  }
+  function ensureLangPolling() {
+    if (langPollTimer) return;         // 唯一实例守卫
+    langPollStartedCount++;
+    langPollTimer = global.setInterval(langPollTick, 500);
+    langPollTick();                    // 立即执行首 tick，不空等 500ms
+  }
+
+  function start() {
+    if (started) return;               // 重复执行守卫（S10-R2）
+    started = true;
+
+    // 首屏直接渲染。曾有的 2 秒 .pitch-settings-row 空转轮询与
+    // setTimeout(renderAll, 600) 已删除：目标 DOM 仅在模态打开时存在，
+    // 首屏轮询必然空转；locale 校准（settings.json 回读）在变化时经
+    // onLocaleChange 事件驱动 renderAll，常驻延迟无需保留（S10-R2）。
+    renderAll();
+
     if (global.MutationObserver) {
-      // 🔒 MO 回调内只挂 P 值说明，**禁止挂语言下拉**：
+      // 🔒 MO 回调内禁止执行任何挂载（renderLangPicker / renderPitchHelp）：
       //    2026-11-07 实证——MO 微任务内执行 renderLangPicker 会在打开设置
-      //    模态瞬间触发 [RENDERER CRASH]（渲染进程级致命错误，无 JS 异常），
-      //    语言下拉改由下方 500ms 轮询挂载。
+      //    模态瞬间触发 [RENDERER CRASH]（渲染进程级致命错误，无 JS 异常）。
+      //    MO 只做一件事：检测到模态 body 重建后，用 setTimeout(0) 把轮询
+      //    重启动作抛出微任务上下文（纯定时器调用，零 DOM 写入）。
       var mo = new MutationObserver(function () {
-        if (!byId('p10-pitch-help') && doc.querySelector('.pitch-settings-row')) {
-          renderPitchHelp();
+        if (doc.querySelector('.pitch-settings-row') && !langPollTimer) {
+          global.setTimeout(ensureLangPolling, 0);
         }
       });
       mo.observe(doc.body, { childList: true, subtree: true });
@@ -288,24 +328,6 @@
     global.addEventListener('led:pitch', schedule);
     doc.addEventListener('input', schedule, true);
     doc.addEventListener('click', schedule, true);
-    // 首次渲染后补一次（覆盖异步持久化回读）
-    global.setTimeout(renderAll, 600);
-    // 语言下拉轮询挂载：设置模态每次打开都重建 body（wrap 被移除），轮询重挂；
-    // 500ms 轻量检查，物理上不可能触发 mutation 风暴（见上 MO 注释）。
-    global.setInterval(function () {
-      var row = doc.querySelector('.pitch-settings-row');
-      if (!row) return;
-      var wrap = byId('p10-lang');
-      if (!wrap || wrap.parentElement !== row.parentElement) renderLangPicker();
-    }, 500);
-    // 语言下拉轮询挂载：模态每次打开都重建 body（wrap 被移除），轮询重挂；
-    // 500ms 轻量检查，物理上不可能触发 mutation 风暴（见上 MO 注释）。
-    global.setInterval(function () {
-      var row = doc.querySelector('.pitch-settings-row');
-      if (!row) return;
-      var wrap = byId('p10-lang');
-      if (!wrap || wrap.parentElement !== row.parentElement) renderLangPicker();
-    }, 500);
   }
 
   if (doc.readyState === 'loading') {
@@ -316,7 +338,13 @@
 
   // 只读诊断，供自动化测试读取，不提供可写入口
   global.LedGuideStatus = Object.freeze({
-    version: '1.0.0',
+    version: '1.1.0',
     render: renderAll,
+    // 定时器生命周期诊断（S10-R1 验证证据，只读）：
+    // active = 轮询是否在运行；startedCount = 轮询累计启动次数
+    langPoll: Object.freeze({
+      active: function () { return !!langPollTimer; },
+      startedCount: function () { return langPollStartedCount; },
+    }),
   });
 })(typeof window !== 'undefined' ? window : this);
