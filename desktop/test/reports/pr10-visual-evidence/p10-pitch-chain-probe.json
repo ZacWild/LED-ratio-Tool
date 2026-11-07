@@ -1,0 +1,428 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-06T15:44:52.438Z",
+    "desktop": "C:/Users/A/WorkBuddy/2026-10-29-11-12-26/pr10-work/desktop",
+    "scenario": "10500 × 3670 mm, P1.86→P2.0→P2.5→P3.0"
+  },
+  "steps": [
+    {
+      "preset": "1.667",
+      "stateAfterClick": {
+        "snap": {
+          "physicalWidthMm": 10500,
+          "physicalHeightMm": 3670,
+          "resolutionWidthPx": null,
+          "resolutionHeightPx": null,
+          "pixelPitchMm": 1.667,
+          "activeUnit": "mm",
+          "pxOrigin": null,
+          "notice": "",
+          "cabinet": {
+            "widthMm": 500,
+            "heightMm": 500,
+            "pixelsX": 200,
+            "pixelsY": 200,
+            "cols": 1,
+            "rows": 1
+          }
+        },
+        "pitch": {
+          "ok": true,
+          "value": 1.667,
+          "unconfigured": false,
+          "formatted": "1.667"
+        },
+        "width": "10500",
+        "height": "3670",
+        "activeUnit": "mm",
+        "pitchStatus": "已配置 P1.667（1.667 mm）"
+      },
+      "theory": {
+        "rows": {
+          "结果来源": "理论 P 值估算",
+          "屏幕物理宽 × 高": "10500 × 3670 mm",
+          "当前采用的 P 值": "P1.667（1.667 mm）",
+          "理论水平像素数量（连续值）": "6298.740252 px",
+          "理论垂直像素数量（连续值）": "2201.559688 px",
+          "理论整数分辨率估算": "6299 × 2202 px",
+          "理论总像素数量": "13867052.624268 px（整数估算 13870398 px）",
+          "实际宽高比": "2.861035 : 1",
+          "整数化误差（宽 / 高）": "+0.259748 / +0.440312 px",
+          "数据语义": "physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离"
+        },
+        "notices": [
+          "注意：理论值不能很好地满足整数分辨率约束；上表已显式列出整数化误差，未静默修正。"
+        ],
+        "open": true,
+        "rawText": "LED 原生分辨率估算理论 P 值估算来源：理论 P 值估算 — 基于屏幕物理尺寸与全局 P 值，非控制器已确认的输入分辨率。结果来源理论 P 值估算屏幕物理宽 × 高10500 × 3670 mm当前采用的 P 值P1.667（1.667 mm）理论水平像素数量（连续值）6298.740252 px理论垂直像素数量（连续值）2201.559688 px理论整数分辨率估算6299 × 2202 px理论总像素数量13867052.624268 px（整数估算 13870398 px）实际宽高比2.861035 : 1整数化误差（宽 / 高）+0.259748 / +0.440312 px数据语义physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离注意：理论值不能很好地满足整数分辨率约束；上表已显式列出整数化误差，未静默修正。"
+      }
+    },
+    {
+      "preset": "1.86",
+      "stateAfterClick": {
+        "snap": {
+          "physicalWidthMm": 10500,
+          "physicalHeightMm": 3670,
+          "resolutionWidthPx": null,
+          "resolutionHeightPx": null,
+          "pixelPitchMm": 1.86,
+          "activeUnit": "mm",
+          "pxOrigin": null,
+          "notice": "",
+          "cabinet": {
+            "widthMm": 500,
+            "heightMm": 500,
+            "pixelsX": 200,
+            "pixelsY": 200,
+            "cols": 1,
+            "rows": 1
+          }
+        },
+        "pitch": {
+          "ok": true,
+          "value": 1.86,
+          "unconfigured": false,
+          "formatted": "1.86"
+        },
+        "width": "10500",
+        "height": "3670",
+        "activeUnit": "mm",
+        "pitchStatus": "已配置 P1.86（1.86 mm）"
+      },
+      "theory": {
+        "rows": {
+          "结果来源": "理论 P 值估算",
+          "屏幕物理宽 × 高": "10500 × 3670 mm",
+          "当前采用的 P 值": "P1.86（1.86 mm）",
+          "理论水平像素数量（连续值）": "5645.161290 px",
+          "理论垂直像素数量（连续值）": "1973.118280 px",
+          "理论整数分辨率估算": "5645 × 1973 px",
+          "理论总像素数量": "11138570.933056 px（整数估算 11137585 px）",
+          "实际宽高比": "2.861035 : 1",
+          "整数化误差（宽 / 高）": "-0.161290 / -0.118280 px",
+          "数据语义": "physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离"
+        },
+        "notices": [
+          "注意：理论值不能很好地满足整数分辨率约束；上表已显式列出整数化误差，未静默修正。"
+        ],
+        "open": true,
+        "rawText": "LED 原生分辨率估算理论 P 值估算来源：理论 P 值估算 — 基于屏幕物理尺寸与全局 P 值，非控制器已确认的输入分辨率。结果来源理论 P 值估算屏幕物理宽 × 高10500 × 3670 mm当前采用的 P 值P1.86（1.86 mm）理论水平像素数量（连续值）5645.161290 px理论垂直像素数量（连续值）1973.118280 px理论整数分辨率估算5645 × 1973 px理论总像素数量11138570.933056 px（整数估算 11137585 px）实际宽高比2.861035 : 1整数化误差（宽 / 高）-0.161290 / -0.118280 px数据语义physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离注意：理论值不能很好地满足整数分辨率约束；上表已显式列出整数化误差，未静默修正。"
+      }
+    },
+    {
+      "preset": "2",
+      "stateAfterClick": {
+        "snap": {
+          "physicalWidthMm": 10500,
+          "physicalHeightMm": 3670,
+          "resolutionWidthPx": null,
+          "resolutionHeightPx": null,
+          "pixelPitchMm": 2,
+          "activeUnit": "mm",
+          "pxOrigin": null,
+          "notice": "",
+          "cabinet": {
+            "widthMm": 500,
+            "heightMm": 500,
+            "pixelsX": 200,
+            "pixelsY": 200,
+            "cols": 1,
+            "rows": 1
+          }
+        },
+        "pitch": {
+          "ok": true,
+          "value": 2,
+          "unconfigured": false,
+          "formatted": "2"
+        },
+        "width": "10500",
+        "height": "3670",
+        "activeUnit": "mm",
+        "pitchStatus": "已配置 P2（2 mm）"
+      },
+      "theory": {
+        "rows": {
+          "结果来源": "理论 P 值估算",
+          "屏幕物理宽 × 高": "10500 × 3670 mm",
+          "当前采用的 P 值": "P2（2 mm）",
+          "理论水平像素数量（连续值）": "5250.000000 px",
+          "理论垂直像素数量（连续值）": "1835.000000 px",
+          "理论整数分辨率估算": "5250 × 1835 px",
+          "理论总像素数量": "9633750.000000 px（整数估算 9633750 px）",
+          "实际宽高比": "2.861035 : 1",
+          "整数化误差（宽 / 高）": "+0.000000 / +0.000000 px",
+          "数据语义": "physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离"
+        },
+        "notices": [],
+        "open": true,
+        "rawText": "LED 原生分辨率估算理论 P 值估算来源：理论 P 值估算 — 基于屏幕物理尺寸与全局 P 值，非控制器已确认的输入分辨率。结果来源理论 P 值估算屏幕物理宽 × 高10500 × 3670 mm当前采用的 P 值P2（2 mm）理论水平像素数量（连续值）5250.000000 px理论垂直像素数量（连续值）1835.000000 px理论整数分辨率估算5250 × 1835 px理论总像素数量9633750.000000 px（整数估算 9633750 px）实际宽高比2.861035 : 1整数化误差（宽 / 高）+0.000000 / +0.000000 px数据语义physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离"
+      }
+    },
+    {
+      "preset": "2.5",
+      "stateAfterClick": {
+        "snap": {
+          "physicalWidthMm": 10500,
+          "physicalHeightMm": 3670,
+          "resolutionWidthPx": null,
+          "resolutionHeightPx": null,
+          "pixelPitchMm": 2.5,
+          "activeUnit": "mm",
+          "pxOrigin": null,
+          "notice": "",
+          "cabinet": {
+            "widthMm": 500,
+            "heightMm": 500,
+            "pixelsX": 200,
+            "pixelsY": 200,
+            "cols": 1,
+            "rows": 1
+          }
+        },
+        "pitch": {
+          "ok": true,
+          "value": 2.5,
+          "unconfigured": false,
+          "formatted": "2.5"
+        },
+        "width": "10500",
+        "height": "3670",
+        "activeUnit": "mm",
+        "pitchStatus": "已配置 P2.5（2.5 mm）"
+      },
+      "theory": {
+        "rows": {
+          "结果来源": "理论 P 值估算",
+          "屏幕物理宽 × 高": "10500 × 3670 mm",
+          "当前采用的 P 值": "P2.5（2.5 mm）",
+          "理论水平像素数量（连续值）": "4200.000000 px",
+          "理论垂直像素数量（连续值）": "1468.000000 px",
+          "理论整数分辨率估算": "4200 × 1468 px",
+          "理论总像素数量": "6165600.000000 px（整数估算 6165600 px）",
+          "实际宽高比": "2.861035 : 1",
+          "整数化误差（宽 / 高）": "+0.000000 / +0.000000 px",
+          "数据语义": "physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离"
+        },
+        "notices": [],
+        "open": true,
+        "rawText": "LED 原生分辨率估算理论 P 值估算来源：理论 P 值估算 — 基于屏幕物理尺寸与全局 P 值，非控制器已确认的输入分辨率。结果来源理论 P 值估算屏幕物理宽 × 高10500 × 3670 mm当前采用的 P 值P2.5（2.5 mm）理论水平像素数量（连续值）4200.000000 px理论垂直像素数量（连续值）1468.000000 px理论整数分辨率估算4200 × 1468 px理论总像素数量6165600.000000 px（整数估算 6165600 px）实际宽高比2.861035 : 1整数化误差（宽 / 高）+0.000000 / +0.000000 px数据语义physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离"
+      }
+    },
+    {
+      "preset": "3",
+      "stateAfterClick": {
+        "snap": {
+          "physicalWidthMm": 10500,
+          "physicalHeightMm": 3670,
+          "resolutionWidthPx": null,
+          "resolutionHeightPx": null,
+          "pixelPitchMm": 3,
+          "activeUnit": "mm",
+          "pxOrigin": null,
+          "notice": "",
+          "cabinet": {
+            "widthMm": 500,
+            "heightMm": 500,
+            "pixelsX": 200,
+            "pixelsY": 200,
+            "cols": 1,
+            "rows": 1
+          }
+        },
+        "pitch": {
+          "ok": true,
+          "value": 3,
+          "unconfigured": false,
+          "formatted": "3"
+        },
+        "width": "10500",
+        "height": "3670",
+        "activeUnit": "mm",
+        "pitchStatus": "已配置 P3（3 mm）"
+      },
+      "theory": {
+        "rows": {
+          "结果来源": "理论 P 值估算",
+          "屏幕物理宽 × 高": "10500 × 3670 mm",
+          "当前采用的 P 值": "P3（3 mm）",
+          "理论水平像素数量（连续值）": "3500.000000 px",
+          "理论垂直像素数量（连续值）": "1223.333333 px",
+          "理论整数分辨率估算": "3500 × 1223 px",
+          "理论总像素数量": "4281666.666667 px（整数估算 4280500 px）",
+          "实际宽高比": "2.861035 : 1",
+          "整数化误差（宽 / 高）": "+0.000000 / -0.333333 px",
+          "数据语义": "physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离"
+        },
+        "notices": [
+          "注意：理论值不能很好地满足整数分辨率约束；上表已显式列出整数化误差，未静默修正。"
+        ],
+        "open": true,
+        "rawText": "LED 原生分辨率估算理论 P 值估算来源：理论 P 值估算 — 基于屏幕物理尺寸与全局 P 值，非控制器已确认的输入分辨率。结果来源理论 P 值估算屏幕物理宽 × 高10500 × 3670 mm当前采用的 P 值P3（3 mm）理论水平像素数量（连续值）3500.000000 px理论垂直像素数量（连续值）1223.333333 px理论整数分辨率估算3500 × 1223 px理论总像素数量4281666.666667 px（整数估算 4280500 px）实际宽高比2.861035 : 1整数化误差（宽 / 高）+0.000000 / -0.333333 px数据语义physicalWidthMm / physicalHeightMm ↔ resolutionWidthPx / resolutionHeightPx 已分离注意：理论值不能很好地满足整数分辨率约束；上表已显式列出整数化误差，未静默修正。"
+      }
+    }
+  ],
+  "pxOrigin": {
+    "afterP2": {
+      "snap": {
+        "physicalWidthMm": 10500,
+        "physicalHeightMm": 3670,
+        "resolutionWidthPx": 5250,
+        "resolutionHeightPx": 1835,
+        "pixelPitchMm": 2,
+        "activeUnit": "px",
+        "pxOrigin": "converted",
+        "notice": "",
+        "cabinet": {
+          "widthMm": 500,
+          "heightMm": 500,
+          "pixelsX": 200,
+          "pixelsY": 200,
+          "cols": 1,
+          "rows": 1
+        }
+      },
+      "pitch": {
+        "ok": true,
+        "value": 2,
+        "unconfigured": false,
+        "formatted": "2"
+      },
+      "width": "5250",
+      "height": "1835",
+      "activeUnit": "px",
+      "pitchStatus": "已配置 P2（2 mm）"
+    },
+    "manual": {
+      "snap": {
+        "physicalWidthMm": 10500,
+        "physicalHeightMm": 3670,
+        "resolutionWidthPx": 1920,
+        "resolutionHeightPx": 1080,
+        "pixelPitchMm": 2,
+        "activeUnit": "px",
+        "pxOrigin": "direct",
+        "notice": "",
+        "cabinet": {
+          "widthMm": 500,
+          "heightMm": 500,
+          "pixelsX": 200,
+          "pixelsY": 200,
+          "cols": 1,
+          "rows": 1
+        }
+      },
+      "pitch": {
+        "ok": true,
+        "value": 2,
+        "unconfigured": false,
+        "formatted": "2"
+      },
+      "width": "1920",
+      "height": "1080",
+      "activeUnit": "px",
+      "pitchStatus": "已配置 P2（2 mm）"
+    },
+    "afterManualThenP25": {
+      "snap": {
+        "physicalWidthMm": 10500,
+        "physicalHeightMm": 3670,
+        "resolutionWidthPx": 1920,
+        "resolutionHeightPx": 1080,
+        "pixelPitchMm": 2.5,
+        "activeUnit": "px",
+        "pxOrigin": "direct",
+        "notice": "",
+        "cabinet": {
+          "widthMm": 500,
+          "heightMm": 500,
+          "pixelsX": 200,
+          "pixelsY": 200,
+          "cols": 1,
+          "rows": 1
+        }
+      },
+      "pitch": {
+        "ok": true,
+        "value": 2.5,
+        "unconfigured": false,
+        "formatted": "2.5"
+      },
+      "width": "1920",
+      "height": "1080",
+      "activeUnit": "px",
+      "pitchStatus": "已配置 P2.5（2.5 mm）"
+    },
+    "afterClear": {
+      "state": {
+        "snap": {
+          "physicalWidthMm": 10500,
+          "physicalHeightMm": 3670,
+          "resolutionWidthPx": 1920,
+          "resolutionHeightPx": 1080,
+          "pixelPitchMm": null,
+          "activeUnit": "px",
+          "pxOrigin": "direct",
+          "notice": "未配置 LED 像素间距 P：已禁止物理尺寸 ↔ 像素分辨率换算。可直接输入真实像素数量；原始物理尺寸保持不变。",
+          "cabinet": {
+            "widthMm": 500,
+            "heightMm": 500,
+            "pixelsX": 200,
+            "pixelsY": 200,
+            "cols": 1,
+            "rows": 1
+          }
+        },
+        "pitch": {
+          "ok": true,
+          "value": null,
+          "unconfigured": true,
+          "formatted": "未配置"
+        },
+        "width": "1920",
+        "height": "1080",
+        "activeUnit": "px",
+        "pitchStatus": "未配置"
+      },
+      "theory": {
+        "rows": {},
+        "notices": [
+          "未配置 LED 像素间距 P：已禁止物理尺寸 ↔ 像素分辨率换算。可直接输入真实像素数量；原始物理尺寸保持不变。",
+          "暂不可用：未配置 LED 像素间距 P，禁止执行物理尺寸 → 像素分辨率换算"
+        ],
+        "open": true,
+        "rawText": "LED 原生分辨率估算理论 P 值估算来源：理论 P 值估算 — 基于屏幕物理尺寸与全局 P 值，非控制器已确认的输入分辨率。未配置 LED 像素间距 P：已禁止物理尺寸 ↔ 像素分辨率换算。可直接输入真实像素数量；原始物理尺寸保持不变。当前为 PX 输入模式：理论估算仍基于上次记录的原始物理尺寸（PX 输入未改写该尺寸），不是由当前像素输入反算。暂不可用：未配置 LED 像素间距 P，禁止执行物理尺寸 → 像素分辨率换算"
+      }
+    }
+  },
+  "errors": [],
+  "initial": {
+    "snap": {
+      "physicalWidthMm": 10500,
+      "physicalHeightMm": 3670,
+      "resolutionWidthPx": null,
+      "resolutionHeightPx": null,
+      "pixelPitchMm": null,
+      "activeUnit": "mm",
+      "pxOrigin": null,
+      "notice": "",
+      "cabinet": {
+        "widthMm": 500,
+        "heightMm": 500,
+        "pixelsX": 200,
+        "pixelsY": 200,
+        "cols": 1,
+        "rows": 1
+      }
+    },
+    "pitch": {
+      "ok": true,
+      "value": null,
+      "unconfigured": true,
+      "formatted": "未配置"
+    },
+    "width": "10500",
+    "height": "3670",
+    "activeUnit": "mm"
+  }
+}

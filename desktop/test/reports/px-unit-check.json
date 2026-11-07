@@ -1,5 +1,7 @@
 {
-  "generatedAt": "2026-11-04T04:04:02.883Z",
+  "generatedAt": "2026-11-06T16:05:12.055Z",
+  "appVersion": "1.3.0",
+  "semantics": "v1.3.0：物理尺寸 ↔ px 按全局 LED 像素间距 P 换算；px→物理恢复原始尺寸、不反算",
   "summary": {
     "total": 10,
     "pass": 10,
@@ -7,7 +9,7 @@
     "verdict": "PASS"
   },
   "measurementNote": "比值/尺寸断言取自实际结果 DOM 与 LedApp.state（UI 输入链路），不直接调用核心函数",
-  "convention": "1 px = 1 mm（仅用于单位切换显示换算；比例计算只取决于宽高比，与折算率无关；不代表实际像素间距）",
+  "convention": "physicalWidthMm / pixelPitchMm = pixelWidth；未配置 P 时禁止换算；PX 输入不覆盖物理尺寸",
   "results": [
     {
       "id": "PX-01",
@@ -35,9 +37,9 @@
     },
     {
       "id": "PX-05",
-      "title": "mm→px 切换显示换算（14000 mm → 14000 px，1:1 折算）",
+      "title": "物理 → px 按 P 换算（P2.5：14000 mm→5600 px；P1：14000 mm→14000 px）",
       "ok": true,
-      "detail": "unit=px 文本=14000×4000"
+      "detail": "P2.5 文本=5600×1600 ｜ P1 文本=14000×4000"
     },
     {
       "id": "PX-06",
@@ -47,9 +49,9 @@
     },
     {
       "id": "PX-07",
-      "title": "px→m 往返：14001 px → 14.001 m，比值 DOM 逐字不变",
+      "title": "px→m 恢复原始 14 m × 4 m（不反算 14.001 m），比例回到 3.5000 且物理尺寸字段未变",
       "ok": true,
-      "detail": "unit=m 文本=14.001×4 ｜ 表行=\"实际物理尺寸: 14.001 m × 4 m\" ｜ 比值DOM px态=\"3.5002:1\" / m态=\"3.5002:1\""
+      "detail": "unit=m 文本=14×4 ｜ 表行=\"实际物理尺寸\" ｜ 比值DOM=\"3.5000:1\" ｜ 物理尺寸保持=true"
     },
     {
       "id": "PX-09",
@@ -61,13 +63,13 @@
       "id": "PX-09",
       "title": "px 模式提示语切换为 px 语义说明",
       "ok": true,
-      "detail": "px 提示=\"PX 模式用于根据输入的像素宽高计算比例，不代表屏幕的实际物理尺寸。PX 与 m…\""
+      "detail": "px 提示=\"PX 模式用于根据输入的像素宽高计算比例，不代表屏幕的实际物理尺寸。物理尺寸切换…\""
     },
     {
       "id": "PX-08",
       "title": "px 模式复制参数：语义标签「输入尺寸：」+ px 单位",
       "ok": true,
-      "detail": "输入尺寸：14001 px × 4000 px"
+      "detail": "输入尺寸：14000 px × 4000 px"
     }
   ]
 }

@@ -489,6 +489,39 @@ function applyPitchButtonToIndex(src, applied, skipped) {
 }
 
 /**
+ * PR #10 · i18n 运行时 + 使用指南脚本注入（桌面副本 index.html）
+ * ---------------------------------------------------------------------------
+ * 🔒 注入位置必须在 `<script src="app.js">` **之前**：app.js 与 guide.js
+ *    都依赖 LedI18N 已注册语言包；desktop-ui.js 在 app.js 之后，天然可用。
+ * 🔒 独立补丁：不改动 ⑦ 系列的 pitch 注入，避免与 PR #9 的补丁体系冲突。
+ * 🔒 幂等：已注入则跳过；sync 每次从根 index.html 覆盖后再注入，结果恒定。
+ * 🔒 HTML 离线版冻结：根 index.html / src/* 零改动，i18n 与 guide.js 只在
+ *    desktop/renderer/ 内，不进入 build.mjs 的 HTML 产物输入清单。
+ */
+const I18N_SCRIPT_ANCHOR = '<script src="app.js"></script>';
+const I18N_SCRIPT_BLOCK = [
+  '<script src="i18n/runtime.js"></script>',
+  '<script src="i18n/locales/zh-CN.js"></script>',
+  '<script src="i18n/locales/en-US.js"></script>',
+  '<script src="i18n/text-map.js"></script>',
+  '<script src="i18n/index.js"></script>',
+  '<script src="guide.js"></script>',
+].join('\n');
+
+function applyI18nScriptsToIndex(src, applied, skipped) {
+  if (src.includes('i18n/runtime.js')) {
+    applied.push('i18n-scripts（已应用，跳过）');
+    return src;
+  }
+  if (!src.includes(I18N_SCRIPT_ANCHOR)) {
+    skipped.push('i18n-scripts:anchor');
+    return src;
+  }
+  applied.push('i18n-scripts');
+  return src.replace(I18N_SCRIPT_ANCHOR, I18N_SCRIPT_BLOCK + '\n' + I18N_SCRIPT_ANCHOR);
+}
+
+/**
  * 对同步后的 index.html 应用桌面适配。
  * @param {string} filePath desktop/renderer/index.html 的绝对路径
  * @returns {{applied: string[], skipped: string[]}}
@@ -520,6 +553,9 @@ function applyIndexAdapter(filePath) {
 
   // ⑦-B px 单位按钮 + led-pitch.js 注入 + FAQ 边界（桌面专属）
   src = applyPitchButtonToIndex(src, applied, skipped);
+
+  // PR #10 i18n 运行时 + 使用指南脚本（桌面专属，独立于 ⑦ 系列）
+  src = applyI18nScriptsToIndex(src, applied, skipped);
 
   fs.writeFileSync(filePath, src, 'utf8');
   return { applied, skipped };

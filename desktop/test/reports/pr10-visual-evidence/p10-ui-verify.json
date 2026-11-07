@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-06T17:47:49.583Z",
+    "desktop": "C:/Users/A/WorkBuddy/2026-10-29-11-12-26/pr10-work/desktop"
+  },
+  "checks": [
+    {
+      "name": "i18n 运行时就绪且双包 key 完整",
+      "pass": true,
+      "detail": "{\"registered\":[\"zh-CN\",\"en-US\"],\"activeSnapshot\":\"zh-CN\",\"keyCount\":376,\"complete\":true}"
+    },
+    {
+      "name": "使用指南已挂载且默认可发现",
+      "pass": true,
+      "detail": "{\"exists\":true,\"open\":true,\"title\":\"使用指南\",\"toggle\":\"展开 / 收起\",\"sections\":[\"快速入门\",\"LED 专业功能\",\"参数与结果说明\",\"各模块使用说明\"],\"itemCount\":28,\"bodyMaxHeight\":\"200px\"}"
+    },
+    {
+      "name": "使用指南四层信息架构齐全",
+      "pass": true,
+      "detail": "条目数=28"
+    },
+    {
+      "name": "P 值说明挂载机制可用（设置打开后）",
+      "pass": true,
+      "detail": "见 1b 专项检查"
+    },
+    {
+      "name": "可见 PX 来源标识存在",
+      "pass": true,
+      "detail": "{\"text\":\"当前 PX 数值来源：当前未使用 PX 输入\",\"origin\":\"none\"}"
+    },
+    {
+      "name": "语言切换控件存在",
+      "pass": true,
+      "detail": "{\"options\":[\"简体中文\",\"English\"],\"value\":\"zh-CN\"}"
+    },
+    {
+      "name": "首屏无横向溢出",
+      "pass": true,
+      "detail": "{\"scrollW\":1440,\"clientW\":1440}"
+    },
+    {
+      "name": "设置打开后 P 值说明自动挂载（6 段）",
+      "pass": true,
+      "detail": "{\"exists\":true,\"title\":\"什么是 LED 点间距（P 值）？\",\"paraCount\":6}"
+    },
+    {
+      "name": "P 推算 PX → 来源标识为理论估算",
+      "pass": true,
+      "detail": "{\"text\":\"当前 PX 数值来源：理论估算（由 P 值推算）由物理尺寸 ÷ 当前 P 值推算，切换 P 值后立即重算。\",\"origin\":\"converted\"}"
+    },
+    {
+      "name": "手动输入 PX → 来源标识为用户输入且值不被覆盖",
+      "pass": true,
+      "detail": "{\"src\":{\"text\":\"当前 PX 数值来源：用户输入你手动输入的真实像素数量，切换 P 值时不会被覆盖。\",\"origin\":\"direct\"},\"w\":\"1920\"}"
+    },
+    {
+      "name": "语言切换生效（getLocale=en-US）",
+      "pass": true,
+      "detail": "{\"locale\":\"en-US\",\"statusSnapshot\":\"zh-CN\"}"
+    },
+    {
+      "name": "语言切换后使用指南标题变英文",
+      "pass": true,
+      "detail": "title=Usage guide"
+    },
+    {
+      "name": "语言切换后 P 值说明变英文",
+      "pass": true,
+      "detail": "title=What is LED pixel pitch (P value)?"
+    },
+    {
+      "name": "语言切换不丢失输入值",
+      "pass": true,
+      "detail": "{\"before\":{\"w\":\"1920\",\"h\":\"1080\",\"unit\":\"px\",\"pitch\":2.5},\"after\":{\"w\":\"1920\",\"h\":\"1080\",\"unit\":\"px\",\"pitch\":2.5}}"
+    },
+    {
+      "name": "语言切换不改变计算结果",
+      "pass": true,
+      "detail": "{\"before\":\"1.7778:1\",\"after\":\"1.7778:1\"}"
+    },
+    {
+      "name": "语言切换不改变 P 值",
+      "pass": true,
+      "detail": "{\"before\":2.5,\"after\":2.5}"
+    },
+    {
+      "name": "切回 zh-CN 文案复原",
+      "pass": true,
+      "detail": "title=使用指南"
+    },
+    {
+      "name": "布局 1440x900：无横向溢出",
+      "pass": true,
+      "detail": "{\"pageOverflowX\":false,\"tableW\":356,\"wrapW\":356,\"guideVisible\":true,\"guideMaxH\":\"200px\"}"
+    },
+    {
+      "name": "布局 1440x900：D-1 表格未溢出容器",
+      "pass": true,
+      "detail": "{\"pageOverflowX\":false,\"tableW\":356,\"wrapW\":356,\"guideVisible\":true,\"guideMaxH\":\"200px\"}"
+    },
+    {
+      "name": "布局 1600x1000：无横向溢出",
+      "pass": true,
+      "detail": "{\"pageOverflowX\":false,\"tableW\":356,\"wrapW\":356,\"guideVisible\":true,\"guideMaxH\":\"200px\"}"
+    },
+    {
+      "name": "布局 1600x1000：D-1 表格未溢出容器",
+      "pass": true,
+      "detail": "{\"pageOverflowX\":false,\"tableW\":356,\"wrapW\":356,\"guideVisible\":true,\"guideMaxH\":\"200px\"}"
+    },
+    {
+      "name": "布局 1200x800：无横向溢出",
+      "pass": true,
+      "detail": "{\"pageOverflowX\":false,\"tableW\":772,\"wrapW\":772,\"guideVisible\":false,\"guideMaxH\":\"200px\"}"
+    },
+    {
+      "name": "布局 1024x680：无横向溢出",
+      "pass": true,
+      "detail": "{\"pageOverflowX\":false,\"tableW\":948,\"wrapW\":948,\"guideVisible\":false,\"guideMaxH\":\"200px\"}"
+    },
+    {
+      "name": "全程无 console error / pageerror",
+      "pass": true,
+      "detail": "[]"
+    }
+  ],
+  "errors": []
+}
