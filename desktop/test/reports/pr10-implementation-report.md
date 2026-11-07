@@ -108,3 +108,42 @@ i18n 双包完整、指南四层挂载、P 值说明 6 段自动挂载、来源�
 ## 17. 机制可沿用性（负责人第 2 条关注点）
 
 后续功能接入本 i18n 的通用规约（非 p10.* 局部实现）：动态文案取 `LedI18N.t(key)`、key 按 `<域>.<语义>` 进**双包**（zh-CN 为参照真源，集合用 `completenessReport()` 校验）、动态渲染注册 `LedI18N.onLocaleChange`、静态 HTML 文本走 text-map 精确映射、**MO 微任务内禁止做挂载类 DOM 写入**（崩溃实证）。
+
+---
+
+# 第四部分 · 最终整改与执行摘要（S10-R1~R7，commit `6aaeca9`）
+
+## 18. 修改前问题 → 修复（负责人最终任务书）
+
+| 问题 | 级别 | 修复 | 验证 |
+|---|---|---|---|
+| guide.js 两段重复 setInterval(500ms)，无 ID 无清理 | **P0** | 合并为唯一轮询状态机（ID 守卫/挂载完成即 clearInterval/MO 轻触发重启） | 九场景探针 **9/9** |
+| 初始化 2s 空转轮询 + 600ms 延迟必要性存疑 | P1 | 删除（目标 DOM 仅模态期存在，首屏必空转；locale 校准由 onLocaleChange 事件驱动）；start() 加重复执行守卫 | 代码审查 + 9/9 |
+| 旧 diff 审查仅覆盖前三提交 | P1 | 新增 `pr10-final-diff-review.md`（六提交十项全 PASS） | 本报告同目录 |
+| PR 描述引用 p10-overlay-occlusion.cjs 远端缺失 | P2 | 真实文件已随 6aaeca9 入库 `pr10-visual-evidence/`，引用成立 | 文件存在 + 内容核对 |
+| manifest bytes 疑虑 | P2 | 实测：磁盘 core.js **54,620 B = manifest.bytes**，sha256=锁定值——**完全一致，无口径偏差** | stat + sha256sum |
+
+## 19. 当前 HEAD（`6aaeca9`）实际执行回归
+
+| 测试 | 结果 |
+|---|---|
+| Desktop E2E | **93/93**（console 0 / pageerror 0） |
+| Pitch DOM | **18/18** |
+| 新增模块验证 | **24/24** |
+| 悬浮徽标遮挡 | zh/en × 三档 **零遮挡** |
+| 定时器生命周期 | **9/9** |
+| 双包一致性 | **378/378** |
+
+历史参考（历史提交执行，非本轮）：Pitch 26/26、Settings 13/13、Core 64/64、Security 47/47、PX 10/10、Differential 200/200、HTML 85/85（上一轮 436bee4~691a5b6 期间实跑；本轮 guide.js 定时器改动不触及其代码路径，如需可按同命令复跑）。视觉三档 3 FAIL 为预期 UI 变更，**基线未刷新**。
+
+## 20. 冻结与同步状态
+
+- `src/core.js` = `desktop/renderer/core.js` = `dd49a7829618f77da4c07baafd4e5d6f08e23f8577d074c5500d006a011bcc26`；磁盘 54,620 B = manifest.bytes（实测一致）
+- 冻结文件全范围 diff 零改动；本地 HEAD `6aaeca9` 与远端同步；`68b24d1` 基线未变
+- 未合并、未创建 Tag/Release、未刷新视觉基线
+
+## 21. 最终验收门槛核对（十二项）
+
+重复定时器 ✅ / 初始化审计 ✅ / DOM 生命周期 ✅ / 语言切换与状态保留 ✅ / 无 Renderer Crash ✅ / 回归通过 ✅ / 五提交（现六提交）diff 审查 ✅ / PR 描述引用有效 ✅ / Manifest 核验 ✅ / 冻结 SHA-256 ✅ / 视觉对比完成且基线未刷新 ✅ / 未执行项如实标注 ✅
+
+**最终状态：READY FOR MERGE REVIEW**（合并 / Tag / Release 决定权在项目负责人）。

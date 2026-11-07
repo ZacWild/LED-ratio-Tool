@@ -2,7 +2,7 @@
 
 **标题**：`feat(desktop): complete LED pitch resolution workflow and usage guide`
 
-**分支**：`feature/desktop-v1.3.0-pr10-guide` → `main`（4 提交：62b472e / b3fb25f / 436bee4 / 691a5b6）
+**分支**：`feature/desktop-v1.3.0-pr10-guide` → `main`（6 提交：62b472e / b3fb25f / 436bee4 / 691a5b6 / cf0ee3a / 6aaeca9）
 
 ---
 
@@ -37,7 +37,12 @@
 - A2：FAQ 第 3 问桌面文案已被 ⑦ 改写但 text-map/双包未跟 → en-US 残留中文 → 三处对齐。
 - 详见 `desktop/test/reports/pr10-implementation-report.md` 第三部分。
 
-## 5. 合并前审查
+## 5. 定时器生命周期整改（最终整改任务书 S10-R1/R2）
+
+- **P0 重复定时器**：guide.js 曾存在两段相同 setInterval(500ms) → 合并为唯一轮询状态机（定时器 ID 守卫 + startedCount 诊断 + 挂载完成即 clearInterval 零常驻开销），MO 仅经 setTimeout(0) 轻触发重启（MO 内禁 DOM 写入，崩溃禁令保留）。
+- 九场景生命周期探针 **9/9**（p10-timer-lifecycle.cjs，已随 PR 入库）：首启动无轮询 / 首开启动→挂载→自动清理 / 关闭停止（隐藏保留语义）/ 重开重启 / 切语言 / 多次开关+长期运行稳态。
+
+## 6. 合并前审查
 
 - diff 审查（六项）全过：冻结文件零改动、D-1 仅桌面端、guide.js DOM 边界干净、i18n 资产原样复用、测试资产零断言修改、adapter diff 边界精确（`pr10-diff-review.md`）。
 - i18n 合轨架构审查：注入顺序/幂等成立、DOM 生命周期无泄漏、失败不阻断启动、可沿用性规约与反模式清单（`pr10-i18n-merge-review.md`）。
