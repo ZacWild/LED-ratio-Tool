@@ -324,7 +324,25 @@
     }
 
     var i = global.LedI18N;
-    if (i && i.onLocaleChange) i.onLocaleChange(renderAll);
+    if (i && i.onLocaleChange) {
+      i.onLocaleChange(function (code) {
+        // ① 使用指南 / P 值说明自身重渲染（原有行为）
+        renderAll(code);
+        // ② S10-R8 批次 C · 事件驱动重渲染（不新增 MO / 不轮询 / 不一次性打标）
+        //    led:pitch  → desktop-ui.js 既有监听刷新两个动态结果模块与状态胶囊
+        //    led:locale → 批次 D 的动态文案层（app.js 运行时生成的文本）
+        try {
+          global.dispatchEvent(new global.CustomEvent('led:pitch', {
+            detail: { source: 'locale', locale: code }
+          }));
+        } catch (e) { /* 自定义事件不可用时不阻断语言切换 */ }
+        try {
+          global.dispatchEvent(new global.CustomEvent('led:locale', {
+            detail: { locale: code }
+          }));
+        } catch (e) { /* 同上 */ }
+      });
+    }
     global.addEventListener('led:pitch', schedule);
     doc.addEventListener('input', schedule, true);
     doc.addEventListener('click', schedule, true);

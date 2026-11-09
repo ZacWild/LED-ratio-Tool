@@ -96,7 +96,7 @@
   }
 
   function fmtPitch(value) {
-    if (value === null || value === undefined) return '未配置';
+    if (value === null || value === undefined) return msg('pitch.msg.unconfigured', '未配置');
     return fmtTrim(value, MAX_PITCH_DECIMALS);
   }
 
@@ -106,12 +106,24 @@
    * 拒绝：NaN / ±Infinity / 0 / 负数 / 非数值串 / 超 6 位小数。
    * 存储的是 Number 原值，不做任何四舍五入，避免显示精度丢失实际值。
    */
-  /* S10-R8 i18n 原型：运行时经 LedI18N.t(key) 取当前语种；
-     node --test 环境无 LedI18N → 回退 fallback（= zh-CN 原文），
-     既有 26 项正则断言（/未配置/ /有限数值/）不受影响。 */
-  function msg(key, fallback) {
+  /* S10-R8 i18n：运行时经 LedI18N.t(key, params) 取当前语种。
+     🔒 node --test 环境无 LedI18N → 回退 fallback（= zh-CN 原文）并在本地做同样的
+        {0}/{name} 插值，保证既有 26 项中文断言逐字不变；缺 i18n 时绝不返回空串或 key 名。
+     🔒 两参数调用行为不变；第三参数 params 可选，仅用于带数值的文案。 */
+  function msg(key, fallback, params) {
     var g = (typeof global !== 'undefined') ? global : window;
-    return (g && g.LedI18N && typeof g.LedI18N.t === 'function') ? g.LedI18N.t(key) : fallback;
+    var hasI18n = !!(g && g.LedI18N && typeof g.LedI18N.t === 'function');
+    var text = hasI18n ? g.LedI18N.t(key, params) : fallback;
+    if (!hasI18n && params) {
+      text = String(text).replace(/\{(\w+)\}/g, function (all, k) {
+        if (Array.isArray(params)) {
+          var idx = Number(k);
+          return isNaN(idx) || idx < 0 || idx >= params.length ? all : String(params[idx]);
+        }
+        return Object.prototype.hasOwnProperty.call(params, k) ? String(params[k]) : all;
+      });
+    }
+    return text;
   }
 
   function parsePitch(raw) {
@@ -129,20 +141,20 @@
       return { ok: true, value: raw, unconfigured: false, error: '', message: 'ok' };
     }
     if (typeof raw !== 'string') {
-      return { ok: false, value: null, unconfigured: false, error: 'type', message: 'P 值必须是数值' };
+      return { ok: false, value: null, unconfigured: false, error: 'type', message: msg('pitch.err.type', 'P 值必须是数值') };
     }
     var s = raw.trim();
     if (!/^[+]?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(s)) {
-      return { ok: false, value: null, unconfigured: false, error: 'format', message: 'P 值只能输入大于 0 的数值（mm）' };
+      return { ok: false, value: null, unconfigured: false, error: 'format', message: msg('pitch.err.format', 'P 值只能输入大于 0 的数值（mm）') };
     }
     var plain = s.split(/[eE]/)[0];
     var decimals = (plain.split('.')[1] || '').length;
     if (decimals > MAX_PITCH_DECIMALS) {
-      return { ok: false, value: null, unconfigured: false, error: 'precision', message: 'P 值小数位数不得超过 ' + MAX_PITCH_DECIMALS + ' 位' };
+      return { ok: false, value: null, unconfigured: false, error: 'precision', message: msg('pitch.err.precision', 'P 值小数位数不得超过 {0} 位', [MAX_PITCH_DECIMALS]) };
     }
     var v = Number(s);
     if (!Number.isFinite(v) || v <= 0) {
-      return { ok: false, value: null, unconfigured: false, error: 'finite', message: 'P 值必须是大于 0 的有限数值（不接受 NaN / Infinity / 0 / 负数）' };
+      return { ok: false, value: null, unconfigured: false, error: 'finite', message: msg('pitch.err.finite.long', 'P 值必须是大于 0 的有限数值（不接受 NaN / Infinity / 0 / 负数）') };
     }
     return { ok: true, value: v, unconfigured: false, error: '', message: 'ok' };
   }
@@ -156,7 +168,7 @@
     }
     state.pixelPitchMm = r.value;
     state.notice = r.unconfigured
-      ? '未配置 LED 像素间距 P：已禁止物理尺寸 ↔ 像素分辨率换算。可直接输入真实像素数量；原始物理尺寸保持不变。'
+      ? msg('pitch.notice.unconfigured', '未配置 LED 像素间距 P：已禁止物理尺寸 ↔ 像素分辨率换算。可直接输入真实像素数量；原始物理尺寸保持不变。')
       : '';
     return r;
   }
@@ -176,24 +188,24 @@
     var base = { ok: false, mm: null, px: null, value: null, unit: 'px', error: '', message: '', semantic: 'resolution' };
     if (!s) {
       base.error = 'empty';
-      base.message = '请输入像素数量';
+      base.message = msg('px.err.empty', '请输入像素数量');
       return base;
     }
     if (!/^[+]?\d+(?:\.\d+)?$/.test(s)) {
       base.error = 'nan';
-      base.message = '像素数量只能输入非负整数或数值';
+      base.message = msg('px.err.nan', '像素数量只能输入非负整数或数值');
       return base;
     }
     var v = Number(s);
     if (!Number.isFinite(v)) {
       base.error = 'nan';
-      base.message = '像素数量不是有限数值';
+      base.message = msg('px.err.notFinite', '像素数量不是有限数值');
       return base;
     }
     if (v <= 0) {
       base.error = 'nonPositive';
       base.value = v;
-      base.message = v === 0 ? '像素数量不能为 0' : '像素数量不能为负数';
+      base.message = v === 0 ? msg('px.err.zero', '像素数量不能为 0') : msg('px.err.negative', '像素数量不能为负数');
       return base;
     }
     base.ok = true;
@@ -279,25 +291,25 @@
     if (!p.ok || p.unconfigured) {
       return {
         ok: false,
-        reason: p.unconfigured ? '未配置 LED 像素间距 P，禁止执行物理尺寸 → 像素分辨率换算' : p.message,
+        reason: p.unconfigured ? msg('pitch.reason.unconfigured', '未配置 LED 像素间距 P，禁止执行物理尺寸 → 像素分辨率换算') : p.message,
         pixelPitchMm: null,
       };
     }
     if (!isFiniteNumber(physicalWidthMm) || !isFiniteNumber(physicalHeightMm) ||
         physicalWidthMm <= 0 || physicalHeightMm <= 0) {
-      return { ok: false, reason: '屏幕物理尺寸不可用或非法', pixelPitchMm: p.value };
+      return { ok: false, reason: msg('pitch.reason.physicalInvalid', '屏幕物理尺寸不可用或非法'), pixelPitchMm: p.value };
     }
     var w = physicalWidthMm / p.value;
     var h = physicalHeightMm / p.value;
     if (!Number.isFinite(w) || !Number.isFinite(h)) {
-      return { ok: false, reason: '换算结果不是有限数值（P 值过小或物理尺寸过大）', pixelPitchMm: p.value };
+      return { ok: false, reason: msg('pitch.reason.nonFinite', '换算结果不是有限数值（P 值过小或物理尺寸过大）'), pixelPitchMm: p.value };
     }
     var iw = Math.round(w);
     var ih = Math.round(h);
     return {
       ok: true,
       reason: '',
-      source: '理论 P 值估算',
+      source: msg('pitch.source.theory', '理论 P 值估算'),
       pixelPitchMm: p.value,
       physicalWidthMm: physicalWidthMm,
       physicalHeightMm: physicalHeightMm,
@@ -322,7 +334,7 @@
         aspectRatio: fmtTrim(physicalWidthMm / physicalHeightMm, 6) + ' : 1',
         roundingErrorWidthPx: (iw - w >= 0 ? '+' : '') + fmtContinuous(iw - w),
         roundingErrorHeightPx: (ih - h >= 0 ? '+' : '') + fmtContinuous(ih - h),
-        pitch: 'P' + fmtPitch(p.value) + '（' + fmtPitch(p.value) + ' mm）',
+        pitch: msg('pitch.fmt.pitchLabel', 'P{0}（{1} mm）', [fmtPitch(p.value), fmtPitch(p.value)]),
       },
     };
   }
@@ -341,14 +353,16 @@
     var s = String(raw == null ? '' : raw).trim();
     var integerOnly = (kind === 'pixelsX' || kind === 'pixelsY' || kind === 'cols' || kind === 'rows');
     if (!s || !/^[+]?\d+(?:\.\d+)?$/.test(s)) {
-      return { ok: false, value: null, message: '必须输入大于 0 的' + (integerOnly ? '整数' : '数值') };
+      return { ok: false, value: null, message: integerOnly
+        ? msg('cabinet.err.requiredInteger', '必须输入大于 0 的整数')
+        : msg('cabinet.err.requiredNumber', '必须输入大于 0 的数值') };
     }
     var v = Number(s);
     if (!Number.isFinite(v) || v <= 0) {
-      return { ok: false, value: null, message: '必须输入大于 0 的有限数值' };
+      return { ok: false, value: null, message: msg('cabinet.err.finite', '必须输入大于 0 的有限数值') };
     }
     if (integerOnly && !Number.isInteger(v)) {
-      return { ok: false, value: null, message: '像素数与箱体数量必须为整数' };
+      return { ok: false, value: null, message: msg('cabinet.err.integerOnly', '像素数与箱体数量必须为整数') };
     }
     return { ok: true, value: v, message: 'ok' };
   }
@@ -364,11 +378,11 @@
     var v = {};
     for (var i = 0; i < keys.length; i++) {
       var r = parseCabinetField(o[keys[i]], keys[i]);
-      if (!r.ok) errors.push(keys[i] + '：' + r.message);
+      if (!r.ok) errors.push(msg('cabinet.err.fieldPrefix', '{0}：{1}', [keys[i], r.message]));
       else v[keys[i]] = r.value;
     }
     if (errors.length) {
-      return { ok: false, source: '箱体像素矩阵计算', errors: errors, warnings: [], input: o };
+      return { ok: false, source: msg('cabinet.source.matrix', '箱体像素矩阵计算'), errors: errors, warnings: [], input: o };
     }
 
     var totalWidthMm = v.widthMm * v.cols;
@@ -380,26 +394,32 @@
 
     if (physical.ok) {
       if (Math.abs(totalWidthMm - physical.widthMm) > 0.0001) {
-        warnings.push('箱体拼接总宽度与屏幕物理宽度不一致（' +
-          fmtTrim(totalWidthMm, 3) + ' mm vs ' + fmtTrim(physical.widthMm, 3) + ' mm）');
+        warnings.push(msg('cabinet.warn.widthMismatch',
+          '箱体拼接总宽度与屏幕物理宽度不一致（{0} mm vs {1} mm）',
+          [fmtTrim(totalWidthMm, 3), fmtTrim(physical.widthMm, 3)]));
       }
       if (Math.abs(totalHeightMm - physical.heightMm) > 0.0001) {
-        warnings.push('箱体拼接总高度与屏幕物理高度不一致（' +
-          fmtTrim(totalHeightMm, 3) + ' mm vs ' + fmtTrim(physical.heightMm, 3) + ' mm）');
+        warnings.push(msg('cabinet.warn.heightMismatch',
+          '箱体拼接总高度与屏幕物理高度不一致（{0} mm vs {1} mm）',
+          [fmtTrim(totalHeightMm, 3), fmtTrim(physical.heightMm, 3)]));
       }
       var expectedCols = physical.widthMm / v.widthMm;
       var expectedRows = physical.heightMm / v.heightMm;
       if (Math.abs(expectedCols - v.cols) > 0.0001) {
-        warnings.push('横向箱体数量与物理宽度不匹配（期望约 ' + fmtTrim(expectedCols, 3) + '，当前 ' + v.cols + '）');
+        warnings.push(msg('cabinet.warn.colsMismatch',
+          '横向箱体数量与物理宽度不匹配（期望约 {0}，当前 {1}）',
+          [fmtTrim(expectedCols, 3), v.cols]));
       }
       if (Math.abs(expectedRows - v.rows) > 0.0001) {
-        warnings.push('纵向箱体数量与物理高度不匹配（期望约 ' + fmtTrim(expectedRows, 3) + '，当前 ' + v.rows + '）');
+        warnings.push(msg('cabinet.warn.rowsMismatch',
+          '纵向箱体数量与物理高度不匹配（期望约 {0}，当前 {1}）',
+          [fmtTrim(expectedRows, 3), v.rows]));
       }
     }
 
     return {
       ok: true,
-      source: '箱体像素矩阵计算',
+      source: msg('cabinet.source.matrix', '箱体像素矩阵计算'),
       errors: [],
       warnings: warnings,
       input: o,
@@ -426,18 +446,18 @@
   function compareCabinetToTheory(cabinetResult, theoryResult) {
     var base = {
       ok: false,
-      leftSource: '理论 P 值估算',
-      rightSource: '箱体像素矩阵计算',
+      leftSource: msg('pitch.source.theory', '理论 P 值估算'),
+      rightSource: msg('cabinet.source.matrix', '箱体像素矩阵计算'),
       reason: '',
     };
     if (!cabinetResult || !cabinetResult.ok) {
-      base.reason = '箱体参数非法，无法比对';
+      base.reason = msg('cabinet.reason.invalid', '箱体参数非法，无法比对');
       return base;
     }
     if (!theoryResult || !theoryResult.ok) {
       base.reason = theoryResult && theoryResult.reason
         ? theoryResult.reason
-        : '理论 P 值估算不可用，无法比对';
+        : msg('cabinet.reason.theoryUnavailable', '理论 P 值估算不可用，无法比对');
       return base;
     }
     var dw = cabinetResult.totalWidthPx - theoryResult.integerWidthPx;
@@ -450,8 +470,8 @@
                 theoryResult.integerHeightPx * theoryResult.integerHeightPx) * 100;
     return {
       ok: true,
-      leftSource: '理论 P 值估算',
-      rightSource: '箱体像素矩阵计算',
+      leftSource: msg('pitch.source.theory', '理论 P 值估算'),
+      rightSource: msg('cabinet.source.matrix', '箱体像素矩阵计算'),
       reason: '',
       deltaWidthPx: dw,
       deltaHeightPx: dh,
@@ -461,8 +481,8 @@
       relativePixelDeviationPercent: relPx,
       exactMatch: dw === 0 && dh === 0 && Math.abs(dmmW) < 0.0001 && Math.abs(dmmH) < 0.0001,
       verdict: (dw === 0 && dh === 0 && Math.abs(dmmW) < 0.0001 && Math.abs(dmmH) < 0.0001)
-        ? '完全匹配'
-        : '存在差异（理论估算 ≠ 箱体确认，需现场复核）',
+        ? msg('cabinet.verdict.exact', '完全匹配')
+        : msg('cabinet.verdict.mismatch', '存在差异（理论估算 ≠ 箱体确认，需现场复核）'),
       formatted: {
         deltaWidthPx: (dw >= 0 ? '+' : '') + String(dw) + ' px',
         deltaHeightPx: (dh >= 0 ? '+' : '') + String(dh) + ' px',
@@ -475,7 +495,7 @@
   }
 
   function setCabinetField(key, raw) {
-    if (!(key in state.cabinet)) return { ok: false, message: '未知箱体字段：' + key };
+    if (!(key in state.cabinet)) return { ok: false, message: msg('cabinet.err.unknownField', '未知箱体字段：{0}', [key]) };
     var r = parseCabinetField(raw, key);
     if (r.ok) state.cabinet[key] = r.value;
     return r;

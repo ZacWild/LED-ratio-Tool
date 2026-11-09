@@ -261,6 +261,127 @@
     skipped: mapStats.skipped
   });
 
+
+  /* ==================== 7. S10-R8 批次 D · 动态文案事件驱动重渲染 ==================== */
+  (function () {
+    var TM = global.LedI18NTextMap;
+    var D = TM && TM.DYNAMIC;
+    var doc = global.document;
+    if (!D || !D.EXACT || !D.TPL || !doc) return;
+
+    // ① 给单位提示打稳定标记（此时文本仍为中文），解除 desktop-ui.js 对中文文本的依赖
+    var hints = doc.querySelectorAll('.hint');
+    for (var h = 0; h < hints.length; h++) {
+      if (hints[h].textContent.indexOf('单位切换只改变显示值') >= 0) {
+        hints[h].setAttribute('data-hint-unit', '1');
+        break;
+      }
+    }
+
+    var tpls = D.TPL.map(function (r) { return { key: r[0], re: new RegExp(r[1]) }; });
+    var ATTRS = ['title', 'placeholder', 'aria-label', 'alt', 'aria-description'];
+    var CJK2 = /[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/;
+    var origText = new WeakMap();   // TextNode -> 原始中文（trim 后）
+    var origAttr = new WeakMap();   // Element  -> { attr: 原始中文 }
+
+    /** 通道 B 已登记的 TextNode 由 refreshTextNodes() 管理，动态层不得覆盖 */
+    function isChannelBNode(node) {
+      for (var k = 0; k < textNodeTargets.length; k++) {
+        if (textNodeTargets[k].node === node) return true;
+      }
+      return false;
+    }
+    /** 中文原文 → 当前语种译文；未登记则原样返回（验收会如实报残留） */
+    function tr(zh) {
+      var key = Object.prototype.hasOwnProperty.call(D.EXACT, zh) ? D.EXACT[zh] : null;
+      var params = null;
+      if (!key) {
+        for (var i = 0; i < tpls.length; i++) {
+          var m = zh.match(tpls[i].re);
+          if (m) {
+            key = tpls[i].key;
+            params = m.slice(1).map(function (v) {
+              var k2 = Object.prototype.hasOwnProperty.call(D.EXACT, v) ? D.EXACT[v] : null;
+              return k2 ? I18N.t(k2) : v;
+            });
+            break;
+          }
+        }
+      }
+      if (!key) return zh;
+      return I18N.t(key, params);
+    }
+    function targetOf(orig) {
+      return I18N.getLocale() === 'zh-CN' ? orig : tr(orig);
+    }
+    function translateTextNode(node) {
+      var raw = node.nodeValue;
+      if (raw == null) return;
+      var text = raw.trim();
+      if (!text) return;
+      // 已被通道 A / 通道 B 管理的静态节点不重复处理
+      if (isChannelBNode(node)) return;
+      var p = node.parentElement;
+      if (p && p.closest && p.closest('[data-i18n]')) return;
+      if (CJK2.test(text)) origText.set(node, text);
+      var orig = origText.get(node);
+      if (!orig) return;
+      var value = targetOf(orig);
+      if (value === text) return;
+      node.nodeValue = raw.split(text).join(value);
+    }
+    function translateAttrs(el) {
+      var saved = origAttr.get(el) || {};
+      for (var i = 0; i < ATTRS.length; i++) {
+        var a = ATTRS[i], cur = el.getAttribute(a);
+        if (cur == null) continue;
+        var t = cur.trim();
+        if (CJK2.test(t)) saved[a] = t;
+        var orig = saved[a];
+        if (!orig) continue;
+        var value = targetOf(orig);
+        if (value !== t) el.setAttribute(a, value);
+      }
+      origAttr.set(el, saved);
+    }
+    function translateDynamic() {
+      if (!doc.body || !doc.createTreeWalker) return;
+      var show = (global.NodeFilter && global.NodeFilter.SHOW_TEXT) || 4;
+      var walker = doc.createTreeWalker(doc.body, show);
+      var node;
+      while ((node = walker.nextNode())) translateTextNode(node);
+      var all = doc.body.querySelectorAll('*');
+      for (var j = 0; j < all.length; j++) translateAttrs(all[j]);
+    }
+
+    // 🔒 事件驱动：语言切换 / P 值联动 / 用户输入点击 → 下一个宏任务统一重渲染
+    //    无 MutationObserver、无 setInterval、无一次性 data-i18n 打标。
+    var dynTimer = 0;
+    function scheduleDynamic() {
+      if (dynTimer) return;
+      dynTimer = global.setTimeout(function () {
+        dynTimer = 0;
+        translateDynamic();
+        // app.js 的状态栏在 rAF 中更新：同一事件后再跑一帧，非轮询
+        if (global.requestAnimationFrame) global.requestAnimationFrame(translateDynamic);
+      }, 0);
+    }
+    if (I18N.onLocaleChange) I18N.onLocaleChange(scheduleDynamic);
+    global.addEventListener('led:pitch', scheduleDynamic);
+    global.addEventListener('led:locale', scheduleDynamic);
+    doc.addEventListener('input', scheduleDynamic, true);
+    doc.addEventListener('click', scheduleDynamic, true);
+    doc.addEventListener('change', scheduleDynamic, true);
+    // setTimeout(0) 排在所有同步 DOMContentLoaded 回调（app.js / desktop-ui.js init）之后
+    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', scheduleDynamic);
+    else scheduleDynamic();
+    global.addEventListener('load', scheduleDynamic);
+    global.LedI18NDynamicStatus = Object.freeze({
+      exact: Object.keys(D.EXACT).length,
+      templates: D.TPL.length,
+      refresh: function () { scheduleDynamic(); }
+    });
+  })();
   if (global.console && global.console.debug) {
     global.console.debug(
       '[i18n] 已就绪：' + registered.join('/') + '，当前 ' + active +
