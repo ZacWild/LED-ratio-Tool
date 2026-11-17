@@ -18,10 +18,10 @@
 #       最新 Head 提交上 success。配置以 GitHub 实时设置为准，权威说明见
 #       GITHUB-RULES.md；本文件不代替 Ruleset 配置本身。
 #
-# ③ **「本作业 success」≠「打包已通过」**
-#    「打包 + Preview Candidate 产物验收」是 continue-on-error 的报告项，
-#    不参与门禁（理由见该步骤注释）。它显示 Success 不能作为打包已通过的证据；
-#    打包结论只认 `desktop/test/reports/pc-verify.json` 与 P7 发行验收。
+# ③ **「本作业 success」=「打包 + 产物验收已通过」**（S9-04 门禁强化）
+#    「打包 + Preview Candidate 产物验收」已从 continue-on-error 报告项改为
+#    **失败即阻断**门禁（2026-11-17，S10-R9 任务书要求）：build:win 或
+#    pc-verify 任一失败，本作业直接红。发行构建失败不再被包装为 CI 成功。
 #
 # -----------------------------------------------------------------------------
 # 内置 Actions 的版本口径（Node 24 运行时）
@@ -136,6 +136,10 @@ on:
   push:
     branches:
       - feature/desktop-windows
+      # 🔒 S9-04（S10-R9 v1.3.0 FINALIZATION）：补 push: main 触发 ——
+      #    合并到 main 的提交自动运行本工作流，消除「合并提交无独立 CI 记录」
+      #    的验收盲区（此前仅 pull_request 触发，合并提交 c8e2b96 即零记录）。
+      - main
   pull_request:
     branches:
       - feature/desktop-windows
@@ -643,15 +647,15 @@ jobs:
           exit 0
 
       # ==========================================================================
-      # 10.6 · 打包 + Preview Candidate 产物验收（Step 6 第 7 阶段）
+      # 10.6 · 打包 + Preview Candidate 产物验收（失败即阻断门禁）
       # ==========================================================================
-      # 🔴 本步骤**报告但不门禁**（continue-on-error）：
-      #    ① 打包需联网下载 NSIS / 7zip 工具链，网络波动会造成与产品无关的失败；
-      #    ② 「打包通过」不等于「产品可发布」——发布口径见 P4-BASELINE 门禁表，
-      #       且本项目**尚未完成代码签名与 Fuses 最终翻转**（属 P7）。
-      #    真实结论以本地产物验收报告 desktop/test/reports/pc-verify.json 为准。
-      - name: 打包 + Preview Candidate 产物验收（报告，不门禁）
-        continue-on-error: true
+      # 🔴 S9-04 门禁强化（2026-11-17，S10-R9 任务书）：本步骤**失败即阻断**。
+      #    原 continue-on-error + `exit 0` 会把发行构建失败包装为 CI 成功，
+      #    「本作业 success」不能代表打包已通过 —— 该伪装已移除。
+      #    build:win 失败或 pc-verify 失败，本步骤 exit 非 0 → 作业红 → PR 不可合并。
+      #    （历史顾虑「NSIS/7zip 联网下载波动」改由 ELECTRON_CACHE 缓存与重试
+      #    吸收，不再以牺牲门禁真实性为代价。）
+      - name: 打包 + Preview Candidate 产物验收（失败即阻断）
         shell: pwsh
         working-directory: desktop
         env:
@@ -661,22 +665,28 @@ jobs:
           npm run build:win
           $buildCode = $LASTEXITCODE
           Write-Host "build:win 退出码 = $buildCode"
-          if ($buildCode -eq 0) {
-            npm run test:pc
-            Write-Host "pc-verify 退出码 = $LASTEXITCODE"
+          if ($buildCode -ne 0) {
+            Write-Host "::error title=打包失败::build:win 退出码 $buildCode —— 发行构建失败即阻断（S9-04）"
+            exit $buildCode
           }
-          exit 0
+          npm run test:pc
+          $pcCode = $LASTEXITCODE
+          Write-Host "pc-verify 退出码 = $pcCode"
+          if ($pcCode -ne 0) {
+            Write-Host "::error title=产物验收失败::pc-verify 退出码 $pcCode —— 产物验收失败即阻断（S9-04）"
+            exit $pcCode
+          }
 
       # ==========================================================================
       # 10.7 · P7-2 Electron Fuses 实体验证（只认最终产物）
       # ==========================================================================
       # 步骤位置与门禁口径的三条理由：
-      #   ① 不塞进 10.6：10.6 是 continue-on-error，把验证放进去等于「验证失败也是绿」，
-      #      那正是 P7-2 要消灭的「只看配置文件就宣布安全」的翻版。
-      #   ② 不做无条件门禁：本步骤的输入是 10.6 产出的 dist/win-unpacked，
-      #      而打包本身不门禁（联网下载 NSIS/7zip，网络波动与产品无关）。
-      #   ③ 因此口径定为「**产物在就必须过；产物不在明确记 SKIP，绝不记 PASS**」——
-      #      产物缺失时用 ::warning 标注，并在 Step Summary 里写死 SKIP 字样。
+      #   ① 与 10.6 分离：10.6 管「构建 + PC 验收」，本步骤断言最终产物的
+      #      安全配置（Fuses / asar），职责单一、失败归因清晰。
+      #   ② 保留「产物在则必过、产物不在记 SKIP」口径作为纵深防御：10.6 已
+      #      失败即阻断（S9-04），正常情况下到达本步骤产物必然存在。
+      #   ③ 产物缺失时用 ::warning 标注，并在 Step Summary 里写死 SKIP 字样，
+      #      绝不记 PASS。
       - name: P7-2 Fuses 实体验证（产物在则必过）
         id: fuses
         shell: pwsh
