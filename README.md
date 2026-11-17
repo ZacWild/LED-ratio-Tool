@@ -13,7 +13,7 @@
 | 交付形态 | 版本 | 状态 |
 |---|---|---|
 | HTML 离线版（单文件） | 1.0.1 | ✅ 已发布（随仓库分发） |
-| Windows 桌面版（Electron） | **1.3.0** | 🟡 **开发中**：功能分支 `feature/desktop-v1.3.0-pr10-guide`（含 LED P 值功能、桌面端使用指南与中英双语界面），待 PR 评审；**未发布、无 Tag / Release / 发行文件** |
+| Windows 桌面版（Electron） | **1.3.0** | ✅ **已正式发布**（[GitHub Release v1.3.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.3.0)，Windows x64；NSIS 安装版 + Portable 便携版；含 LED P 值功能、桌面端使用指南与中英双语界面；无代码签名） |
 | Windows 桌面版（历史正式发行） | 1.2.0 | ✅ 已发布（[GitHub Release v1.2.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.2.0)，2026-11-04）；可回退版本 |
 
 ---
@@ -28,7 +28,7 @@
 
 两种交付形态共用同一套计算内核（`src/core.js`），核心换算能力一致，只是运行方式不同；桌面版在此基础上另提供**桌面专属能力**（px 输入单位、原生菜单与全局快捷键、本地设置持久化），HTML 离线版不含这些。
 
-**桌面版 v1.3.0（开发中）新增且仅桌面版具备**：全局「LED 像素间距 P」设置及其持久化、按 `物理尺寸 ÷ P` 的真实 px 换算、LED 原生分辨率理论估算（连续值 / 整数估算 / 取整误差并存）、箱体 / 模组规格核验（理论估算与箱体像素矩阵分列）、**桌面端使用指南与 P 值说明（内置于应用）**、**中英双语界面（设置内切换）**。这些能力**不会回灌 HTML 离线版**；HTML 版仍为 1.0.1，**不具备上述任何桌面端新增能力**。
+**桌面版 v1.3.0 新增且仅桌面版具备**：全局「LED 像素间距 P」设置及其持久化、按 `物理尺寸 ÷ P` 的真实 px 换算、LED 原生分辨率理论估算（连续值 / 整数估算 / 取整误差并存）、箱体 / 模组规格核验（理论估算与箱体像素矩阵分列）、**桌面端使用指南与 P 值说明（内置于应用）**、**中英双语界面（设置内切换）**。这些能力**不会回灌 HTML 离线版**；HTML 版仍为 1.0.1，**不具备上述任何桌面端新增能力**。
 
 ---
 
@@ -36,12 +36,12 @@
 
 | | HTML 离线版 | Windows 桌面版 |
 |---|---|---|
-| **版本** | 1.0.1 | **1.3.0（开发中）**；正式发行版仍为 1.2.0 |
+| **版本** | 1.0.1 | **1.3.0**（[最新正式发行](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.3.0)） |
 | **运行方式** | 本地浏览器打开单文件 | 独立 Windows 应用（Electron） |
 | **是否需要安装** | 否，双击即用 | 安装版需要一次安装；便携版免安装 |
 | **数据保存** | 浏览器 localStorage | 本地用户设置目录（持久化，卸载重装可保留；v1.3.0 增可选 P 值字段，兼容旧设置） |
 | **输入单位** | m / cm / mm | m / cm / mm / **px**（px 为真实像素分辨率；物理尺寸 ↔ px 按全局 P 值换算，未配置 P 时禁止换算） |
-| **获取方式** | 仓库 `dist/` 目录直接下载 | **v1.3.0 尚无发行包**，仅功能分支源码；[历史正式发行版 v1.2.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.2.0) 可下载 |
+| **获取方式** | 仓库 `dist/` 目录直接下载 | [GitHub Release v1.3.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.3.0) 下载安装版 / 便携版 / `SHA256SUMS.txt`；[历史版本 v1.2.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.2.0) 可回退 |
 | **适合场景** | 快速临时使用、跨系统（任何有浏览器的设备） | Windows 日常工具化使用、独立窗口、原生菜单与快捷键、按箱体 / P 值核验 LED 规格 |
 
 ---
@@ -62,10 +62,10 @@
 
 ---
 
-## Windows 桌面版 v1.3.0（开发中 · 未发布）
+## Windows 桌面版 v1.3.0（已正式发布）
 
-> 分支 `feature/desktop-v1.3.0-pitch-resolution`，基线为 `main` 实际 HEAD `ea3f7b0`。
-> **本版本尚未合并、未打 Tag、未建 Release、未上传任何发行文件**；以下为开发态功能说明，不构成发布结论。
+> **发行入口：[GitHub Release v1.3.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.3.0)** —— Windows x64，NSIS 安装版（`LED Ratio Tool-1.3.0-x64-setup.exe`）与 Portable 便携版（`LED Ratio Tool-1.3.0-x64-portable.exe`），附 `SHA256SUMS.txt` 校验清单。
+> **无代码签名**（开源发行既定方案）：SmartScreen 可能提示「未知发布者」，可选「更多信息 → 仍要运行」。文件完整性请按 `SHA256SUMS.txt` 校验。
 
 **主题：LED 全局像素间距 P + 真实 PX 换算 + LED 原生分辨率估算 + 箱体 / 模组规格核验。**
 
@@ -198,7 +198,7 @@ node build.mjs                   # 重新构建 dist/led-ratio-tool.html
 ## 版本信息
 
 - **`VERSION` 文件（仓库根目录）记录 HTML 离线版的版本号**，当前为 `1.0.1`。
-- **Windows 桌面版的版本号**记录在 [`desktop/package.json`](desktop/package.json)，当前为 **`1.3.0`（开发中，未发布）**；**最新正式发行包仍是 1.2.0**，见 [Releases](https://github.com/ZacWild/LED-ratio-Tool/releases)。`desktop/package-lock.json` 已同步同版本号。
+- **Windows 桌面版的版本号**记录在 [`desktop/package.json`](desktop/package.json)，当前为 **`1.3.0`（已正式发布）**，见 [Releases](https://github.com/ZacWild/LED-ratio-Tool/releases)。`desktop/package-lock.json` 已同步同版本号。
 - 两种交付形态独立演进、独立编号；完整变更历史见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ---

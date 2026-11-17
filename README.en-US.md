@@ -13,7 +13,7 @@ This project comes from the author's daily work with LED walls (odd-shaped, extr
 | Delivery form | Version | Status |
 |---|---|---|
 | HTML offline version (single file) | 1.0.1 | ✅ Released (distributed with the repository) |
-| Windows desktop version (Electron) | **1.3.0** | 🟡 **In development**: feature branch `feature/desktop-v1.3.0-pr10-guide` (LED pixel pitch features, in-app usage guide, bilingual UI), pending PR review; **not released, no Tag / Release / build artifacts** |
+| Windows desktop version (Electron) | **1.3.0** | ✅ **Officially released** ([GitHub Release v1.3.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.3.0), Windows x64; NSIS installer + Portable edition; LED pixel pitch features, in-app usage guide and bilingual UI; unsigned) |
 | Windows desktop version (last official release) | 1.2.0 | ✅ Released ([GitHub Release v1.2.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.2.0), 2026-11-04); rollback version |
 
 ---
@@ -28,7 +28,7 @@ This project comes from the author's daily work with LED walls (odd-shaped, extr
 
 Both delivery forms share the same calculation kernel (`src/core.js`); the core conversion capability is identical — they only differ in how they run. On top of that, the desktop version provides **desktop-exclusive capabilities** (px input unit, native menu and global shortcuts, local settings persistence) that the HTML offline version does not have.
 
-**Desktop v1.3.0 (in development) adds desktop-only capabilities**: the global "LED pixel pitch P" setting with persistence, real px conversion as `physical size ÷ P`, the LED theoretical native resolution estimate (continuous value / integer estimate / rounding error kept side by side), cabinet / module specification verification (theoretical estimate and cabinet pixel matrix listed separately), the **in-app usage guide and P-value explanation**, and the **bilingual UI (Chinese / English, switched in Settings)**. None of these are back-ported to the HTML offline version; the HTML version remains 1.0.1 and **does not include any of the desktop-only capabilities above**.
+**Desktop v1.3.0 adds desktop-only capabilities**: the global "LED pixel pitch P" setting with persistence, real px conversion as `physical size ÷ P`, the LED theoretical native resolution estimate (continuous value / integer estimate / rounding error kept side by side), cabinet / module specification verification (theoretical estimate and cabinet pixel matrix listed separately), the **in-app usage guide and P-value explanation**, and the **bilingual UI (Chinese / English, switched in Settings)**. None of these are back-ported to the HTML offline version; the HTML version remains 1.0.1 and **does not include any of the desktop-only capabilities above**.
 
 ---
 
@@ -36,12 +36,12 @@ Both delivery forms share the same calculation kernel (`src/core.js`); the core 
 
 | | HTML offline version | Windows desktop version |
 |---|---|---|
-| **Version** | 1.0.1 | **1.3.0 (in development)**; the latest official release is still 1.2.0 |
+| **Version** | 1.0.1 | **1.3.0** ([latest official release](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.3.0)) |
 | **How it runs** | Open a single file in a local browser | Standalone Windows application (Electron) |
 | **Installation** | None — double-click to use | The installer runs once; the portable build needs no installation |
 | **Data storage** | Browser localStorage | Local user settings directory (persisted, survives reinstall; v1.3.0 adds an optional P-value field, compatible with old settings) |
 | **Input units** | m / cm / mm | m / cm / mm / **px** (px means real pixel resolution; physical size ↔ px converts by the global P value, conversion is disabled while P is unconfigured) |
-| **How to get it** | Download directly from the repository `dist/` directory | **v1.3.0 has no release packages yet** — feature branch source only; the [last official release v1.2.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.2.0) remains downloadable |
+| **How to get it** | Download directly from the repository `dist/` directory | Download installer / portable / `SHA256SUMS.txt` from [GitHub Release v1.3.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.3.0); [v1.2.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.2.0) remains available for rollback |
 | **Best for** | Quick one-off use, cross-platform (any device with a browser) | Daily Windows use, standalone window, native menu & shortcuts, cabinet / pixel-pitch verification |
 
 ---
@@ -62,10 +62,10 @@ If there is no release, you can also get `led-ratio-tool.html` from the reposito
 
 ---
 
-## Windows desktop version v1.3.0 (in development · not released)
+## Windows desktop version v1.3.0 (officially released)
 
-> Branch `feature/desktop-v1.3.0-pr10-guide`, based on `main` HEAD `68b24d1`.
-> **This version is not merged, not tagged, has no Release and no published build artifacts**; the following describes the feature set under review and does not constitute a release statement.
+> **Release entry: [GitHub Release v1.3.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.3.0)** — Windows x64, NSIS installer (`LED Ratio Tool-1.3.0-x64-setup.exe`) and Portable edition (`LED Ratio Tool-1.3.0-x64-portable.exe`), with `SHA256SUMS.txt`.
+> **No code signing** (open-source release policy): SmartScreen may show "Unknown publisher" — choose "More info → Run anyway". Verify file integrity against `SHA256SUMS.txt`.
 
 **Theme: global LED pixel pitch P + real PX conversion + LED theoretical native resolution estimate + cabinet / module specification verification + in-app usage guide + bilingual UI.**
 
@@ -202,7 +202,7 @@ The desktop version has its own test matrix (asset sync verification, security a
 ## Version information
 
 - **The `VERSION` file (repository root) records the HTML offline version**, currently `1.0.1`.
-- **The Windows desktop version number** lives in [`desktop/package.json`](desktop/package.json), currently **`1.3.0` (in development, not released)**; the **latest official release is still 1.2.0**, see [Releases](https://github.com/ZacWild/LED-ratio-Tool/releases). `desktop/package-lock.json` is kept in sync.
+- **The Windows desktop version number** lives in [`desktop/package.json`](desktop/package.json), currently **`1.3.0` (officially released)**, see [Releases](https://github.com/ZacWild/LED-ratio-Tool/releases). `desktop/package-lock.json` is kept in sync.
 - The two delivery forms evolve and version independently; the full change history is in [`CHANGELOG.md`](CHANGELOG.md).
 
 ---

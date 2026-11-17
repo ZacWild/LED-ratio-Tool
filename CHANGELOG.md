@@ -9,13 +9,13 @@
 版本号按**交付形态**独立记录：
 
 - **HTML 离线版**：仓库根目录 `VERSION` 文件（纯文本，当前 `1.0.1`）；
-- **Windows 桌面版**：[`desktop/package.json`](desktop/package.json) 的 `version` 字段（当前 `1.3.0`，开发中 / 未发布；最新正式发行版为 `1.2.0`）。
+- **Windows 桌面版**：[`desktop/package.json`](desktop/package.json) 的 `version` 字段（当前 `1.3.0`，**已正式发布**，见 [Release v1.3.0](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.3.0)）。
 
 ---
 
-## [1.3.0] — 2026-11-05 ｜ Windows 桌面版（功能版本 · 开发中）
+## [1.3.0] — 2026-11-05 ｜ Windows 桌面版（功能版本 · 已正式发布）
 
-> 🟡 **状态：功能分支 `feature/desktop-v1.3.0-pitch-resolution` 开发完成待评审。未合并 `main`、未打 Tag、未建 Release、未上传发行文件。**
+> ✅ **状态：已合并 `main` 并正式发行（2026-11-17，Tag `v1.3.0`，[GitHub Release](https://github.com/ZacWild/LED-ratio-Tool/releases/tag/v1.3.0)）**：Windows x64，NSIS 安装版 + Portable 便携版，附 SHA-256 校验清单；无代码签名。
 > 基线为远端 `main` 实际 HEAD `ea3f7b0814e18f298dd9634a55db88395acb742e`（任务书所列 `4f44aa3` 为 v1.2.0 tag，非当时 `main` HEAD）。
 > 本条目为 **MINOR**（向后兼容的新功能）。**HTML 离线版保持 1.0.1、零改动**；桌面新增能力不回灌 HTML 版。
 > 交互结构与计算结果布局方案先于实现提交，见 [`desktop/V1.3.0-LAYOUT-PROPOSAL.md`](desktop/V1.3.0-LAYOUT-PROPOSAL.md)（提交 `2b047b5`）。
@@ -74,11 +74,11 @@
 
 **既有测试口径同步（非回归，按任务书要求）**：`probe-px-unit.cjs` 的 PX-05 / PX-07 由 v1.2.0 的「1px=1mm」与「px→m 反算」改为「按 P 换算」与「px→m 恢复原始物理尺寸」，保持 10 项总数与 CI 新鲜度门禁不变；`desktop-suite.mjs` / `p7-acceptance.mjs` 的 settings 白名单增加可选键 `pixelPitchMm`；`desktop-suite.mjs` 的 `domFocusOrder()` 基线扩展为「纳入原生可聚焦的 `<summary>`、排除闭合 `<details>` 内的后代」——因新增的两个默认折叠结果模块引入了 `<summary>` 停靠点，而 Chromium 的 `content-visibility:hidden` 让折叠内容里的输入框仍有非零 `offsetWidth`，旧枚举会把它们误算进 DOM 顺序。**这是让基线对齐真实 Chromium Tab 行为，不是放宽或跳过 `TC-D-19` 断言**（本地 Chrome 复现：修正后前 40 项与真实 Tab 序列逐项一致）。
 
-### 已知问题与未完成项
+### 已知问题与未完成项（发行时状态更新，2026-11-17）
 
-1. **未发布**：无 Tag、无 Release、无 v1.3.0 发行文件；PR 不自行合并。
-2. **Visual Regression 三档基线未刷新**：结果区新增两个默认折叠模块，首屏多两行标题，基线需经授权 `--accept` 后刷新；未刷新前**不宣称该项通过**。
-3. **Electron 相关回归本机不可执行**（见上表），需 CI 与真机验收补齐。
+1. ~~**未发布**：无 Tag、无 Release、无 v1.3.0 发行文件~~ → ✅ **已解决**：Tag `v1.3.0` 与 GitHub Release 已创建，发行文件已上传。
+2. ~~**Visual Regression 三档基线未刷新**~~ → ✅ **已解决**（S9-02）：差异 100% 归因 v1.3.0 预期 UI 变更（使用指南卡 / 舞台布局重排 / 面板 ⓘ 图标），经授权 `--accept` 刷新基线并保留新旧证据；复验三档 PASS（0.0000%），比对器负控 5/5。
+3. ~~**Electron 相关回归本机不可执行**~~ → ✅ **已解决**：真实 Windows 环境完成桌面套件 93/93、Portable 16/16、安装/卸载 18/18、Fuses 16/16（S9-03 / S9-05 / S9-06）。
 4. **本机 `test:policy` 的 A-2 项（已解决）**：浅克隆默认不带本地 `feature/desktop-windows` 分支引用（远端分支存在），曾使本地状态审计报「受保护分支缺失」。已把该远端分支只读取到本地引用后复跑，`test:policy` 全绿（A-1 / A-2 / A-3 / B-1 通过）；该操作仅影响本地检出，不推送、不改远端，属检出状态而非仓库违规。
 5. **P 值估算为理论值**，不代表控制器 / 播放服务器已确认分辨率；箱体核验不连接供应商数据库。
 6. **DOM 层取证不是 Electron E2E 替代品**（边界见 CI 步骤注释）。
@@ -127,7 +127,7 @@
 - 真实 Windows 环境（P7-5）：安装·卸载·覆盖升级（1.0.0→1.1.0）、注册表卸载项、设置持久化、便携版断网，28/28；便携版人工双击 7/7（2026-11-03）。
 - 高 DPI：100% / 125% / 150% 三档真机实测通过（主屏 + 副屏独立四边核验 6/6）。
 - 安全：静态审计 47/47；Electron Fuse / ASAR 产物资证实证 16/16。
-- 已知限制：首发**未签名**（项目负责人已接受）；GitHub Release 尚未创建。
+- 已知限制：**未签名**（项目负责人已接受，开源发行既定方案）；SmartScreen 可能提示「未知发布者」。
 
 ### 与 HTML 版的关系
 
@@ -348,7 +348,7 @@ m / cm / mm 切换组视觉宽 108 → 118 px，换取触屏命中区达标。
 
 | 版本 | 交付形态 | 日期 | 摘要 |
 | --- | --- | --- | --- |
-| **1.3.0** | Windows 桌面版 | 2026-11-05 | **开发中 / 未发布**：全局 LED 像素间距 P、真实 PX 换算、原生分辨率理论估算、箱体规格核验、settings 增量兼容、新增 CI 门禁 |
+| **1.3.0** | Windows 桌面版 | 2026-11-05 | **已发布（2026-11-17）**：全局 LED 像素间距 P、真实 PX 换算、原生分辨率理论估算、箱体规格核验、settings 增量兼容、新增 CI 门禁 |
 | 1.2.0 | Windows 桌面版 | 2026-11-04 | 已发布：px 输入单位（v1.2.0 的 1 px = 1 mm，v1.3.0 已移除）、步进按钮符号居中、正式发行包 |
 | 1.1.0 | Windows 桌面版 | 2026-11-03 | 已发布：Electron 桌面版首个正式版本（新交付形态）、NSIS + Portable、Windows CI 门禁 |
 | 1.0.1 | HTML 离线版 | 2026-10-28 | 缺陷修复与文案订正：24 个控件触屏命中区扩至 36x36、桌面端焦点顺序对齐视觉、预设列表显示真实比例与偏差、候选卡标签口径明确、单位切换组加宽 |
