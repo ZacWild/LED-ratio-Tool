@@ -36,7 +36,10 @@ function loadComparator() {
   if (!marker.test(src)) throw new Error('未找到 main() 调用锚点，无法提取比对器');
   const patched = src.replace(marker,
     'export { decodePng, encodePng, comparePixels, MASKS, THRESHOLD_RATIO };');
-  const tmp = path.join(process.env.TEMP || '.', `vr-selfcheck-${process.pid}.mjs`);
+  // 🔴 必须写在 test/ 目录内（与 visual-regression.mjs 同级）：
+  //    被提取源码里的 require('./harness/visual-lib.cjs') 以本文件所在目录
+  //    解析；写到 %TEMP% 会导致 ./harness/ 相对路径失效（存量缺陷修复）。
+  const tmp = path.join(__dirname, `.vr-selfcheck-${process.pid}.mjs`);
   fs.writeFileSync(tmp, patched, 'utf8');
   return import(pathToFileURL(tmp).href).then((m) => ({ m, tmp }));
 }

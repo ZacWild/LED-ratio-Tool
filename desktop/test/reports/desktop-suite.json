@@ -1,22 +1,22 @@
 {
   "meta": {
-    "generatedAt": "2026-11-07T00:23:46.078Z",
+    "generatedAt": "2026-11-17T03:46:46.176Z",
     "electron": "45.1.0",
     "node": "v22.22.2",
     "platform": "win32",
     "env": {
       "display": {
-        "id": 2231160821,
-        "label": "S2719DGF",
+        "id": 4200230393,
+        "label": "LEN P27q-10",
         "scaleFactor": 1,
         "workArea": {
-          "x": 0,
-          "y": 32,
+          "x": 2560,
+          "y": 48,
           "width": 2560,
-          "height": 1408
+          "height": 1392
         },
         "bounds": {
-          "x": 0,
+          "x": 2560,
           "y": 0,
           "width": 2560,
           "height": 1440
@@ -27,29 +27,29 @@
         }
       },
       "workArea": {
-        "x": 0,
-        "y": 32,
+        "x": 2560,
+        "y": 48,
         "width": 2560,
-        "height": 1408
+        "height": 1392
       },
       "effectiveWorkArea": {
-        "x": 0,
-        "y": 32,
+        "x": 2560,
+        "y": 48,
         "width": 2560,
-        "height": 1408
+        "height": 1392
       },
       "clamped": false,
       "maxClientArea": {
         "width": 2560,
-        "height": 1408
+        "height": 1392
       },
       "realClientArea": {
         "width": 2560,
-        "height": 1408
+        "height": 1392
       },
       "screenAvail": {
         "width": 2560,
-        "height": 1408
+        "height": 1392
       },
       "dpr": 1,
       "heightTier": "standard",
@@ -310,7 +310,7 @@
       "target": "每次改输入后，结果区 DOM 在 100ms 内完成更新",
       "input": "连续 5 次改输入宽度",
       "expect": "5 次延迟全部 ≤100ms",
-      "actual": "各次延迟=[3.2999999821186066, 3.7000000178813934, 3.699999988079071, 4.199999988079071, 4.699999988079071] ms 最大=4.699999988079071ms",
+      "actual": "各次延迟=[2.7999999970197678, 3, 2.5, 2.7000000029802322, 3] ms 最大=3ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -479,7 +479,7 @@
       "target": "工作区不足时判定 heightTier ≥2 并记录（不要求收纳行为）",
       "input": "当前工作区",
       "expect": "heightTier 判定可用",
-      "actual": "heightTier=1 workArea=2560×1408",
+      "actual": "heightTier=1 workArea=2560×1392",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -557,7 +557,7 @@
       "target": "schemaVersion/tolerancePercent/createdAt/updatedAt（+ 可选 pixelPitchMm）；无其他键",
       "input": "写入容差后读文件",
       "expect": "键集合 ⊆ 5 键白名单",
-      "actual": "键=[\"schemaVersion\",\"tolerancePercent\",\"createdAt\",\"updatedAt\"] 白名单外=[]",
+      "actual": "键=[\"schemaVersion\",\"tolerancePercent\",\"createdAt\",\"updatedAt\",\"pixelPitchMm\"] 白名单外=[]",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -778,7 +778,7 @@
       "target": "超长含字母串 → ER-02 逐字；超长纯数字串 → 不崩溃、无 NaN/Infinity、后续操作 ≤500ms",
       "input": "宽 = \"9\".repeat(60) + \"abc\"；再 = \"9\".repeat(20)",
       "expect": "ER-02 逐字 + 纯数字串无 NaN 且可继续操作",
-      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=3.5ms",
+      "actual": "含字母串 errW=\"尺寸必须是有效数字（最多一位小数点）\"｜纯数字串 ratio=24999999999999995904.0000:1 无NaN=true｜后续操作=2.5ms",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
@@ -1259,7 +1259,7 @@
       "target": "焦点在舞台内 → 切到第③档 → 焦点迁移到 EL-ST-16，出现 400ms 高亮，全程不落 body",
       "input": "焦点置于舞台工具（.stage-mode-segment）后缩到 1440×600",
       "expect": "焦点=EL-ST-16 且有高亮类；无 body 焦点",
-      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1794011016627}",
+      "actual": "迁移前焦点=segmented__item stage-mode-segment｜迁移后焦点=EL-ST-16｜400ms高亮=true｜落body=false｜台账={\"kind\":\"stage\",\"target\":\"stage-summary__toggle is-just-migrated\",\"at\":1794887196833}",
       "evidence": "reports/desktop-suite.json",
       "blocked": false,
       "note": "",
