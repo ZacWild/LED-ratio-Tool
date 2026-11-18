@@ -68,8 +68,10 @@ function pickOnly(obj, whitelist) {
  * @param {string} deps.appVersion
  * @param {string} deps.coreVersion
  * @param {string} deps.htmlVersion
+ * @param {(locale: string) => void} [deps.onLocaleChange] locale 落盘成功后的即时回调
+ *   （S10-R9：原生菜单随语言重挂用；仍在既有 8 通道内完成，SEC-07 不变）
  */
-function registerIpc({ mainWindow, userDataDir, appVersion, coreVersion, htmlVersion }) {
+function registerIpc({ mainWindow, userDataDir, appVersion, coreVersion, htmlVersion, onLocaleChange }) {
   const handle = (channel, fn) => {
     ipcMain.handle(channel, async (event, payload) => {
       try {
@@ -91,10 +93,16 @@ function registerIpc({ mainWindow, userDataDir, appVersion, coreVersion, htmlVer
 
   /* 2. 写设置
    * v1.3.0：在既有通道内增 1 个可选字段 pixelPitchMm（LED 像素间距）。
+   * S10-R9：在既有通道内再增 1 个可选字段 locale（界面语言，白名单 zh-CN/en-US）。
    * 通道名、preload 暴露接口、handler 数量、安全策略全部不变。 */
   handle(CHANNELS.SETTINGS_SET, (payload) => {
-    const picked = pickOnly(payload, ['tolerancePercent', 'pixelPitchMm']);
-    return writeSettings(userDataDir, picked);
+    const picked = pickOnly(payload, ['tolerancePercent', 'pixelPitchMm', 'locale']);
+    const r = writeSettings(userDataDir, picked);
+    // S10-R9：locale 落盘成功 → 即时通知重挂原生菜单（不新增 IPC 通道）。
+    if (r && r.code === 0 && typeof picked.locale === 'string' && onLocaleChange) {
+      onLocaleChange(picked.locale);
+    }
+    return r;
   });
 
   /* 3. 写剪贴板（只写不读，SEC-10） */

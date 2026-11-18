@@ -13,9 +13,35 @@
  * 🔒 每个菜单项必须有真实动作。不可用项置灰并注明原因。
  * 🔒 命令字符串是**主进程 → 渲染层**的唯一契约；
  *    渲染层在 window.__desktopMenu(command) 中逐一对应，名字必须完全一致。
+ *
+ * i18n（S10-R9 缺陷修复）：
+ *   菜单标签与渲染层共享同一语言包真源（renderer/i18n/locales/*），
+ *   按当前 locale 取值（menu.* / main.* 键），缺失时回退 zh-CN 原文。
+ *   语言包经 require() 在 Node 侧消费（IIFE 注册到 module.exports.LedI18NPack）。
  */
 
 const { app, Menu } = require('electron');
+
+/* ---------------------------------------------------------------------------
+ * 语言包加载（与渲染层同一真源；require 幂等，模块缓存保证只解析一次）
+ * ------------------------------------------------------------------------ */
+const LOCALE_PACKS = {
+  'zh-CN': require('../renderer/i18n/locales/zh-CN.js').LedI18NPack['zh-CN'],
+  'en-US': require('../renderer/i18n/locales/en-US.js').LedI18NPack['en-US'],
+};
+
+/** 支持的语言白名单（与 renderer/i18n/runtime.js SUPPORTED 一致） */
+const SUPPORTED_LOCALES = Object.freeze(['zh-CN', 'en-US']);
+
+/**
+ * 按 locale 取菜单文案。回退链：指定语言 → zh-CN → 键名本身。
+ * @param {string} key 语言包键（menu.* / main.*）
+ * @param {string} locale 'zh-CN' | 'en-US'
+ */
+function menuLabel(key, locale) {
+  const pack = LOCALE_PACKS[SUPPORTED_LOCALES.includes(locale) ? locale : 'zh-CN'] || {};
+  return pack[key] || (LOCALE_PACKS['zh-CN'] && LOCALE_PACKS['zh-CN'][key]) || key;
+}
 
 /** 命令契约（主进程与渲染层共享，改一处必须改两处） */
 const COMMANDS = Object.freeze({
@@ -60,66 +86,68 @@ function appItem(label, accelerator, command, mainWindow, id) {
 /**
  * @param {object} deps
  * @param {import('electron').BrowserWindow} deps.mainWindow
+ * @param {string} [deps.locale] 当前语言（zh-CN | en-US），缺省 zh-CN
  */
-function buildMenu({ mainWindow }) {
+function buildMenu({ mainWindow, locale }) {
+  const L = (key) => menuLabel(key, locale);
   const template = [
     {
-      label: '文件',
+      label: L('menu.file'),
       submenu: [
         // 🔒 SK-05：Ctrl+C = 复制分辨率（宽×高，无千分位）
-        appItem('复制分辨率', 'Ctrl+C', COMMANDS.COPY_RESOLUTION, mainWindow, 'copy-resolution'),
+        appItem(L('menu.file.copyResolution'), 'Ctrl+C', COMMANDS.COPY_RESOLUTION, mainWindow, 'copy-resolution'),
         // 🔒 SK-06：Ctrl+Shift+C = 复制完整参数（14 段）
-        appItem('复制完整参数', 'Ctrl+Shift+C', COMMANDS.COPY_FULL_PARAMETERS, mainWindow, 'copy-full-parameters'),
+        appItem(L('menu.file.copyFullParameters'), 'Ctrl+Shift+C', COMMANDS.COPY_FULL_PARAMETERS, mainWindow, 'copy-full-parameters'),
         { type: 'separator' },
         {
-          label: '退出',
+          label: L('menu.file.exit'),
           accelerator: 'Alt+F4',
           click: () => app.quit(),
         },
       ],
     },
     {
-      label: '编辑',
+      label: L('menu.edit'),
       submenu: [
         // 🔒 SK-03：Ctrl+B = 宽高互换
-        appItem('宽高互换', 'Ctrl+B', COMMANDS.SWAP, mainWindow, 'swap'),
+        appItem(L('menu.edit.swap'), 'Ctrl+B', COMMANDS.SWAP, mainWindow, 'swap'),
         // 🔒 SK-04：Ctrl+R = 恢复默认值（本菜单整体替换了 Electron 默认菜单，
         //    默认的「重新加载 Ctrl+R」项已不存在 → 不会刷新窗口）
-        appItem('恢复默认值', 'Ctrl+R', COMMANDS.RESET_DEFAULTS, mainWindow, 'reset-defaults'),
+        appItem(L('menu.edit.resetDefaults'), 'Ctrl+R', COMMANDS.RESET_DEFAULTS, mainWindow, 'reset-defaults'),
         { type: 'separator' },
         // 🔒 SK-07：Ctrl+, = 设置
-        appItem('设置…', 'Ctrl+,', COMMANDS.OPEN_SETTINGS, mainWindow, 'open-settings'),
+        appItem(L('menu.edit.settings'), 'Ctrl+,', COMMANDS.OPEN_SETTINGS, mainWindow, 'open-settings'),
       ],
     },
     {
-      label: '视图',
+      label: L('menu.view'),
       submenu: [
         // 🔒 SK-01：Ctrl+1~4 = 切画布模式
-        appItem('按宽度', 'Ctrl+1', COMMANDS.MODE_WIDTH, mainWindow, 'mode-width'),
-        appItem('按高度', 'Ctrl+2', COMMANDS.MODE_HEIGHT, mainWindow, 'mode-height'),
-        appItem('常用规格', 'Ctrl+3', COMMANDS.MODE_PRESET, mainWindow, 'mode-preset'),
-        appItem('整数倍画布', 'Ctrl+4', COMMANDS.MODE_CUSTOM, mainWindow, 'mode-custom'),
+        appItem(L('menu.view.modeWidth'), 'Ctrl+1', COMMANDS.MODE_WIDTH, mainWindow, 'mode-width'),
+        appItem(L('menu.view.modeHeight'), 'Ctrl+2', COMMANDS.MODE_HEIGHT, mainWindow, 'mode-height'),
+        appItem(L('menu.view.modePreset'), 'Ctrl+3', COMMANDS.MODE_PRESET, mainWindow, 'mode-preset'),
+        appItem(L('menu.view.modeCustom'), 'Ctrl+4', COMMANDS.MODE_CUSTOM, mainWindow, 'mode-custom'),
         { type: 'separator' },
         // 🔒 SK-02：Ctrl+Q = 比例来源循环
-        appItem('比例来源循环', 'Ctrl+Q', COMMANDS.CYCLE_RATIO_SOURCE, mainWindow, 'cycle-ratio-source'),
+        appItem(L('menu.view.cycleRatioSource'), 'Ctrl+Q', COMMANDS.CYCLE_RATIO_SOURCE, mainWindow, 'cycle-ratio-source'),
         // IX-12：两栏档展开/折叠舞台；单栏/三栏档置灰并注明原因
-        appItem('展开/折叠舞台', null, COMMANDS.TOGGLE_STAGE, mainWindow, 'toggle-stage'),
+        appItem(L('menu.view.toggleStage'), null, COMMANDS.TOGGLE_STAGE, mainWindow, 'toggle-stage'),
         // 视图：复位栏宽（恢复 A=320 / C=400）
-        appItem('复位栏宽', null, COMMANDS.RESET_COLUMNS, mainWindow, 'reset-columns'),
+        appItem(L('menu.view.resetColumns'), null, COMMANDS.RESET_COLUMNS, mainWindow, 'reset-columns'),
         { type: 'separator' },
         {
           id: 'layout-tier',
-          label: '布局档位：三栏',
+          label: L('menu.view.layoutTier'),
           enabled: false,
         },
       ],
     },
     {
-      label: '帮助',
+      label: L('menu.help'),
       submenu: [
         // 🔒 SK-08 / SK-09：Ctrl+/ 与 F1 = 快捷键帮助
-        appItem('快捷键帮助', 'F1', COMMANDS.SHORTCUT_HELP, mainWindow, 'shortcut-help'),
-        appItem('关于 LED Ratio Tool', null, COMMANDS.ABOUT, mainWindow, 'about'),
+        appItem(L('menu.help.shortcutHelp'), 'F1', COMMANDS.SHORTCUT_HELP, mainWindow, 'shortcut-help'),
+        appItem(L('menu.help.about'), null, COMMANDS.ABOUT, mainWindow, 'about'),
       ],
     },
   ];
@@ -143,4 +171,4 @@ function send(mainWindow, command) {
     });
 }
 
-module.exports = { buildMenu, COMMANDS };
+module.exports = { buildMenu, menuLabel, COMMANDS, SUPPORTED_LOCALES };

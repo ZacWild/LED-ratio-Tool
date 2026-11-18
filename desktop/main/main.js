@@ -24,7 +24,8 @@ const { app, BrowserWindow, Menu, protocol, net, screen, shell } = require('elec
 const { applyStoragePaths, APP_ID } = require('./paths');
 const { buildCSP } = require('./csp');
 const { registerIpc } = require('./ipc');
-const { buildMenu } = require('./menu');
+const { buildMenu, menuLabel, SUPPORTED_LOCALES } = require('./menu');
+const { readSettings } = require('./settings-store');
 const {
   WINDOW_GEOMETRY,
   computeContentBudget,
@@ -405,6 +406,23 @@ function installSecurityInterceptors() {
 }
 
 /* ==========================================================================
+   原生菜单语言（S10-R9 缺陷修复）
+   --------------------------------------------------------------------------
+   🔒 菜单标签真源 = renderer/i18n/locales/*（menu.* / main.* 键），主进程
+      只按 locale 取值，不自建第三份字典。
+   🔒 locale 真源 = settings.json（R1）；启动读取，切语言时经既有
+      settings.set 通道落盘成功后即时重挂，不新增 IPC 通道（SEC-07）。
+   ========================================================================== */
+let currentLocale = 'zh-CN';
+
+/** 按当前语言整单重挂原生菜单（幂等；命令契约 COMMANDS 不变）。 */
+function applyMenu(locale) {
+  currentLocale = SUPPORTED_LOCALES.includes(locale) ? locale : 'zh-CN';
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  Menu.setApplicationMenu(buildMenu({ mainWindow, locale: currentLocale }));
+}
+
+/* ==========================================================================
    菜单状态同步（D-05 §4「置灰」规则）
    --------------------------------------------------------------------------
    🔒 硬规则：任何在当前状态下不可用的菜单项必须**置灰**，鼠标悬停给出原因，
@@ -415,12 +433,17 @@ function installSecurityInterceptors() {
    ========================================================================== */
 function syncMenuState() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
-  const menu = Menu.getApplicationMenu();
-  if (!menu) return;
   mainWindow.webContents
     .executeJavaScript('window.__desktopMenuState ? window.__desktopMenuState() : null', true)
     .then((state) => {
       if (!state) return;
+      // S10-R9：渲染层 locale 与菜单语言漂移 → 立即整单重挂（覆盖 localStorage
+      // 单独变更等旁路；正常切语言路径由 ipc.js onLocaleChange 即时重挂，此为兜底）
+      if (state.locale && state.locale !== currentLocale) {
+        applyMenu(state.locale);
+      }
+      const menu = Menu.getApplicationMenu();
+      if (!menu) return;
       const set = (id, props) => {
         const item = menu.getMenuItemById(id);
         if (!item) return;
@@ -430,13 +453,15 @@ function syncMenuState() {
       // 载荷为 null 时置灰（D-05 §4）
       set('copy-resolution', { enabled: !!state.canCopyResolution });
       set('copy-full-parameters', { enabled: !!state.canCopyFull });
-      // 舞台折叠/展开只在两栏档可用；单栏/三栏档置灰并注明原因
+      // 舞台折叠/展开只在两栏档可用；单栏/三栏档置灰并注明原因（文案随语言）
       set('toggle-stage', {
         enabled: !!state.canToggleStage,
-        label: state.canToggleStage ? '展开/折叠舞台' : '展开/折叠舞台（当前布局档位无独立舞台面板）',
+        label: state.canToggleStage
+          ? menuLabel('menu.view.toggleStage', currentLocale)
+          : menuLabel('main.toggleStageUnavailable', currentLocale),
       });
-      // 只读项：布局档位
-      set('layout-tier', { label: '布局档位：' + (state.layoutLabel || '—') });
+      // 只读项：布局档位（前缀随语言，档位文案由渲染层本地化后回传）
+      set('layout-tier', { label: menuLabel('main.layoutTier', currentLocale) + (state.layoutLabel || '—') });
     })
     .catch(() => {
       /* 渲染层未就绪时忽略 */
@@ -661,15 +686,21 @@ app.whenReady().then(() => {
   //    settings.get 会得到 "No handler registered"（实测教训）。
   const win = createWindow();
 
+  // S10-R9：启动即按 settings.json 的 locale 挂菜单（R1 真源；缺失默认 zh-CN）
+  const savedLocale = readSettings(storage.userData).settings.locale;
+  currentLocale = SUPPORTED_LOCALES.includes(savedLocale) ? savedLocale : 'zh-CN';
+
   registerIpc({
     mainWindow: win,
     userDataDir: storage.userData,
     appVersion: app.getVersion(),
     coreVersion: 'core@1.0.1',
     htmlVersion: HTML_VERSION,
+    // S10-R9：locale 落盘成功 → 即时重挂菜单（零延迟切语言）
+    onLocaleChange: (locale) => applyMenu(locale),
   });
 
-  Menu.setApplicationMenu(buildMenu({ mainWindow: win }));
+  Menu.setApplicationMenu(buildMenu({ mainWindow: win, locale: currentLocale }));
 
   // 🔴 加载放在 IPC 注册与菜单设置之后 —— 保证渲染层首次调用 IPC 时 handler 就绪
   loadMainDocument(win);
@@ -686,7 +717,7 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       const w = createWindow();
-      Menu.setApplicationMenu(buildMenu({ mainWindow: w }));
+      Menu.setApplicationMenu(buildMenu({ mainWindow: w, locale: currentLocale }));
       loadMainDocument(w);
     }
   });

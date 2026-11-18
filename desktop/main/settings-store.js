@@ -40,7 +40,24 @@ const ALLOWED_KEYS = Object.freeze([
   'createdAt',
   'updatedAt',
   'pixelPitchMm',
+  // S10-R9 缺陷修复增量键：界面语言偏好（R1 settings.json 唯一真源）。
+  // 缺失 = 未配置（默认 zh-CN）；schemaVersion 保持 1，v1.2.0 读取时忽略该键、
+  // 合并写保留原文件既有键，回退兼容与 pixelPitchMm 同一模式。
+  'locale',
 ]);
+
+/** 支持的语言白名单（与 renderer/i18n/runtime.js、main/menu.js 一致） */
+const SUPPORTED_LOCALES = Object.freeze(['zh-CN', 'en-US']);
+
+/**
+ * locale 字段校验：只允许 'zh-CN' | 'en-US' 或「未配置」。
+ * 与 readPitchValue 同一契约：{ok, value|null}。
+ */
+function readLocaleValue(raw) {
+  if (raw === null || raw === undefined || raw === '') return { ok: true, value: null };
+  if (typeof raw === 'string' && SUPPORTED_LOCALES.includes(raw)) return { ok: true, value: raw };
+  return { ok: false, value: null };
+}
 
 /**
  * P 值字段校验：只允许「大于 0 的有限数值」或「未配置」。
@@ -118,6 +135,11 @@ function normalize(raw) {
   const pitch = readPitchValue(raw.pixelPitchMm);
   out.pixelPitchMm = pitch.ok ? pitch.value : null;
 
+  // S10-R9 增量字段：缺失或非法都视为「未配置」（默认 zh-CN），不整体丢弃、
+  // 不影响容差与 P 值结果；非法值只静默降级为 null。
+  const loc = readLocaleValue(raw.locale);
+  out.locale = loc.ok ? loc.value : null;
+
   return { ok: badFields.length === 0, value: out, badFields };
 }
 
@@ -129,7 +151,7 @@ function normalize(raw) {
 function readSettings(userDataDir) {
   const now = new Date().toISOString();
   const fallback = {
-    settings: { schemaVersion: SCHEMA_VERSION, tolerancePercent: DEFAULT_TOLERANCE, pixelPitchMm: null },
+    settings: { schemaVersion: SCHEMA_VERSION, tolerancePercent: DEFAULT_TOLERANCE, pixelPitchMm: null, locale: null },
     code: 0,
     badFields: [],
   };
@@ -162,6 +184,7 @@ function readSettings(userDataDir) {
       schemaVersion: SCHEMA_VERSION,
       tolerancePercent: norm.value.tolerancePercent,
       pixelPitchMm: norm.value.pixelPitchMm,
+      locale: norm.value.locale,
       createdAt,
       updatedAt: now,
     },
@@ -208,6 +231,13 @@ function writeSettings(userDataDir, patch) {
     return { code: 4002, message: 'pixelPitchMm 必须是大于 0 的有限数或未配置', data: null };
   }
 
+  // S10-R9 增量字段 locale：合法 → 写入；未配置 → 不写该键（保持精确键形态）；
+  // 非法 → 拒绝本次写入，绝不落盘脏值。未提供该字段时保留原文件中的既有值。
+  const localePatch = ('locale' in picked) ? readLocaleValue(picked.locale) : null;
+  if (localePatch && !localePatch.ok) {
+    return { code: 4002, message: 'locale 必须是 zh-CN 或 en-US', data: null };
+  }
+
   const prev = readSettings(userDataDir);
 
   // 🔒 升级兼容：以「原文件已有内容」为底稿合并，而不是从零重建。
@@ -229,6 +259,10 @@ function writeSettings(userDataDir, patch) {
   if (pitchPatch) {
     if (pitchPatch.value === null) delete final.pixelPitchMm;
     else final.pixelPitchMm = pitchPatch.value;
+  }
+  if (localePatch) {
+    if (localePatch.value === null) delete final.locale;
+    else final.locale = localePatch.value;
   }
 
   const target = settingsPath(userDataDir);

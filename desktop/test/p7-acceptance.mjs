@@ -468,7 +468,8 @@ async function main() {
       { settings: onDisk });
     const keys = onDisk ? Object.keys(onDisk) : [];
     // v1.3.0：pixelPitchMm 为可选增量字段；schemaVersion 保持 1 以支持 v1.2.0 回退。
-    const allowed = ['schemaVersion', 'tolerancePercent', 'createdAt', 'updatedAt', 'pixelPitchMm'];
+    // S10-R9：locale 为可选增量字段（界面语言偏好，缺失 = 默认 zh-CN）。
+    const allowed = ['schemaVersion', 'tolerancePercent', 'createdAt', 'updatedAt', 'pixelPitchMm', 'locale'];
     rec('SET-02', 'settings.json 只含白名单键（无冗余字段）', keys.every((k) => allowed.includes(k)),
       `键：${keys.join(', ')}`, { keys });
     await run1.close();

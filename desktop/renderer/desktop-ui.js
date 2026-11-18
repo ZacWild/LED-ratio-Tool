@@ -421,9 +421,19 @@
   }
 
   function tierLabel(t) {
-    if (t === TIER_THREE) return '三栏';
-    if (t === TIER_TWO) return '两栏（舞台折叠为摘要）';
-    return '三面板纵向堆叠（窄窗口）';
+    if (t === TIER_THREE) return tierMsg('tier.three', '三栏');
+    if (t === TIER_TWO) return tierMsg('tier.two', '两栏（舞台折叠为摘要）');
+    return tierMsg('tier.stacked', '三面板纵向堆叠（窄窗口）');
+  }
+
+  /**
+   * tier 文案取值（S10-R9）：走语言包 tier.* 键，无 i18n 时回退 zh-CN 原文。
+   * 与 led-pitch.js 的 msg() 同一回退模式。
+   */
+  function tierMsg(key, fallback) {
+    var I = window.LedI18N;
+    if (I && typeof I.t === 'function') return I.t(key);
+    return fallback;
   }
 
   /**
@@ -434,14 +444,14 @@
   function layoutTierLabel() {
     var base;
     if (tier === TIER_THREE) {
-      base = heightTier === HEIGHT_TIER_TIGHT ? '两栏（舞台折叠为摘要）' : '三栏';
+      base = heightTier === HEIGHT_TIER_TIGHT ? tierMsg('tier.two', '两栏（舞台折叠为摘要）') : tierMsg('tier.three', '三栏');
     } else if (tier === TIER_TWO) {
-      base = '两栏（舞台折叠为摘要）';
+      base = tierMsg('tier.two', '两栏（舞台折叠为摘要）');
     } else {
-      base = '三面板纵向堆叠（窄窗口）';
+      base = tierMsg('tier.stacked', '三面板纵向堆叠（窄窗口）');
     }
-    if (heightTier === HEIGHT_TIER_COMPACT) return base + ' · 紧凑高度';
-    if (heightTier === HEIGHT_TIER_TIGHT) return base + ' · 极低高度';
+    if (heightTier === HEIGHT_TIER_COMPACT) return base + tierMsg('tier.suffix.compact', ' · 紧凑高度');
+    if (heightTier === HEIGHT_TIER_TIGHT) return base + tierMsg('tier.suffix.tight', ' · 极低高度');
     return base;
   }
 
@@ -2093,6 +2103,8 @@
       layoutLabel: layoutTierLabel(),
       tier: tier,
       heightTier: heightTier,
+      // S10-R9：主进程据此检测菜单语言漂移并重挂原生菜单
+      locale: (globalThis.LedI18N && globalThis.LedI18N.getLocale) ? globalThis.LedI18N.getLocale() : 'zh-CN',
     };
   };
 

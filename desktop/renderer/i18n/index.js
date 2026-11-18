@@ -395,12 +395,28 @@
   //    settings.json 是跨进程持久化真源，localStorage 只是缓存。
   //    启动后异步校准，不阻塞首屏。若 locale 变化，setLocale 会触发
   //    applyToDom()（通道 A）+ onLocaleChange（通道 B）自动重刷，无需重新打标。
+  //    S10-R9 修复：补上写入链路 —— 此前只读不写，settings.json 里永远没有
+  //    locale，校准是死代码，主进程也无法据此挂载对应语言的原生菜单。
+  function persistLocaleToSettings(code) {
+    if (!(global.ledApi && global.ledApi.settingsSet && global.ledApi.settingsGet)) return;
+    global.ledApi.settingsGet().then(function (r) {
+      var t = r && r.data && r.data.tolerancePercent;
+      if (typeof t !== 'number') return;
+      // pixelPitchMm 不在载荷内 → writeSettings 保留原键（绝不误删 P 值）
+      return global.ledApi.settingsSet({ tolerancePercent: t, locale: code });
+    }).catch(function () { /* settings.json 不可用时静默回退 localStorage */ });
+  }
   if (global.ledApi && global.ledApi.settingsGet) {
     global.ledApi.settingsGet().then(function (r) {
       var saved = r && r.data && r.data.locale;
       if (saved && saved !== I18N.getLocale()) {
         I18N.setLocale(saved);
+      } else if (!saved) {
+        // 升级首跑：settings.json 尚无 locale → 用当前生效值播种真源
+        persistLocaleToSettings(I18N.getLocale());
       }
     }).catch(function () { /* settings.json 不可用时静默回退 localStorage */ });
   }
+  // 语言切换 → 落盘 settings.json（主进程据以即时重挂原生菜单）
+  I18N.onLocaleChange(persistLocaleToSettings);
 })(typeof window !== 'undefined' ? window : this);
